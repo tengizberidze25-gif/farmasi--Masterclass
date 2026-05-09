@@ -62,6 +62,11 @@ function doGet(e) {
     }
 
     const config = readConfig(configSheet);
+
+    // 🔒 If event_date has passed, flip registration_status to 'closed' in the Sheet.
+    // This keeps the badge accurate even between manual edits.
+    autoCloseIfEventDatePassed(configSheet, config);
+
     const data = regSheet.getDataRange().getValues();
     const rows = data.slice(1).filter(r => r[0]);
 
@@ -168,6 +173,11 @@ function handleRegister(params) {
     const configSheet = ss.getSheetByName(CONFIG_SHEET_NAME);
 
     const config = readConfig(configSheet);
+
+    // 🔒 Auto-close if event_date has passed before checking status.
+    // Without this, a stale 'open' value in Sheet would let people register
+    // for an event that already happened.
+    autoCloseIfEventDatePassed(configSheet, config);
 
     if (String(config.registration_status || 'open').toLowerCase() !== 'open') {
       return jsonResponse({ ok: false, error: 'Registration is closed' });
@@ -617,6 +627,62 @@ function readConfig(sheet) {
   }
 
   return config;
+}
+
+/**
+ * 🔒 AUTO-CLOSE REGISTRATION when event date has passed.
+ *
+ * Logic: if today (Asia/Tbilisi) is AFTER the configured event_date and
+ * registration_status is still 'open', the function writes 'closed' to the
+ * Config sheet and updates the in-memory `config` object.
+ *
+ * Called from doGet (so the badge always reflects reality) and from
+ * handleRegister (so post-event registration is blocked at the server).
+ * Also triggered by onEdit when the user edits event_date in the sheet,
+ * and by the optional daily time trigger `dailyAutoCloseCheck`.
+ *
+ * @param {Sheet}  configSheet — the Config sheet object
+ * @param {Object} config       — readConfig output (mutated if status changes)
+ * @returns {boolean} true if the status was just changed to 'closed'
+ */
+function autoCloseIfEventDatePassed(configSheet, config) {
+  try {
+    const eventDateStr = String(config.event_date || '').trim();
+    if (!eventDateStr) return false; // no event_date set yet — nothing to do
+
+    // Compare as yyyy-MM-dd strings in Tbilisi timezone — avoids timezone bugs.
+    // Registration stays OPEN through the whole event day; closes the day AFTER.
+    // Change to `>= eventDateStr` if you want it to close at midnight on the event day.
+    const tz = 'Asia/Tbilisi';
+    const todayStr = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd');
+
+    if (todayStr <= eventDateStr) return false; // event hasn't ended yet
+
+    // Event date has passed — flip status to 'closed' if not already
+    const currentStatus = String(config.registration_status || 'open').toLowerCase();
+    if (currentStatus === 'closed') return false; // already closed, nothing to write
+
+    // Find the registration_status row in Config and update column B
+    const data = configSheet.getDataRange().getValues();
+    for (let i = 0; i < data.length; i++) {
+      if (String(data[i][0] || '').trim() === 'registration_status') {
+        configSheet.getRange(i + 1, 2).setValue('closed');
+        config.registration_status = 'closed';
+        Logger.log('🔒 Auto-closed registration: event_date ' + eventDateStr + ' < today ' + todayStr);
+        return true;
+      }
+    }
+
+    // registration_status row didn't exist yet — append it
+    configSheet.appendRow(['registration_status', 'closed']);
+    config.registration_status = 'closed';
+    Logger.log('🔒 Auto-closed registration (appended row): event ' + eventDateStr);
+    return true;
+  } catch (err) {
+    // Never let this throw — it would break registration & the public page.
+    Logger.log('autoCloseIfEventDatePassed error: ' + err);
+    return false;
+  }
 }
 
 function normalizePhone(p) {
@@ -1383,3 +1449,100 @@ function testDayReminder() {
   Logger.log('Run sendReminderDayBefore() manually to test (only works on actual day-before date)');
 }
 
+
+// =================================================================
+// 🔒 AUTO-CLOSE TRIGGERS — set up once, run forever
+// =================================================================
+
+/**
+ * Simple onEdit trigger — fires automatically every time someone edits the Sheet.
+ * No setup required: Apps Script picks up the function name `onEdit` by convention.
+ *
+ * Behaviour: when the user changes `event_date` in the Config sheet, immediately
+ * re-evaluate whether registration should be auto-closed. Useful when you set
+ * a past date (closes immediately) or push the date forward (status stays as-is —
+ * this function only ever closes, never re-opens, by design).
+ */
+function onEdit(e) {
+  try {
+    if (!e || !e.range) return;
+    const sheet = e.range.getSheet();
+    if (sheet.getName() !== CONFIG_SHEET_NAME) return;
+
+    // Only react when column A (key) or column B (value) was edited
+    const col = e.range.getColumn();
+    if (col > 2) return;
+
+    // Read the key in this row (column A) — must be event_date or registration_status
+    const row = e.range.getRow();
+    const key = String(sheet.getRange(row, 1).getValue() || '').trim();
+    if (key !== 'event_date' && key !== 'registration_status') return;
+
+    // Re-read config and run the auto-close check
+    const ss = sheet.getParent();
+    const configSheet = ss.getSheetByName(CONFIG_SHEET_NAME);
+    const config = readConfig(configSheet);
+    autoCloseIfEventDatePassed(configSheet, config);
+  } catch (err) {
+    // Simple onEdit can't write logs visible in Executions list reliably,
+    // but Logger.log still works for active debugging sessions.
+    Logger.log('onEdit error: ' + err);
+  }
+}
+
+/**
+ * Daily auto-close check — designed to be run by a time-driven trigger.
+ *
+ * SETUP (one-time, takes 30 seconds):
+ *   1. Apps Script editor → Triggers (clock icon, left sidebar)
+ *   2. + Add Trigger
+ *   3. Function: dailyAutoCloseCheck
+ *   4. Event source: Time-driven
+ *   5. Type: Day timer → 1am–2am (any time after midnight Tbilisi)
+ *   6. Save
+ *
+ * Why we need this in addition to onEdit + doGet:
+ *   - onEdit fires only when someone edits the sheet
+ *   - doGet only updates the Sheet when someone visits the page
+ *   - The daily trigger guarantees the cell flips to 'closed' even if no
+ *     one visits the site after the event ends.
+ */
+function dailyAutoCloseCheck() {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const configSheet = ss.getSheetByName(CONFIG_SHEET_NAME);
+    if (!configSheet) {
+      Logger.log('dailyAutoCloseCheck: Config sheet missing');
+      return;
+    }
+    const config = readConfig(configSheet);
+    const closed = autoCloseIfEventDatePassed(configSheet, config);
+    Logger.log('dailyAutoCloseCheck: ' + (closed ? 'flipped to closed' : 'no change needed'));
+  } catch (err) {
+    Logger.log('dailyAutoCloseCheck error: ' + err);
+  }
+}
+
+/**
+ * Manual test — run this from the editor to verify auto-close logic
+ * without waiting for a real event date.
+ *
+ * Apps Script editor → function dropdown → testAutoClose → ▶ Run
+ * → check the Logs and the Config sheet's registration_status cell.
+ */
+function testAutoClose() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const configSheet = ss.getSheetByName(CONFIG_SHEET_NAME);
+  const config = readConfig(configSheet);
+
+  Logger.log('Current event_date: ' + (config.event_date || '(empty)'));
+  Logger.log('Current registration_status: ' + (config.registration_status || '(empty)'));
+
+  const tz = 'Asia/Tbilisi';
+  const todayStr = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd');
+  Logger.log('Today (Asia/Tbilisi): ' + todayStr);
+
+  const result = autoCloseIfEventDatePassed(configSheet, config);
+  Logger.log('Auto-close result: ' + (result ? '🔒 closed' : '✓ no change'));
+  Logger.log('After: registration_status = ' + config.registration_status);
+}
