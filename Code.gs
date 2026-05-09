@@ -1,17 +1,18 @@
 /**
  * Farmasi Marketing Masterclass — Premium Backend
- * Google Apps Script Code v2.0
+ * Google Apps Script Code v2.1
  *
  * Sheet structure:
- * - "Registrations": timestamp | first_name | last_name | city | phone | position | ticket_id | tier
+ * - "Registrations": timestamp | first_name | last_name | city | phone | position | ticket_id | tier | seat_number
  * - "Config": key | value
  *
- * Premium features added:
+ * Premium features:
  * - Ticket ID generation (FM-2026-XXXXX format)
  * - Tier badges (Early Bird / VIP / Standard) based on registration order
  * - Registration progress data
  * - Last 5 registrations with masked phones
  * - Telegram bot notifications (optional)
+ * - 🆕 v2.1: Auto-close registration when event_date + event_time has passed
  */
 
 const SHEET_NAME = 'Registrations';
@@ -20,14 +21,12 @@ const CANCELLATIONS_SHEET_NAME = 'Cancellations';  // archive sheet — auto-cre
 
 // 🤖 Telegram Bot (არჩევითი)
 // ⚠️ Token-ი Script Properties-ში დააყენე გასაღებით: TELEGRAM_BOT_TOKEN
-// (Project Settings → Script Properties → Add → TELEGRAM_BOT_TOKEN = 1234567890:AAEhBO...)
-// const TELEGRAM_BOT_TOKEN-ს ღია კოდში აღარ ვიყენებთ — GitHub-ზე ატვირთვისას არ გაჟონავს.
 
 // 📲 SMS settings (bulksms.ge / POSTA GUVERCINI)
 // PRIVATE_KEY and PUBLIC_KEY must be set in Apps Script → Project Settings → Script Properties
 const SMS_API_URL = 'https://api.bulksms.ge/gateway/api/sms/v1/message/send';
-const SMS_DEFAULT_SENDER = 'FARMASI'; // Sender name (must be pre-registered with bulksms.ge)
-const SITE_BASE_URL = 'https://farmasi-masterclass.vercel.app'; // for ticket link in SMS
+const SMS_DEFAULT_SENDER = 'FARMASI';
+const SITE_BASE_URL = 'https://farmasi-masterclass.vercel.app';
 
 // Tier thresholds
 const EARLY_BIRD_LIMIT = 10;  // First 10 = Early Bird
@@ -45,18 +44,18 @@ function doGet(e) {
       return jsonResponse({ ok: false, error: 'Sheets not found' });
     }
 
-    // 🎫 Lookup ticket by ID (called from URL ?action=getTicket&id=FM-2026-00001)
+    // 🎫 Lookup ticket by ID
     const action = e && e.parameter && e.parameter.action;
     if (action === 'getTicket') {
       return handleGetTicket(regSheet, configSheet, e.parameter.id);
     }
 
-    // 🔐 Verify ticket by phone number (used by "ნახვა" button)
+    // 🔐 Verify ticket by phone number
     if (action === 'verifyTicketByPhone') {
       return handleVerifyByPhone(regSheet, configSheet, e.parameter.phone);
     }
 
-    // 📲 Send ticket link via SMS to user's own phone
+    // 📲 Send ticket link via SMS
     if (action === 'sendTicketLink') {
       return handleSendTicketLink(regSheet, e.parameter.phone, e.parameter.id);
     }
@@ -81,7 +80,7 @@ function doGet(e) {
       ? Math.max(0, maxReg - totalRegistrations)
       : null;
 
-    // Occupied seats — column I (index 8) is seat_number
+    // Occupied seats — column I (index 8)
     const occupiedSeats = rows
       .map(r => parseInt(r[8]))
       .filter(n => !isNaN(n) && n > 0);
@@ -101,7 +100,12 @@ function doGet(e) {
         };
       });
 
-    const status = String(config.registration_status || 'open').toLowerCase();
+    // 🆕 Auto-close registration if event has already started/passed.
+    // This overrides the manual `registration_status` value in Config —
+    // even if admin forgot to set it to "closed", expired events are auto-locked.
+    const eventEnded = isEventEnded(config);
+    let status = String(config.registration_status || 'open').toLowerCase();
+    if (eventEnded) status = 'closed';
 
     // Compute progress percentage
     let progressPercent = 0;
@@ -109,12 +113,13 @@ function doGet(e) {
       progressPercent = Math.round((totalRegistrations / maxReg) * 100);
     }
 
-    // Determine current tier (what the next registration would receive)
+    // Determine current tier
     const nextTier = getNextTier(totalRegistrations);
 
     return jsonResponse({
       ok: true,
       status: status,
+      eventEnded: eventEnded,             // 🆕 frontend uses this to show "ღონისძიება დასრულდა" banner
       totalRegistrations: totalRegistrations,
       todayRegistrations: todayRegistrations,
       spotsLeft: spotsLeft,
@@ -149,14 +154,8 @@ function doPost(e) {
 // =================== REGISTER ===================
 function handleRegister(params) {
   // 🔒 Acquire script-level lock to prevent race conditions.
-  // Without this, two simultaneous registrations could:
-  //   - Both pass the seat availability check
-  //   - Both pass the max_registrations check
-  //   - Both write rows → same seat assigned twice OR over-capacity
-  // The lock serializes registrations: each one waits for the previous to finish.
   const lock = LockService.getScriptLock();
   try {
-    // Wait up to 10 seconds for any other registration in progress
     lock.waitLock(10000);
   } catch (e) {
     return jsonResponse({ ok: false, error: 'სერვერი დაკავებულია, სცადეთ ხელახლა' });
@@ -168,6 +167,12 @@ function handleRegister(params) {
     const configSheet = ss.getSheetByName(CONFIG_SHEET_NAME);
 
     const config = readConfig(configSheet);
+
+    // 🆕 Server-side enforcement: if event already started, no more registrations.
+    // This guards against direct API calls (Postman, curl, DevTools) that bypass the frontend lock.
+    if (isEventEnded(config)) {
+      return jsonResponse({ ok: false, error: 'Event ended' });
+    }
 
     if (String(config.registration_status || 'open').toLowerCase() !== 'open') {
       return jsonResponse({ ok: false, error: 'Registration is closed' });
@@ -194,9 +199,7 @@ function handleRegister(params) {
       return jsonResponse({ ok: false, error: 'No spots left' });
     }
 
-    // Find max existing ticket ID number — to prevent collisions after cancellations.
-    // E.g. if FM-2026-00003 was cancelled, the next ticket should still be 00006 (not 00005),
-    // because 00005 is already issued. We never reuse ticket IDs.
+    // Find max existing ticket ID number to prevent collisions after cancellations.
     let maxTicketNum = 0;
     for (let i = 1; i < data.length; i++) {
       const tid = String(data[i][6] || '');
@@ -218,7 +221,6 @@ function handleRegister(params) {
       }
     }
 
-    // Generate ticket ID using max+1 (collision-safe) and assign tier based on actual row count
     const ticketId = generateTicketId(maxTicketNum + 1);
     const tier = getNextTier(rowCount);
 
@@ -246,7 +248,7 @@ function handleRegister(params) {
       seat: seatNumber
     });
 
-    // 📲 SMS notification with ticket info — to the participant
+    // 📲 SMS to participant
     sendTicketSMS(phone, {
       first_name: firstName,
       last_name: lastName,
@@ -259,7 +261,7 @@ function handleRegister(params) {
       transport_address: config.transport_address || ''
     });
 
-    // 📨 ADMIN NOTIFICATIONS: SMS to all admin phones
+    // 📨 SMS to admins
     notifyAdmins(config, {
       first_name: firstName,
       last_name: lastName,
@@ -281,15 +283,12 @@ function handleRegister(params) {
     });
 
   } finally {
-    // Always release the lock — even if an error happened above —
-    // so the next registration can proceed.
     lock.releaseLock();
   }
 }
 
 // =================== CANCEL ===================
 function handleCancel(params) {
-  // 🔒 Acquire lock for the same reason as handleRegister
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(10000);
@@ -305,11 +304,8 @@ function handleCancel(params) {
 
     const phone = normalizePhone(params.phone);
     const ticketId = String(params.ticket_id || '').trim();
-    // Optional cancellation reason — captured from the user, helps the team understand
-    // why people drop out. Length capped at 500 chars to keep Sheet rows manageable.
     const reason = String(params.reason || '').trim().slice(0, 500);
 
-    // Either phone OR ticket_id must be provided
     if (!phone && !ticketId) {
       return jsonResponse({ ok: false, error: 'Phone or ticket_id required' });
     }
@@ -320,12 +316,10 @@ function handleCancel(params) {
       const rowPhone = normalizePhone(data[i][4]);
       const rowTicketId = String(data[i][6] || '').trim();
 
-      // Match by phone OR ticket_id
       const matchesPhone = phone && rowPhone === phone;
       const matchesTicketId = ticketId && rowTicketId === ticketId;
 
       if (matchesPhone || matchesTicketId) {
-        // Capture the row before deleting — needed for archive + SMS
         const cancelledRow = data[i];
         const cancelledData = {
           original_timestamp: cancelledRow[0],
@@ -337,28 +331,23 @@ function handleCancel(params) {
           ticket_id:   String(cancelledRow[6] || '').trim(),
           tier:        String(cancelledRow[7] || '').trim(),
           seat_number: cancelledRow[8] || null,
-          reason:      reason  // optional user-provided cancellation reason
+          reason:      reason
         };
 
-        // 1️⃣ Archive the cancelled row — moves it to Cancellations sheet, never deletes data
         try {
           archiveCancellation(ss, cancelledData);
         } catch (e) {
           Logger.log('Archive failed (non-fatal): ' + e);
-          // Don't block the cancellation — archive failure should not prevent the user from cancelling
         }
 
-        // 2️⃣ Delete row from Registrations
         regSheet.deleteRow(i + 1);
 
-        // 3️⃣ Send a kind goodbye SMS to the user (best-effort, non-blocking)
         try {
           sendCancellationSMS(cancelledData.phone, cancelledData);
         } catch (e) {
           Logger.log('Cancellation SMS failed (non-fatal): ' + e);
         }
 
-        // 4️⃣ Notify admins about the cancellation
         try {
           notifyAdminsCancellation(config, cancelledData);
         } catch (e) {
@@ -381,42 +370,21 @@ function handleCancel(params) {
   }
 }
 
-/**
- * Archive a cancelled registration to the Cancellations sheet.
- * Creates the sheet on first use (with proper headers).
- *
- * Columns: cancelled_at, original_timestamp, first_name, last_name, city,
- *          phone, position, ticket_id, tier, seat_number
- */
 function archiveCancellation(ss, data) {
   let cancelSheet = ss.getSheetByName(CANCELLATIONS_SHEET_NAME);
 
-  // First-time setup: create sheet with header row
   if (!cancelSheet) {
     cancelSheet = ss.insertSheet(CANCELLATIONS_SHEET_NAME);
     cancelSheet.appendRow([
-      'cancelled_at',
-      'original_timestamp',
-      'first_name',
-      'last_name',
-      'city',
-      'phone',
-      'position',
-      'ticket_id',
-      'tier',
-      'seat_number',
-      'reason'
+      'cancelled_at', 'original_timestamp', 'first_name', 'last_name', 'city',
+      'phone', 'position', 'ticket_id', 'tier', 'seat_number', 'reason'
     ]);
-    // Bold the header row
     cancelSheet.getRange(1, 1, 1, 11).setFontWeight('bold');
     cancelSheet.setFrozenRows(1);
-    // Make 'reason' column wider (500 chars allowed) so it's readable at a glance
     cancelSheet.setColumnWidth(11, 280);
   } else {
-    // Sheet already exists from before reason was added — check if 'reason' column exists
     const headers = cancelSheet.getRange(1, 1, 1, cancelSheet.getLastColumn()).getValues()[0];
     if (headers.indexOf('reason') === -1) {
-      // Add the missing column to old sheets — backward compatibility
       const newCol = cancelSheet.getLastColumn() + 1;
       cancelSheet.getRange(1, newCol).setValue('reason').setFontWeight('bold');
       cancelSheet.setColumnWidth(newCol, 280);
@@ -424,8 +392,8 @@ function archiveCancellation(ss, data) {
   }
 
   cancelSheet.appendRow([
-    new Date(),                    // cancelled_at — when this cancellation happened
-    data.original_timestamp || '', // original_timestamp — when they originally registered
+    new Date(),
+    data.original_timestamp || '',
     data.first_name || '',
     data.last_name || '',
     data.city || '',
@@ -434,21 +402,16 @@ function archiveCancellation(ss, data) {
     data.ticket_id || '',
     data.tier || '',
     data.seat_number || '',
-    data.reason || ''               // cancellation reason (may be empty)
+    data.reason || ''
   ]);
 }
 
-/**
- * Send a kind, encouraging SMS to the user when they cancel.
- * Acknowledges the cancellation, expresses understanding, and gently invites them to return.
- */
 function sendCancellationSMS(phone, data) {
   if (!phone) return;
 
   const firstName = String(data.first_name || '').trim();
   const greeting = firstName ? firstName + ', ' : '';
 
-  // Warm, brief, non-pushy. ~140-150 chars (1-2 SMS segments in unicode).
   const text =
     '💔 ' + greeting + 'რეგისტრაცია გაუქმდა.\n\n' +
     'ვწუხვართ, რომ ვერ შეუერთდები მასტერკლასს.\n' +
@@ -494,15 +457,10 @@ function sendCancellationSMS(phone, data) {
   }
 }
 
-/**
- * Notify admins (SMS + Telegram) that a registration was cancelled.
- * Helps the team keep an eye on no-shows and capacity.
- */
 function notifyAdminsCancellation(config, data) {
   const fullName = (String(data.first_name || '') + ' ' + String(data.last_name || '')).trim();
   const reason = String(data.reason || '').trim();
 
-  // Admin SMS
   const adminPhones = String(config.admin_phones || '')
     .split(/[,;\n]/)
     .map(s => s.trim())
@@ -515,7 +473,6 @@ function notifyAdminsCancellation(config, data) {
       '📞 ' + (data.phone || '') + '\n' +
       '🪑 ადგილი #' + (data.seat_number || '-') + ' · ' + (data.tier || '-') + '\n' +
       '🎫 ' + (data.ticket_id || '');
-    // Append reason if user provided one — keeps SMS short when no reason given
     if (reason) {
       text += '\n💬 ' + reason;
     }
@@ -529,7 +486,6 @@ function notifyAdminsCancellation(config, data) {
     });
   }
 
-  // Telegram notification
   const token = PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN');
   if (!token) return;
 
@@ -548,7 +504,6 @@ function notifyAdminsCancellation(config, data) {
     '🪑 ადგილი #' + (data.seat_number || '-') + '\n' +
     '🥇 ' + (data.tier || '-') + '\n' +
     '🎫 ' + (data.ticket_id || '');
-  // Append reason as a separate paragraph (more readable than admin SMS)
   if (reason) {
     tgText += '\n\n💬 მიზეზი:\n' + reason;
   }
@@ -574,19 +529,12 @@ function readConfig(sheet) {
   const config = {};
   const data = sheet.getDataRange().getValues();
 
-  // Keys that should be formatted as time (HH:mm) when they are Date objects
   const TIME_KEYS = [
-    'event_time',
-    'meeting_end_time',
-    'transport_time',
-    'reminder_2h'
+    'event_time', 'meeting_end_time', 'transport_time', 'reminder_2h'
   ];
 
-  // Keys that should be formatted as date (yyyy-MM-dd) when they are Date objects
   const DATE_KEYS = [
-    'event_date',
-    'transport_date',
-    'reminder_day'
+    'event_date', 'transport_date', 'reminder_day'
   ];
 
   for (let i = 0; i < data.length; i++) {
@@ -595,16 +543,12 @@ function readConfig(sheet) {
 
     let val = data[i][1];
 
-    // Handle Date objects intelligently based on the key
     if (val instanceof Date) {
       if (DATE_KEYS.indexOf(key) !== -1) {
         val = Utilities.formatDate(val, 'Asia/Tbilisi', 'yyyy-MM-dd');
       } else if (TIME_KEYS.indexOf(key) !== -1) {
         val = Utilities.formatDate(val, 'Asia/Tbilisi', 'HH:mm');
       } else {
-        // For any other Date-typed field — try to be smart:
-        // If the year is 1899 (Sheet's "time-only" sentinel year), format as time
-        // Otherwise, format as datetime
         if (val.getFullYear() === 1899) {
           val = Utilities.formatDate(val, 'Asia/Tbilisi', 'HH:mm');
         } else {
@@ -636,7 +580,6 @@ function jsonResponse(obj) {
 }
 
 function generateTicketId(registrationNumber) {
-  // Format: FM-2026-00047 (Farmasi Masterclass + year + zero-padded number)
   const year = new Date().getFullYear();
   const padded = String(registrationNumber).padStart(5, '0');
   return `FM-${year}-${padded}`;
@@ -648,8 +591,33 @@ function getNextTier(currentCount) {
   return 'Standard';
 }
 
+/**
+ * 🆕 Check if the event has already started (or passed).
+ * Returns true → registration must be locked.
+ *
+ * Uses event_date (YYYY-MM-DD) + event_time (HH:mm) from Config.
+ * Returns false if event_date is empty or malformed (fail-safe — better
+ * to allow registration than to lock it for no reason).
+ *
+ * Relies on Apps Script timezone being Asia/Tbilisi (Project Settings).
+ * If event_time is missing, defaults to 23:59 (end of day).
+ */
+function isEventEnded(config) {
+  const dateStr = String(config.event_date || '').trim();
+  if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
+
+  const timeStr = String(config.event_time || '23:59').trim();
+  const tm = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+  const hh = tm ? parseInt(tm[1], 10) : 23;
+  const mm = tm ? parseInt(tm[2], 10) : 59;
+
+  const parts = dateStr.split('-').map(Number);
+  const eventStart = new Date(parts[0], parts[1] - 1, parts[2], hh, mm, 0, 0);
+
+  return Date.now() > eventStart.getTime();
+}
+
 function notifyTelegram(config, data) {
-  // Read token from Script Properties (secure — won't leak via GitHub)
   const token = PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN');
   if (!token) {
     Logger.log('TELEGRAM_BOT_TOKEN not set in Script Properties — Telegram skipped');
@@ -713,7 +681,6 @@ function handleGetTicket(regSheet, configSheet, ticketId) {
   const data = regSheet.getDataRange().getValues();
   const config = readConfig(configSheet);
 
-  // Search rows for matching ticket_id (column G, index 6)
   for (let i = 1; i < data.length; i++) {
     if (String(data[i][6]).trim() === ticketId) {
       return jsonResponse({
@@ -723,7 +690,6 @@ function handleGetTicket(regSheet, configSheet, ticketId) {
           first_name: String(data[i][1] || '').trim(),
           last_name: String(data[i][2] || '').trim(),
           city: String(data[i][3] || '').trim(),
-          // phone is sensitive — return masked
           phone: maskPhone(String(data[i][4] || '')),
           position: String(data[i][5] || '').trim(),
           tier: String(data[i][7] || 'Standard').trim(),
@@ -737,11 +703,7 @@ function handleGetTicket(regSheet, configSheet, ticketId) {
   return jsonResponse({ ok: false, error: 'Ticket not found' });
 }
 
-// =================== SMS via bulksms.ge (POSTA GUVERCINI) ===================
-/**
- * Send a ticket confirmation SMS to the registered phone.
- * Uses Apps Script Properties: PRIVATE_KEY (Bearer JWT) and PUBLIC_KEY (URL param).
- */
+// =================== SMS via bulksms.ge ===================
 function sendTicketSMS(phone, data) {
   try {
     const props = PropertiesService.getScriptProperties();
@@ -759,21 +721,18 @@ function sendTicketSMS(phone, data) {
       return;
     }
 
-    // Compose SMS text (UNICODE for Georgian characters)
     const text = composeTicketSMS(data);
 
     const payload = {
       Text: text,
-      Purpose: 'INF', // Information message
+      Purpose: 'INF',
       Options: {
         Originator: SMS_DEFAULT_SENDER,
-        Encoding: 'UNICODE', // For Georgian
+        Encoding: 'UNICODE',
         SmsType: 'SMS',
         ReportLabel: 'Farmasi Masterclass Ticket'
       },
-      Receivers: [
-        { Receiver: intlPhone }
-      ]
+      Receivers: [{ Receiver: intlPhone }]
     };
 
     const url = SMS_API_URL + '?publicKey=' + encodeURIComponent(publicKey);
@@ -800,15 +759,11 @@ function sendTicketSMS(phone, data) {
   }
 }
 
-/**
- * Compose the SMS body. Keep it short — every ~70 UNICODE chars = 1 SMS segment.
- */
 function composeTicketSMS(data) {
   const tierEmoji = data.tier === 'Early Bird' ? '🌟'
                   : data.tier === 'VIP' ? '💎'
                   : '✦';
 
-  // Build full name: "First Last" or just "First" if last_name is empty
   const fullName = String((data.first_name || '') + ' ' + (data.last_name || '')).trim();
 
   let text = 'Farmasi Masterclass 2026\n';
@@ -821,40 +776,30 @@ function composeTicketSMS(data) {
   }
 
   if (data.transport_address) {
-    // Truncate long addresses
     const addr = data.transport_address.length > 50
       ? data.transport_address.substring(0, 47) + '...'
       : data.transport_address;
     text += '📍 ' + addr + '\n';
   }
 
-  // Personalized ticket link — opens dedicated ticket page directly
   text += '\n🎫 ბილეთი: ' + SITE_BASE_URL + '/ticket.html?t=' + encodeURIComponent(data.ticket_id || '');
 
   return text;
 }
 
-/**
- * Normalize phone to international format for bulksms.ge.
- * Georgian numbers: 5XX XX XX XX (9 digits) → 9955XXXXXXXX (12 digits)
- * Already-international stays as-is.
- */
 function toInternationalPhone(phone) {
   let clean = String(phone || '').replace(/\D/g, '');
 
   if (!clean) return null;
 
-  // If starts with country code 995 — keep as is
   if (clean.startsWith('995') && clean.length === 12) {
     return clean;
   }
 
-  // Georgian local format (9 digits, starts with 5)
   if (clean.length === 9 && clean.startsWith('5')) {
     return '995' + clean;
   }
 
-  // If 12 digits already (international without +), keep
   if (clean.length >= 11 && clean.length <= 14) {
     return clean;
   }
@@ -862,15 +807,8 @@ function toInternationalPhone(phone) {
   return null;
 }
 
-/**
- * MANUAL TEST FUNCTION — run this from Apps Script editor to verify SMS works.
- * 1. Open Apps Script editor
- * 2. Select function "testSMS" from the dropdown at the top
- * 3. Click ▶ Run
- * 4. Check the Logs (View → Logs) and your phone
- */
 function testSMS() {
-  const testPhone = '599772266'; // ⚠️ Replace with YOUR real phone number for testing!
+  const testPhone = '599772266';
 
   sendTicketSMS(testPhone, {
     first_name: 'ტესტი',
@@ -889,11 +827,6 @@ function testSMS() {
 
 
 // =================== VERIFY TICKET BY PHONE ===================
-/**
- * Verify a phone against registered tickets.
- * Returns full ticket info if a matching phone is found.
- * Used by "ნახვა" → phone modal → instant ticket display.
- */
 function handleVerifyByPhone(regSheet, configSheet, rawPhone) {
   const inputDigits = String(rawPhone || '').replace(/\D/g, '');
   if (inputDigits.length < 9) {
@@ -931,10 +864,6 @@ function handleVerifyByPhone(regSheet, configSheet, rawPhone) {
 
 
 // =================== SEND TICKET LINK VIA SMS ===================
-/**
- * Send the ticket link to the user's phone via SMS.
- * Re-verifies the phone matches the ticket (security).
- */
 function handleSendTicketLink(regSheet, rawPhone, ticketId) {
   ticketId = String(ticketId || '').trim();
   const inputDigits = String(rawPhone || '').replace(/\D/g, '');
@@ -1007,13 +936,8 @@ function handleSendTicketLink(regSheet, rawPhone, ticketId) {
 
 
 // =================================================================
-// 📨 ADMIN NOTIFICATIONS — SMS to all admin phones on registration
+// 📨 ADMIN NOTIFICATIONS
 // =================================================================
-/**
- * Send SMS notification to ALL admin phones listed in Config sheet.
- * "admin_phones" key in Config — comma-separated list (e.g. "599123456, 555987654")
- * Each phone receives one SMS per registration.
- */
 function notifyAdmins(config, data) {
   try {
     const adminPhonesStr = String(config.admin_phones || '').trim();
@@ -1022,7 +946,6 @@ function notifyAdmins(config, data) {
       return;
     }
 
-    // Parse comma/semicolon separated phones, trim each
     const adminPhones = adminPhonesStr
       .split(/[,;\n]/)
       .map(p => p.trim())
@@ -1033,7 +956,6 @@ function notifyAdmins(config, data) {
       return;
     }
 
-    // Compose admin SMS — short and informative
     const tierEmoji = data.tier === 'Early Bird' ? '🌟'
                     : data.tier === 'VIP' ? '💎'
                     : '✦';
@@ -1044,7 +966,6 @@ function notifyAdmins(config, data) {
       '🪑 ადგილი #' + data.seat + ' · ' + data.tier + '\n' +
       '🎫 ' + data.ticket_id;
 
-    // Send to each admin
     let sentCount = 0;
     adminPhones.forEach(phone => {
       const ok = sendBulkSMS(phone, text, 'Farmasi Admin Alert');
@@ -1059,11 +980,8 @@ function notifyAdmins(config, data) {
 
 
 // =================================================================
-// 📲 GENERIC BULK SMS HELPER (used by reminders + admin notif)
+// 📲 GENERIC BULK SMS HELPER
 // =================================================================
-/**
- * Send SMS to a single phone with custom text. Returns true on success.
- */
 function sendBulkSMS(phone, text, label) {
   try {
     const props = PropertiesService.getScriptProperties();
@@ -1116,18 +1034,6 @@ function sendBulkSMS(phone, text, label) {
 // =================================================================
 // 🔔 REMINDER 1: One day before the event
 // =================================================================
-/**
- * Send reminder SMS to all registered participants ONE DAY before the event.
- *
- * SETUP: Create a time-driven trigger in Apps Script:
- *   1. Apps Script editor → Triggers (clock icon left sidebar)
- *   2. Add Trigger → Choose function: sendReminderDayBefore
- *   3. Event source: Time-driven
- *   4. Type: Day timer
- *   5. Time: 9am-10am (whatever suits)
- *   6. Save
- * The function will check daily if it's the right day and send if so.
- */
 function sendReminderDayBefore() {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -1146,10 +1052,8 @@ function sendReminderDayBefore() {
       return;
     }
 
-    // Read configurable days-before from Config sheet (default: 1 day before)
     const daysBefore = parseInt(config.reminder_days_before || '1', 10) || 1;
 
-    // Parse event date and check if today is exactly N days before
     const eventDate = new Date(eventDateStr + 'T00:00:00');
     const targetDate = new Date();
     targetDate.setDate(targetDate.getDate() + daysBefore);
@@ -1160,13 +1064,11 @@ function sendReminderDayBefore() {
       return;
     }
 
-    // Compose reminder text — adapts to reminder_days_before value
     const eventCity = config.event_city || '';
     const eventTime = config.event_time || '14:00';
     const transportTime = config.transport_time || '';
     const transportAddress = config.transport_address || '';
 
-    // Build "when" phrase based on actual days-before value
     let whenPhrase;
     if (daysBefore === 1) whenPhrase = 'ხვალ';
     else if (daysBefore === 2) whenPhrase = 'ზეგ';
@@ -1182,7 +1084,6 @@ function sendReminderDayBefore() {
       text += '\n🚌 ავტობუსი: ' + transportTime + '\n📍 ' + transportAddress;
     }
 
-    // Get all registered phones
     const data = regSheet.getDataRange().getValues();
     const phones = [];
     for (let i = 1; i < data.length; i++) {
@@ -1195,12 +1096,10 @@ function sendReminderDayBefore() {
       return;
     }
 
-    // Send to each (with rate limit pause between batches)
     let sent = 0;
     phones.forEach((phone, idx) => {
       const ok = sendBulkSMS(phone, text, 'Farmasi Day Before Reminder');
       if (ok) sent++;
-      // Pause every 10 messages to avoid SMS API rate limit
       if ((idx + 1) % 10 === 0) {
         Utilities.sleep(1000);
       }
@@ -1214,19 +1113,8 @@ function sendReminderDayBefore() {
 
 
 // =================================================================
-// 🚌 REMINDER 2: 3 hours before bus departure
+// 🚌 REMINDER 2: Hours before bus departure
 // =================================================================
-/**
- * Send reminder SMS to all registered participants 3 HOURS before bus departure.
- *
- * SETUP: Create a time-driven trigger in Apps Script:
- *   1. Apps Script editor → Triggers (clock icon)
- *   2. Add Trigger → Choose function: sendReminderBusDeparture
- *   3. Event source: Time-driven
- *   4. Type: Hour timer (every hour)
- *   5. Save
- * The function checks hourly if event day & if 3hrs before transport_time, then sends.
- */
 function sendReminderBusDeparture() {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -1247,7 +1135,6 @@ function sendReminderBusDeparture() {
       return;
     }
 
-    // Check if today is the event day
     const today = new Date();
     const eventDate = new Date(eventDateStr + 'T00:00:00');
     if (today.toDateString() !== eventDate.toDateString()) {
@@ -1255,7 +1142,6 @@ function sendReminderBusDeparture() {
       return;
     }
 
-    // Parse transport_time as HH:mm
     const timeParts = transportTime.match(/^(\d{1,2}):(\d{2})$/);
     if (!timeParts) {
       Logger.log('Invalid transport_time format: ' + transportTime);
@@ -1266,13 +1152,10 @@ function sendReminderBusDeparture() {
     const busDateTime = new Date(today);
     busDateTime.setHours(busHour, busMin, 0, 0);
 
-    // Read configurable hours-before from Config sheet (default: 3 hours)
     const hoursBefore = parseFloat(config.reminder_hours_before || '3') || 3;
 
-    // Calculate N hours before bus
     const reminderTime = new Date(busDateTime.getTime() - hoursBefore * 60 * 60 * 1000);
 
-    // Check if current hour matches reminder hour (within +/- 30 min window)
     const now = new Date();
     const diffMinutes = Math.abs((now.getTime() - reminderTime.getTime()) / (60 * 1000));
 
@@ -1281,10 +1164,8 @@ function sendReminderBusDeparture() {
       return;
     }
 
-    // Compose reminder text — uses actual reminder_hours_before value
     const transportAddress = config.transport_address || '';
 
-    // Build "how soon" phrase that matches the actual hours value (e.g. "1.5", "0.5")
     let hoursLabel;
     if (hoursBefore === 0.5) hoursLabel = '30 წუთში';
     else if (hoursBefore === 1) hoursLabel = '1 საათში';
@@ -1300,7 +1181,6 @@ function sendReminderBusDeparture() {
     }
     text += '\n\n🎫 თან წაიღე ბილეთი (QR კოდი)';
 
-    // Get all registered phones
     const data = regSheet.getDataRange().getValues();
     const phones = [];
     for (let i = 1; i < data.length; i++) {
@@ -1328,7 +1208,7 @@ function sendReminderBusDeparture() {
 
 
 // =================================================================
-// 🧪 TEST FUNCTIONS — manually trigger to verify
+// 🧪 TEST FUNCTIONS
 // =================================================================
 function testAdminNotification() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -1348,14 +1228,6 @@ function testAdminNotification() {
   Logger.log('Test admin notification sent');
 }
 
-/**
- * Test Telegram notification.
- * Run this after setting TELEGRAM_BOT_TOKEN in Script Properties
- * and admin_chat_ids in Config sheet.
- *
- * Apps Script Editor → ფუნქცია dropdown → testTelegram → ▶ Run
- * შემდეგ ნახე Executions ან Logs შედეგი.
- */
 function testTelegram() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const config = readConfig(ss.getSheetByName(CONFIG_SHEET_NAME));
@@ -1377,9 +1249,20 @@ function testTelegram() {
   Logger.log('Test Telegram notification finished — check your Telegram chat');
 }
 
-function testDayReminder() {
-  // Force-run the day reminder regardless of date check
-  // Useful for testing — comment out the date check temporarily
-  Logger.log('Run sendReminderDayBefore() manually to test (only works on actual day-before date)');
+/**
+ * 🆕 Test the event-ended check.
+ * Run this after editing event_date in Config to verify the lock works.
+ */
+function testEventEndedCheck() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const config = readConfig(ss.getSheetByName(CONFIG_SHEET_NAME));
+
+  Logger.log('event_date: ' + config.event_date);
+  Logger.log('event_time: ' + config.event_time);
+  Logger.log('isEventEnded: ' + isEventEnded(config));
+  Logger.log('Current time: ' + new Date());
 }
 
+function testDayReminder() {
+  Logger.log('Run sendReminderDayBefore() manually to test (only works on actual day-before date)');
+}
