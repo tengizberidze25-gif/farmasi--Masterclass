@@ -4989,6 +4989,59 @@
     }
     .reserve-seat-btn.has-seat::before { content: '✓ '; }
 
+    /* === REGISTRATION CLOSED STATE === */
+    /* Applied to .inline-register-card when registration_status !== 'open'.
+       The form remains visible (so users see what was being offered), but
+       inputs/buttons are disabled and dimmed, with a "closed" banner on top. */
+    .inline-register-card.is-closed {
+      position: relative;
+      pointer-events: none;
+    }
+    .inline-register-card.is-closed > *:not(.closed-overlay) {
+      opacity: 0.35;
+      filter: grayscale(0.6);
+      transition: opacity 0.4s ease, filter 0.4s ease;
+    }
+    .inline-register-card .closed-overlay {
+      display: none;
+    }
+    .inline-register-card.is-closed .closed-overlay {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      position: absolute;
+      inset: 0;
+      pointer-events: auto;
+      background:
+        radial-gradient(ellipse at center, rgba(20, 12, 18, 0.85) 0%, rgba(20, 12, 18, 0.92) 70%);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      border-radius: 18px;
+      padding: 24px;
+      text-align: center;
+      z-index: 2;
+    }
+    .closed-overlay-icon {
+      font-size: 28px;
+      margin-bottom: 4px;
+      filter: drop-shadow(0 0 8px rgba(232, 196, 104, 0.4));
+    }
+    .closed-overlay-title {
+      font-family: var(--font-serif, serif);
+      font-size: 20px;
+      color: var(--gold-light, #f3d98a);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .closed-overlay-subtitle {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.65);
+      max-width: 280px;
+      line-height: 1.5;
+    }
+
   
     /* === HIDE NON-BUS ELEMENTS IN SEAT PICKER MODAL === */
     /* These rules guarantee the seat picker modal shows ONLY the bus */
@@ -5903,6 +5956,15 @@
       <button id="openRegisterBtn" type="button" style="display:none;" aria-hidden="true"></button>
 
       <div class="inline-register-card">
+        <!-- Overlay shown when registration_status !== 'open' (auto-toggled by renderStatus) -->
+        <div class="closed-overlay" aria-hidden="true">
+          <div class="closed-overlay-icon">🔒</div>
+          <div class="closed-overlay-title">რეგისტრაცია დახურულია</div>
+          <div class="closed-overlay-subtitle">
+            მადლობას გიხდით ინტერესისთვის — ღონისძიება დასრულდა.
+          </div>
+        </div>
+
         <div class="modal-subtitle" style="text-align:center;">RSVP</div>
         <div class="modal-title" style="text-align:center;margin-bottom:14px;">დაიკავე <span class="accent">ადგილი</span></div>
 
@@ -6720,6 +6782,47 @@
     function renderStatus(status) {
       els.statusBadge.textContent = String(status || "").toUpperCase();
       els.statusBadge.className = "status-badge " + (status === "open" ? "status-open" : "status-closed");
+
+      // 🔒 Lock or unlock the inline registration form based on status.
+      // When closed: visually grays out the card, disables all inputs/buttons,
+      // and shows the "რეგისტრაცია დახურულია" overlay on top.
+      setRegistrationFormLocked(status !== "open");
+    }
+
+    /**
+     * Toggle the inline registration card between active and locked states.
+     * Disables individual inputs (defense in depth — even if CSS is bypassed,
+     * the HTML `disabled` attribute prevents submission/focus).
+     */
+    function setRegistrationFormLocked(locked) {
+      const card = document.querySelector(".inline-register-card");
+      if (!card) return;
+      card.classList.toggle("is-closed", !!locked);
+
+      // List of form controls to disable inside the registration card
+      const controlIds = [
+        "first_name",
+        "last_name",
+        "city_area_village",
+        "position",
+        "phone",
+        "reserveSeatBtn",
+        "registerBtn"
+      ];
+      controlIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (locked) {
+          el.setAttribute("disabled", "disabled");
+        } else {
+          // Only un-disable controls that aren't disabled for OTHER reasons.
+          // registerBtn stays disabled until a seat is chosen — that logic is
+          // managed elsewhere, so don't blindly remove its disabled attr here.
+          if (id !== "registerBtn") {
+            el.removeAttribute("disabled");
+          }
+        }
+      });
     }
 
     function renderStats(data) {
