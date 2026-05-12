@@ -630,53 +630,58 @@ function readConfig(sheet) {
 }
 
 /**
- * 🔒 AUTO-CLOSE REGISTRATION when event date has passed.
+ * 🔄 SYNC REGISTRATION STATUS with event_date.
  *
- * Logic: if today (Asia/Tbilisi) is AFTER the configured event_date and
- * registration_status is still 'open', the function writes 'closed' to the
- * Config sheet and updates the in-memory `config` object.
+ * Bidirectional: registration_status mirrors the event_date relationship to today:
+ *   - today  > event_date → 'closed' (event has ended)
+ *   - today <= event_date → 'open'   (event upcoming or happening today)
  *
- * Called from doGet (so the badge always reflects reality) and from
- * handleRegister (so post-event registration is blocked at the server).
- * Also triggered by onEdit when the user edits event_date in the sheet,
- * and by the optional daily time trigger `dailyAutoCloseCheck`.
+ * Called from doGet (so the badge always reflects reality), handleRegister
+ * (server-side gating), onEdit (immediate sync when admin edits the date),
+ * and the optional daily time trigger `dailyAutoCloseCheck`.
+ *
+ * Notes for the admin:
+ *   - To close registration manually before the event, set event_date to a
+ *     past date — the function will sync to 'closed' immediately.
+ *   - Capacity-based closure already happens via max_registrations / spotsLeft,
+ *     so manual close-for-capacity isn't needed.
  *
  * @param {Sheet}  configSheet — the Config sheet object
  * @param {Object} config       — readConfig output (mutated if status changes)
- * @returns {boolean} true if the status was just changed to 'closed'
+ * @returns {boolean} true if the status was just changed
  */
 function autoCloseIfEventDatePassed(configSheet, config) {
   try {
     const eventDateStr = String(config.event_date || '').trim();
-    if (!eventDateStr) return false; // no event_date set yet — nothing to do
+    if (!eventDateStr) return false; // no event_date — leave status alone
 
     // Compare as yyyy-MM-dd strings in Tbilisi timezone — avoids timezone bugs.
     // Registration stays OPEN through the whole event day; closes the day AFTER.
-    // Change to `>= eventDateStr` if you want it to close at midnight on the event day.
     const tz = 'Asia/Tbilisi';
     const todayStr = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd');
 
-    if (todayStr <= eventDateStr) return false; // event hasn't ended yet
-
-    // Event date has passed — flip status to 'closed' if not already
+    // What SHOULD the status be?
+    const desiredStatus = (todayStr > eventDateStr) ? 'closed' : 'open';
     const currentStatus = String(config.registration_status || 'open').toLowerCase();
-    if (currentStatus === 'closed') return false; // already closed, nothing to write
+
+    if (currentStatus === desiredStatus) return false; // already in sync
 
     // Find the registration_status row in Config and update column B
     const data = configSheet.getDataRange().getValues();
     for (let i = 0; i < data.length; i++) {
       if (String(data[i][0] || '').trim() === 'registration_status') {
-        configSheet.getRange(i + 1, 2).setValue('closed');
-        config.registration_status = 'closed';
-        Logger.log('🔒 Auto-closed registration: event_date ' + eventDateStr + ' < today ' + todayStr);
+        configSheet.getRange(i + 1, 2).setValue(desiredStatus);
+        config.registration_status = desiredStatus;
+        Logger.log('🔄 Status sync: ' + currentStatus + ' → ' + desiredStatus +
+                   ' (event_date=' + eventDateStr + ', today=' + todayStr + ')');
         return true;
       }
     }
 
     // registration_status row didn't exist yet — append it
-    configSheet.appendRow(['registration_status', 'closed']);
-    config.registration_status = 'closed';
-    Logger.log('🔒 Auto-closed registration (appended row): event ' + eventDateStr);
+    configSheet.appendRow(['registration_status', desiredStatus]);
+    config.registration_status = desiredStatus;
+    Logger.log('🔄 Status sync (appended): ' + desiredStatus);
     return true;
   } catch (err) {
     // Never let this throw — it would break registration & the public page.
@@ -1180,6 +1185,50 @@ function sendBulkSMS(phone, text, label) {
 
 
 // =================================================================
+// 📞 PHONE COLLECTION — used by reminder functions
+// =================================================================
+/**
+ * Collect phone numbers from BOTH active registrations AND past cancellations.
+ *
+ * Why include cancellations: someone who cancelled might still want to come if
+ * they hear about it again — this gives them a soft second chance. The same
+ * SMS body is sent to both groups (no separate "we miss you" template).
+ *
+ * Deduplicates by phone, in case the same person registered twice (once active,
+ * once cancelled).
+ *
+ * @param {Spreadsheet} ss
+ * @returns {string[]} unique array of phone numbers
+ */
+function collectAllReminderPhones(ss) {
+  const phones = new Set();
+
+  // Active registrations — phone is column E (index 4)
+  const regSheet = ss.getSheetByName(SHEET_NAME);
+  if (regSheet) {
+    const data = regSheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      const p = String(data[i][4] || '').trim();
+      if (p) phones.add(p);
+    }
+  }
+
+  // Cancelled registrations — phone is column F (index 5) per archiveCancellation()
+  // Schema: cancelled_at, original_timestamp, first_name, last_name, city, phone, ...
+  const cancelSheet = ss.getSheetByName(CANCELLATIONS_SHEET_NAME);
+  if (cancelSheet) {
+    const data = cancelSheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      const p = String(data[i][5] || '').trim();
+      if (p) phones.add(p);
+    }
+  }
+
+  return Array.from(phones);
+}
+
+
+// =================================================================
 // 🔔 REMINDER 1: One day before the event
 // =================================================================
 /**
@@ -1248,13 +1297,8 @@ function sendReminderDayBefore() {
       text += '\n🚌 ავტობუსი: ' + transportTime + '\n📍 ' + transportAddress;
     }
 
-    // Get all registered phones
-    const data = regSheet.getDataRange().getValues();
-    const phones = [];
-    for (let i = 1; i < data.length; i++) {
-      const phone = String(data[i][4] || '').trim();
-      if (phone) phones.push(phone);
-    }
+    // Get all phones — active registrations + cancelled (re-engagement)
+    const phones = collectAllReminderPhones(ss);
 
     if (phones.length === 0) {
       Logger.log('No registered phones to remind');
@@ -1272,7 +1316,7 @@ function sendReminderDayBefore() {
       }
     });
 
-    Logger.log('Day-before reminder sent to ' + sent + '/' + phones.length + ' participants');
+    Logger.log('Day-before reminder sent to ' + sent + '/' + phones.length + ' participants (incl. cancelled)');
   } catch (err) {
     Logger.log('sendReminderDayBefore error: ' + err);
   }
@@ -1283,17 +1327,28 @@ function sendReminderDayBefore() {
 // 🚌 REMINDER 2: 3 hours before bus departure
 // =================================================================
 /**
- * Send reminder SMS to all registered participants 3 HOURS before bus departure.
+ * Send reminder SMS to all registered participants N HOURS before EVENT START.
+ *
+ * Time source: `event_time` (the masterclass start time, e.g. 13:00).
+ * Reminder offset: `reminder_hours_before` from Config (default 2 hours).
+ *
+ * Example: event_time=13:00, reminder_hours_before=2 → reminder fires at 11:00
+ *          on the event day (within ±30 min window).
  *
  * SETUP: Create a time-driven trigger in Apps Script:
  *   1. Apps Script editor → Triggers (clock icon)
- *   2. Add Trigger → Choose function: sendReminderBusDeparture
+ *   2. Add Trigger → Choose function: sendReminderBeforeEvent
  *   3. Event source: Time-driven
  *   4. Type: Hour timer (every hour)
  *   5. Save
- * The function checks hourly if event day & if 3hrs before transport_time, then sends.
+ *
+ * The function checks hourly if it's the event day AND if we're within ±30 min
+ * of (event_time - reminder_hours_before). Sends only once per event day.
+ *
+ * Bus info is included in the message body as a sub-line if `transport_time`
+ * is set in Config — so bus-riders see both the event time and bus time.
  */
-function sendReminderBusDeparture() {
+function sendReminderBeforeEvent() {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const regSheet = ss.getSheetByName(SHEET_NAME);
@@ -1306,10 +1361,10 @@ function sendReminderBusDeparture() {
 
     const config = readConfig(configSheet);
     const eventDateStr = String(config.event_date || '').trim();
-    const transportTime = String(config.transport_time || '').trim();
+    const eventTime = String(config.event_time || '').trim();
 
-    if (!eventDateStr || !transportTime) {
-      Logger.log('event_date or transport_time missing — bus reminder skipped');
+    if (!eventDateStr || !eventTime) {
+      Logger.log('event_date or event_time missing — reminder skipped');
       return;
     }
 
@@ -1317,62 +1372,66 @@ function sendReminderBusDeparture() {
     const today = new Date();
     const eventDate = new Date(eventDateStr + 'T00:00:00');
     if (today.toDateString() !== eventDate.toDateString()) {
-      Logger.log('Today is not event day — bus reminder skipped');
+      Logger.log('Today is not event day — reminder skipped');
       return;
     }
 
-    // Parse transport_time as HH:mm
-    const timeParts = transportTime.match(/^(\d{1,2}):(\d{2})$/);
+    // Parse event_time as HH:mm
+    const timeParts = eventTime.match(/^(\d{1,2}):(\d{2})$/);
     if (!timeParts) {
-      Logger.log('Invalid transport_time format: ' + transportTime);
+      Logger.log('Invalid event_time format: ' + eventTime);
       return;
     }
-    const busHour = parseInt(timeParts[1], 10);
-    const busMin = parseInt(timeParts[2], 10);
-    const busDateTime = new Date(today);
-    busDateTime.setHours(busHour, busMin, 0, 0);
+    const evHour = parseInt(timeParts[1], 10);
+    const evMin  = parseInt(timeParts[2], 10);
+    const eventDateTime = new Date(today);
+    eventDateTime.setHours(evHour, evMin, 0, 0);
 
-    // Read configurable hours-before from Config sheet (default: 3 hours)
-    const hoursBefore = parseFloat(config.reminder_hours_before || '3') || 3;
+    // How many hours before the event to send (default: 2)
+    const hoursBefore = parseFloat(config.reminder_hours_before || '2') || 2;
 
-    // Calculate N hours before bus
-    const reminderTime = new Date(busDateTime.getTime() - hoursBefore * 60 * 60 * 1000);
+    // Target reminder time = event_time - hoursBefore
+    const reminderTime = new Date(eventDateTime.getTime() - hoursBefore * 60 * 60 * 1000);
 
-    // Check if current hour matches reminder hour (within +/- 30 min window)
+    // Hourly trigger fires every ~60 min — accept any run within ±30 min of target
     const now = new Date();
     const diffMinutes = Math.abs((now.getTime() - reminderTime.getTime()) / (60 * 1000));
 
     if (diffMinutes > 30) {
-      Logger.log('Not within 30 min of bus reminder time (' + hoursBefore + 'h before). Now: ' + now + ', Reminder time: ' + reminderTime);
+      Logger.log('Not within 30 min of reminder window (' + hoursBefore + 'h before event). ' +
+                 'Now: ' + now + ', Target: ' + reminderTime);
       return;
     }
 
-    // Compose reminder text — uses actual reminder_hours_before value
+    // Compose reminder text — focuses on the event, mentions bus as helper info
+    const eventCity = config.event_city || '';
+    const transportTime = config.transport_time || '';
     const transportAddress = config.transport_address || '';
 
-    // Build "how soon" phrase that matches the actual hours value (e.g. "1.5", "0.5")
+    // "in X hours" phrase that adapts to fractional values (0.5h, 1h, 1.5h, 2h…)
     let hoursLabel;
     if (hoursBefore === 0.5) hoursLabel = '30 წუთში';
     else if (hoursBefore === 1) hoursLabel = '1 საათში';
     else if (Number.isInteger(hoursBefore)) hoursLabel = hoursBefore + ' საათში';
     else hoursLabel = hoursBefore + ' საათში';
 
-    let text = '🚌 ავტობუსი ' + hoursLabel + '!\n' +
-      'Farmasi მასტერკლასი 🎓\n' +
-      '⏰ გასვლა: ' + transportTime;
+    let text = '🎓 მასტერკლასი ' + hoursLabel + '!\n' +
+      'Farmasi · ' + eventTime;
+    if (eventCity) text += ' · ' + eventCity;
 
-    if (transportAddress) {
-      text += '\n📍 ' + transportAddress;
+    if (transportTime) {
+      text += '\n🚌 ბუსი ' + transportTime + '-ზე გადის';
+      if (transportAddress) {
+        const addr = transportAddress.length > 50
+          ? transportAddress.substring(0, 47) + '...'
+          : transportAddress;
+        text += '\n📍 ' + addr;
+      }
     }
     text += '\n\n🎫 თან წაიღე ბილეთი (QR კოდი)';
 
-    // Get all registered phones
-    const data = regSheet.getDataRange().getValues();
-    const phones = [];
-    for (let i = 1; i < data.length; i++) {
-      const phone = String(data[i][4] || '').trim();
-      if (phone) phones.push(phone);
-    }
+    // Get all phones — active registrations + cancelled (re-engagement)
+    const phones = collectAllReminderPhones(ss);
 
     if (phones.length === 0) {
       Logger.log('No registered phones to remind');
@@ -1381,14 +1440,14 @@ function sendReminderBusDeparture() {
 
     let sent = 0;
     phones.forEach((phone, idx) => {
-      const ok = sendBulkSMS(phone, text, 'Farmasi Bus Departure Reminder');
+      const ok = sendBulkSMS(phone, text, 'Farmasi Pre-Event Reminder');
       if (ok) sent++;
       if ((idx + 1) % 10 === 0) Utilities.sleep(1000);
     });
 
-    Logger.log('Bus reminder sent to ' + sent + '/' + phones.length + ' participants');
+    Logger.log('Pre-event reminder sent to ' + sent + '/' + phones.length + ' participants (incl. cancelled)');
   } catch (err) {
-    Logger.log('sendReminderBusDeparture error: ' + err);
+    Logger.log('sendReminderBeforeEvent error: ' + err);
   }
 }
 
@@ -1524,7 +1583,7 @@ function dailyAutoCloseCheck() {
 }
 
 /**
- * Manual test — run this from the editor to verify auto-close logic
+ * Manual test — run this from the editor to verify status sync logic
  * without waiting for a real event date.
  *
  * Apps Script editor → function dropdown → testAutoClose → ▶ Run
@@ -1542,7 +1601,13 @@ function testAutoClose() {
   const todayStr = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd');
   Logger.log('Today (Asia/Tbilisi): ' + todayStr);
 
+  const eventDateStr = String(config.event_date || '').trim();
+  if (eventDateStr) {
+    const desired = (todayStr > eventDateStr) ? 'closed' : 'open';
+    Logger.log('Desired status (based on date): ' + desired);
+  }
+
   const result = autoCloseIfEventDatePassed(configSheet, config);
-  Logger.log('Auto-close result: ' + (result ? '🔒 closed' : '✓ no change'));
+  Logger.log('Sync result: ' + (result ? '🔄 status changed' : '✓ already in sync'));
   Logger.log('After: registration_status = ' + config.registration_status);
 }
