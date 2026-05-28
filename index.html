@@ -5,13 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#0a0808" />
   <title>Farmasi მარკეტინგის მასტერკლასი 2026</title>
+  <meta name="description" content="Farmasi მარკეტინგის მასტერკლასი 2026 — დაიკავე ადგილი, ნახე პროგრამა და მიიღე შენი პერსონალური ბილეთი." />
+  <link rel="canonical" href="https://masterclass.farmasi.ge/" />
 
   <!-- 🔗 Link previews (WhatsApp / Telegram / Facebook / Messenger) -->
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://farmasi-masterclass.vercel.app/" />
+  <meta property="og:url" content="https://masterclass.farmasi.ge/" />
   <meta property="og:title" content="Farmasi მარკეტინგის მასტერკლასი 2026" />
-  <meta property="og:description" content="ექსკლუზიური მარკეტინგის მასტერკლასი — დაიკავე ადგილი" />
-  <meta property="og:image" content="https://farmasi-masterclass.vercel.app/farmasi.png" />
+  <meta property="og:description" content="დაიკავე ადგილი, ნახე პროგრამა და მიიღე შენი პერსონალური ბილეთი Farmasi მარკეტინგის მასტერკლასზე." />
+  <meta property="og:image" content="https://masterclass.farmasi.ge/farmasi.png" />
   <meta property="og:image:width" content="512" />
   <meta property="og:image:height" content="512" />
   <meta property="og:image:alt" content="Farmasi" />
@@ -21,8 +23,8 @@
   <!-- 🐦 Twitter/X cards -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Farmasi მარკეტინგის მასტერკლასი 2026" />
-  <meta name="twitter:description" content="ექსკლუზიური მარკეტინგის მასტერკლასი — დაიკავე ადგილი" />
-  <meta name="twitter:image" content="https://farmasi-masterclass.vercel.app/farmasi.png" />
+  <meta name="twitter:description" content="დაიკავე ადგილი, ნახე პროგრამა და მიიღე შენი პერსონალური ბილეთი Farmasi მარკეტინგის მასტერკლასზე." />
+  <meta name="twitter:image" content="https://masterclass.farmasi.ge/farmasi.png" />
 
   <!-- 🌐 Browser tab icon -->
   <link rel="icon" type="image/png" href="farmasi.png" />
@@ -7270,7 +7272,7 @@
           btn.textContent = "📲 გამომიგზავნე SMS-ით ლინკი";
         }
       } catch (e) {
-        msg.textContent = "ქსელის შეცდომა";
+        msg.textContent = friendlyNetworkError("SMS-ის გაგზავნა");
         msg.className = "phone-verify-msg error";
         btn.disabled = false;
         btn.textContent = "📲 გამომიგზავნე SMS-ით ლინკი";
@@ -7876,8 +7878,12 @@
         validateMyTicketAgainstServer(data);
       } catch (e) {
         console.error("loadData error:", e);
-        els.pageSubtitle.textContent = "მონაცემების ჩატვირთვა ვერ მოხერხდა";
+        els.pageSubtitle.textContent = "სერვერთან კავშირი ვერ მოხერხდა — გადაამოწმე ინტერნეტი და განაახლე გვერდი";
       }
+    }
+
+    function friendlyNetworkError(actionText) {
+      return (actionText || "მოქმედება") + " ვერ შესრულდა — გადაამოწმე ინტერნეტი და სცადე თავიდან";
     }
 
     async function postAction(fields) {
@@ -8125,7 +8131,7 @@
             smsBtn.textContent = "📲 SMS-ით ლინკის გაგზავნა";
           }
         } catch (e) {
-          msg.textContent = "ქსელის შეცდომა";
+          msg.textContent = friendlyNetworkError("SMS-ის გაგზავნა");
           msg.className = "phone-verify-msg error";
           smsBtn.disabled = false;
           smsBtn.textContent = "📲 SMS-ით ლინკის გაგზავნა";
@@ -8168,7 +8174,7 @@
           msg.className = "phone-verify-msg error";
         }
       } catch (e) {
-        msg.textContent = "ქსელის შეცდომა — სცადე თავიდან";
+        msg.textContent = friendlyNetworkError("ბილეთის შემოწმება");
         msg.className = "phone-verify-msg error";
       } finally {
         btn.disabled = false;
@@ -8611,7 +8617,7 @@
         }, 1400);
 
       } catch (err) {
-        showMessage("error", "დაფიქსირდა შეცდომა ⚠", els.registerError);
+        showMessage("error", friendlyNetworkError("რეგისტრაცია"), els.registerError);
       } finally {
         els.registerBtn.disabled = false;
         els.registerBtn.textContent = "დარეგისტრირება";
@@ -8656,7 +8662,7 @@
 
         await loadData();
       } catch (err) {
-        showMessage("error", "გაუქმება ვერ შესრულდა ⚠", els.cancelError);
+        showMessage("error", friendlyNetworkError("გაუქმება"), els.cancelError);
       } finally {
         els.cancelBtn.disabled = false;
         els.cancelBtn.textContent = "გაუქმება";
@@ -8669,7 +8675,7 @@
      */
     async function handleTicketCancel() {
       if (!currentTicketContext || !currentTicketContext.phone) {
-        showTicketCancelMsg("error", "გაუქმება ვერ შესრულდა — ნომერი არ არის ხელმისაწვდომი");
+      showTicketCancelMsg("error", "გაუქმება ვერ შესრულდა — ნომერი არ არის ხელმისაწვდომი");
         return;
       }
 
@@ -8729,7 +8735,7 @@
         }, 2500);
 
       } catch (err) {
-        showTicketCancelMsg("error", "გაუქმება ვერ შესრულდა ⚠");
+        showTicketCancelMsg("error", friendlyNetworkError("გაუქმება"));
         els.ticketCancelConfirm.disabled = false;
         els.ticketCancelConfirm.textContent = "✕ დადასტურება — გავაუქმოთ ბილეთი";
       }
