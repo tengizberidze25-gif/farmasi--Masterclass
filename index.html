@@ -43,6 +43,14 @@
 
   <!-- QR Code + Confetti libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    window.addEventListener("load", function() {
+      if (typeof QRCode !== "undefined") return;
+      var s = document.createElement("script");
+      s.src = "https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js";
+      document.head.appendChild(s);
+    });
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 
   <style>
@@ -8434,19 +8442,19 @@
       // Generate QR code
       els.qrWrap.innerHTML = "";
       try {
+        // Build QR text — always include ticket ID as primary identifier.
+        // Add name + phone only if they're present (may be missing when modal
+        // is opened via "ნახვა" → phone lookup before formData is fully populated).
+        const fn = (formData && formData.first_name) ? String(formData.first_name).trim() : "";
+        const ln = (formData && formData.last_name) ? String(formData.last_name).trim() : "";
+        const ph = (formData && formData.phone) ? String(formData.phone).trim() : "";
+        const fullName = (fn + " " + ln).trim();
+
+        let qrText = ticketIdStr;
+        if (fullName) qrText += "|" + fullName;
+        if (ph) qrText += "|" + ph;
+
         if (typeof QRCode !== "undefined") {
-          // Build QR text — always include ticket ID as primary identifier.
-          // Add name + phone only if they're present (may be missing when modal
-          // is opened via "ნახვა" → phone lookup before formData is fully populated).
-          const fn = (formData && formData.first_name) ? String(formData.first_name).trim() : "";
-          const ln = (formData && formData.last_name) ? String(formData.last_name).trim() : "";
-          const ph = (formData && formData.phone) ? String(formData.phone).trim() : "";
-          const fullName = (fn + " " + ln).trim();
-
-          let qrText = ticketIdStr;
-          if (fullName) qrText += "|" + fullName;
-          if (ph) qrText += "|" + ph;
-
           new QRCode(els.qrWrap, {
             text: qrText,
             width: 140,
@@ -8457,12 +8465,10 @@
           });
           addQrLogoMark();
         } else {
-          // QRCode library failed to load — show ticket ID as plain text fallback
-          els.qrWrap.innerHTML = `<div style="font-family:monospace; padding:30px; color:#1a1212; font-weight:700; font-size:18px;">${ticketIdStr}</div>`;
+          renderQrImageFallback(qrText, ticketIdStr);
         }
       } catch (e) {
-        // Any error — show ticket ID as plain text fallback
-        els.qrWrap.innerHTML = `<div style="font-family:monospace; padding:30px; color:#1a1212; font-weight:700; font-size:18px;">${ticketIdStr}</div>`;
+        renderQrImageFallback(ticketIdStr, ticketIdStr);
       }
 
       // Build calendar URLs
@@ -8497,6 +8503,20 @@
         </svg>
       `;
       els.qrWrap.appendChild(mark);
+    }
+
+    function renderQrImageFallback(qrText, ticketIdStr) {
+      if (!els.qrWrap) return;
+      const img = document.createElement("img");
+      img.width = 140;
+      img.height = 140;
+      img.alt = "Ticket QR";
+      img.src = "https://api.qrserver.com/v1/create-qr-code/?size=140x140&ecc=H&margin=0&data=" + encodeURIComponent(qrText);
+      img.onerror = function() {
+        els.qrWrap.innerHTML = `<div style="font-family:monospace; padding:30px; color:#1a1212; font-weight:700; font-size:18px;">${ticketIdStr}</div>`;
+      };
+      els.qrWrap.appendChild(img);
+      addQrLogoMark();
     }
 
     function resetTicketCancelUI() {
