@@ -6609,7 +6609,46 @@
       setPlaceholderById("ticketCancelReason", "cancel_reason_placeholder", "მაგ: ჯანმრთელობის პრობლემა, სამუშაო, ან რამე სხვა...");
 
       if (config) {
+        const configTextKeys = new Set([
+          "event_city",
+          "event_location",
+          "farewell",
+          "schedule",
+          "transport_type",
+          "transport_address",
+          "transport_note",
+          "transport_photo",
+          "transport_photo_2",
+          "bus_pickup_map",
+          "transport_map",
+          "info_what_to_bring",
+          "info_dress_code",
+          "info_food",
+          "info_drinks",
+          "info_coffee_break",
+          "info_parking",
+          "info_wifi",
+          "info_contact",
+          "info_languages",
+          "info_certificate",
+          "info_materials",
+          "info_gift",
+          "info_photo",
+          "info_age",
+          "faq_1_q",
+          "faq_1_a",
+          "faq_2_q",
+          "faq_2_a",
+          "faq_3_q",
+          "faq_3_a",
+          "faq_4_q",
+          "faq_4_a",
+          "faq_5_q",
+          "faq_5_a"
+        ]);
+
         Object.keys(siteTexts || {}).forEach(key => {
+          if (!configTextKeys.has(key)) return;
           if (config[key] === undefined || config[key] === null || String(config[key]).trim() === "") {
             config[key] = siteTexts[key];
           }
@@ -7945,10 +7984,51 @@
           els.pageSubtitle.textContent = "მონაცემების ჩატვირთვა ვერ მოხერხდა";
           return;
         }
-        await loadSiteTexts();
-        data.config = data.config || {};
-        applySiteTexts(data.config);
-        lastConfig = data.config || {};
+    await loadSiteTexts();
+    data.config = data.config || {};
+    applySiteTexts(data.config);
+    Object.keys(data.config).forEach(key => {
+      const visibleInfoKeys = [
+        "info_what_to_bring",
+        "info_dress_code",
+        "info_food",
+        "info_certificate",
+        "info_gift",
+        "info_photo",
+        "info_drinks",
+        "info_coffee_break",
+        "info_parking",
+        "info_wifi",
+        "info_contact",
+        "info_languages",
+        "info_materials",
+        "info_age"
+      ];
+
+      const isVisibleInfo =
+        key.indexOf("faq_") === 0 ||
+        visibleInfoKeys.includes(key) ||
+        [
+          "event_city",
+          "event_location",
+          "farewell",
+          "transport_type",
+          "transport_address",
+          "transport_note",
+          "transport_photo",
+          "transport_photo_2",
+          "bus_pickup_map",
+          "transport_map",
+          "schedule",
+          "registration_status",
+          "admin_phones"
+        ].includes(key);
+
+      if (!isVisibleInfo && siteTexts && Object.prototype.hasOwnProperty.call(siteTexts, key)) {
+        delete data.config[key];
+      }
+    });
+    lastConfig = data.config || {};
         renderStatus(data.status);
         renderStats(data);
         renderProgress(data);
