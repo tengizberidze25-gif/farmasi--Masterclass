@@ -275,6 +275,7 @@
     </section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbz40UE4b9og1Yjs0rPPfDe1H-yRi90hKbK2WOXej4CAWPCnncDFcetadMEdQSYJO7nf/exec";
 
@@ -293,6 +294,8 @@
     const resultTime = document.getElementById("resultTime");
     let stream = null;
     let scanning = false;
+    let scannerCanvas = null;
+    let scannerCtx = null;
 
     function show(type, text) {
       msg.className = "msg " + type;
@@ -300,7 +303,9 @@
     }
 
     function cleanTicket(value) {
-      return String(value || "").trim().toUpperCase();
+      const text = String(value || "").trim().toUpperCase();
+      const match = text.match(/FM-\d{4}-\d{5}/);
+      return match ? match[0] : text;
     }
 
     function formatTime(value) {
@@ -366,30 +371,58 @@
     }
 
     async function startScanner() {
-      if (!("BarcodeDetector" in window)) {
-        show("bad", "ამ ბრაუზერს QR სკანერი არ აქვს. გამოიყენე Chrome ან შეიყვანე ნომერი ხელით.");
-        return;
-      }
-
       if (scanning) {
         stopScanner();
         return;
       }
 
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-      video.srcObject = stream;
-      video.style.display = "block";
-      await video.play();
-      scanning = true;
-      scanBtn.textContent = "კამერის გამორთვა";
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          show("bad", "კამერა ამ ბრაუზერში მიუწვდომელია. ბილეთის ნომერი ხელით შეიყვანე.");
+          return;
+        }
 
-      const detector = new BarcodeDetector({ formats: ["qr_code"] });
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" } },
+          audio: false
+        });
+        video.srcObject = stream;
+        video.style.display = "block";
+        await video.play();
+        scanning = true;
+        scanBtn.textContent = "კამერის გამორთვა";
+        show("warn", "კამერა ჩართულია — QR კოდი ჩასვი ჩარჩოში.");
+      } catch (e) {
+        show("bad", "კამერის ჩართვა ვერ მოხერხდა. დაუშვი Camera permission ან შეიყვანე ნომერი ხელით.");
+        return;
+      }
+
+      const nativeDetector = "BarcodeDetector" in window
+        ? new BarcodeDetector({ formats: ["qr_code"] })
+        : null;
+
       const loop = async () => {
         if (!scanning) return;
         try {
-          const codes = await detector.detect(video);
-          if (codes && codes[0]) {
-            const value = cleanTicket(codes[0].rawValue);
+          let value = "";
+
+          if (nativeDetector) {
+            const codes = await nativeDetector.detect(video);
+            if (codes && codes[0]) value = cleanTicket(codes[0].rawValue);
+          } else if (window.jsQR && video.videoWidth && video.videoHeight) {
+            if (!scannerCanvas) {
+              scannerCanvas = document.createElement("canvas");
+              scannerCtx = scannerCanvas.getContext("2d", { willReadFrequently: true });
+            }
+            scannerCanvas.width = video.videoWidth;
+            scannerCanvas.height = video.videoHeight;
+            scannerCtx.drawImage(video, 0, 0, scannerCanvas.width, scannerCanvas.height);
+            const imageData = scannerCtx.getImageData(0, 0, scannerCanvas.width, scannerCanvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+            if (code && code.data) value = cleanTicket(code.data);
+          }
+
+          if (value) {
             if (value) {
               stopScanner();
               ticket.value = value;
