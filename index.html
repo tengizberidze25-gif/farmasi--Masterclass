@@ -43,6 +43,7 @@
 
   <!-- QR Code + Confetti libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="qrcode-generator.js"></script>
   <script>
     window.addEventListener("load", function() {
       if (typeof QRCode !== "undefined") return;
@@ -8454,7 +8455,9 @@
         if (fullName) qrText += "|" + fullName;
         if (ph) qrText += "|" + ph;
 
-        if (typeof QRCode !== "undefined") {
+        if (typeof qrcode !== "undefined") {
+          renderLocalQr(qrText);
+        } else if (typeof QRCode !== "undefined") {
           new QRCode(els.qrWrap, {
             text: qrText,
             width: 140,
@@ -8505,8 +8508,46 @@
       els.qrWrap.appendChild(mark);
     }
 
+    function renderLocalQr(qrText) {
+      if (!els.qrWrap) return;
+      const qr = qrcode(0, "H");
+      qr.addData(qrText);
+      qr.make();
+
+      const size = 140;
+      const quiet = 4;
+      const count = qr.getModuleCount();
+      const total = count + quiet * 2;
+      const cell = size / total;
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, size, size);
+      ctx.fillStyle = "#1a1212";
+
+      for (let row = 0; row < count; row++) {
+        for (let col = 0; col < count; col++) {
+          if (!qr.isDark(row, col)) continue;
+          const x = Math.round((col + quiet) * cell);
+          const y = Math.round((row + quiet) * cell);
+          const w = Math.ceil(cell);
+          ctx.fillRect(x, y, w, w);
+        }
+      }
+
+      els.qrWrap.appendChild(canvas);
+      addQrLogoMark();
+    }
+
     function renderQrImageFallback(qrText, ticketIdStr) {
       if (!els.qrWrap) return;
+      if (typeof qrcode !== "undefined") {
+        renderLocalQr(qrText);
+        return;
+      }
       const img = document.createElement("img");
       img.width = 140;
       img.height = 140;
