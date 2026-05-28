@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="ka">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FARMASI Check-in</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --pink: #e50571;
+      --ink: #20151a;
+      --muted: #73656b;
+      --line: #eadde3;
+      --ok: #15803d;
+      --warn: #b45309;
+      --bad: #b91c1c;
+      --bg: #fff7fa;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    main {
+      width: min(720px, 100%);
+      margin: 0 auto;
+      padding: 22px 16px 40px;
+    }
+
+    header {
+      padding: 18px 0 14px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.1;
+    }
+
+    .sub {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .panel {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      margin-top: 14px;
+      box-shadow: 0 10px 30px rgba(123, 30, 74, 0.08);
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      height: 46px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 12px;
+      font-size: 16px;
+      outline: none;
+      background: #fff;
+    }
+
+    input:focus {
+      border-color: var(--pink);
+      box-shadow: 0 0 0 3px rgba(229, 5, 113, 0.14);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    @media (min-width: 640px) {
+      .row {
+        grid-template-columns: 1fr 180px;
+        align-items: end;
+      }
+    }
+
+    button {
+      height: 46px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--pink);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: #2b1b24;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: wait;
+    }
+
+    video {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      border-radius: 8px;
+      background: #1c1418;
+      display: none;
+      margin-top: 12px;
+    }
+
+    .msg {
+      margin-top: 12px;
+      padding: 13px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      display: none;
+    }
+
+    .msg.ok { display: block; background: #dcfce7; color: var(--ok); }
+    .msg.warn { display: block; background: #ffedd5; color: var(--warn); }
+    .msg.bad { display: block; background: #fee2e2; color: var(--bad); }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .stat span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>FARMASI Check-in</h1>
+      <div class="sub">ბილეთის QR დაასკანერე ან ნომერი ხელით შეიყვანე.</div>
+    </header>
+
+    <section class="panel">
+      <div class="row">
+        <div>
+          <label for="ticket">ბილეთის ნომერი</label>
+          <input id="ticket" autocomplete="off" placeholder="FM-2026-00001">
+        </div>
+        <button id="checkBtn">Check-in</button>
+      </div>
+
+      <div style="margin-top:10px;">
+        <label for="pin">PIN სურვილისამებრ</label>
+        <input id="pin" inputmode="numeric" autocomplete="off" placeholder="თუ Config-ში checkin_pin გაქვს">
+      </div>
+
+      <button class="secondary" id="scanBtn" style="width:100%; margin-top:10px;">კამერის ჩართვა</button>
+      <video id="video" playsinline></video>
+      <div id="msg" class="msg"></div>
+    </section>
+
+    <section class="stats">
+      <div class="stat"><strong id="total">0</strong><span>სულ</span></div>
+      <div class="stat"><strong id="checked">0</strong><span>შემოსული</span></div>
+      <div class="stat"><strong id="pending">0</strong><span>დარჩა</span></div>
+    </section>
+  </main>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbz40UE4b9og1Yjs0rPPfDe1H-yRi90hKbK2WOXej4CAWPCnncDFcetadMEdQSYJO7nf/exec";
+
+    const ticket = document.getElementById("ticket");
+    const pin = document.getElementById("pin");
+    const msg = document.getElementById("msg");
+    const checkBtn = document.getElementById("checkBtn");
+    const scanBtn = document.getElementById("scanBtn");
+    const video = document.getElementById("video");
+    let stream = null;
+    let scanning = false;
+
+    function show(type, text) {
+      msg.className = "msg " + type;
+      msg.textContent = text;
+    }
+
+    function cleanTicket(value) {
+      return String(value || "").trim().toUpperCase();
+    }
+
+    async function api(params) {
+      const url = API_URL + "?" + new URLSearchParams(params).toString();
+      const res = await fetch(url);
+      return res.json();
+    }
+
+    async function refreshStats() {
+      try {
+        const data = await api({ action: "get_checkins", pin: pin.value.trim() });
+        if (!data.ok) return;
+        document.getElementById("total").textContent = data.total || 0;
+        document.getElementById("checked").textContent = data.checkedIn || 0;
+        document.getElementById("pending").textContent = data.pending || 0;
+      } catch (e) {}
+    }
+
+    async function checkIn(value) {
+      const id = cleanTicket(value || ticket.value);
+      if (!id) {
+        show("bad", "ბილეთის ნომერი შეიყვანე");
+        return;
+      }
+
+      checkBtn.disabled = true;
+      try {
+        const data = await api({ action: "checkin", ticket_id: id, pin: pin.value.trim() });
+        if (data.ok) {
+          const t = data.ticket || {};
+          const name = [t.first_name, t.last_name].filter(Boolean).join(" ");
+          show(data.already_checked_in ? "warn" : "ok", (data.already_checked_in ? "უკვე შემოსულია: " : "დადასტურდა: ") + (name || id));
+          ticket.value = "";
+          await refreshStats();
+        } else {
+          show("bad", data.error || "Check-in ვერ შესრულდა");
+        }
+      } catch (e) {
+        show("bad", "კავშირი ვერ მოხერხდა");
+      } finally {
+        checkBtn.disabled = false;
+      }
+    }
+
+    async function startScanner() {
+      if (!("BarcodeDetector" in window)) {
+        show("bad", "ამ ბრაუზერს QR სკანერი არ აქვს. გამოიყენე Chrome ან შეიყვანე ნომერი ხელით.");
+        return;
+      }
+
+      if (scanning) {
+        stopScanner();
+        return;
+      }
+
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      video.srcObject = stream;
+      video.style.display = "block";
+      await video.play();
+      scanning = true;
+      scanBtn.textContent = "კამერის გამორთვა";
+
+      const detector = new BarcodeDetector({ formats: ["qr_code"] });
+      const loop = async () => {
+        if (!scanning) return;
+        try {
+          const codes = await detector.detect(video);
+          if (codes && codes[0]) {
+            const value = cleanTicket(codes[0].rawValue);
+            if (value) {
+              stopScanner();
+              ticket.value = value;
+              await checkIn(value);
+              return;
+            }
+          }
+        } catch (e) {}
+        requestAnimationFrame(loop);
+      };
+      loop();
+    }
+
+    function stopScanner() {
+      scanning = false;
+      scanBtn.textContent = "კამერის ჩართვა";
+      video.style.display = "none";
+      if (stream) stream.getTracks().forEach(track => track.stop());
+      stream = null;
+    }
+
+    checkBtn.addEventListener("click", () => checkIn());
+    scanBtn.addEventListener("click", startScanner);
+    ticket.addEventListener("keydown", e => {
+      if (e.key === "Enter") checkIn();
+    });
+    refreshStats();
+  </script>
+</body>
+</html>
