@@ -418,7 +418,7 @@
             scannerCanvas.height = video.videoHeight;
             scannerCtx.drawImage(video, 0, 0, scannerCanvas.width, scannerCanvas.height);
             const imageData = scannerCtx.getImageData(0, 0, scannerCanvas.width, scannerCanvas.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+            const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "attemptBoth" });
             if (code && code.data) value = cleanTicket(code.data);
           }
 

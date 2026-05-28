@@ -2637,14 +2637,14 @@
       position: absolute;
       left: 50%;
       top: 50%;
-      width: 34px;
-      height: 26px;
+      width: 30px;
+      height: 22px;
       transform: translate(-50%, -50%);
-      border-radius: 8px;
+      border-radius: 7px;
       background: #fff;
       display: grid;
       place-items: center;
-      box-shadow: 0 0 0 4px #fff, 0 2px 6px rgba(26, 18, 18, 0.18);
+      box-shadow: 0 0 0 3px #fff, 0 2px 6px rgba(26, 18, 18, 0.16);
       pointer-events: none;
       z-index: 2;
     }
@@ -2656,8 +2656,8 @@
     }
 
     .qr-logo-mark img {
-      width: 22px;
-      height: 16px;
+      width: 19px;
+      height: 14px;
       object-fit: contain;
       display: block;
     }
@@ -8450,35 +8450,27 @@
       // Generate QR code
       els.qrWrap.innerHTML = "";
       try {
-        // Build QR text — always include ticket ID as primary identifier.
-        // Add name + phone only if they're present (may be missing when modal
-        // is opened via "ნახვა" → phone lookup before formData is fully populated).
-        const fn = (formData && formData.first_name) ? String(formData.first_name).trim() : "";
-        const ln = (formData && formData.last_name) ? String(formData.last_name).trim() : "";
-        const ph = (formData && formData.phone) ? String(formData.phone).trim() : "";
-        const fullName = (fn + " " + ln).trim();
-
-        let qrText = ticketIdStr;
-        if (fullName) qrText += "|" + fullName;
-        if (ph) qrText += "|" + ph;
+        // Keep QR payload short for fast camera scanning on phones.
+        const qrText = ticketIdStr;
+        const qrSize = 160;
 
         if (typeof qrcode !== "undefined") {
-          renderLocalQr(qrText);
+          renderLocalQr(qrText, qrSize);
         } else if (typeof QRCode !== "undefined") {
           new QRCode(els.qrWrap, {
             text: qrText,
-            width: 140,
-            height: 140,
+            width: qrSize,
+            height: qrSize,
             colorDark: "#1a1212",
             colorLight: "#ffffff",
             correctLevel: QRCode.CorrectLevel.H
           });
           addQrLogoMark();
         } else {
-          renderQrImageFallback(qrText, ticketIdStr);
+          renderQrImageFallback(qrText, ticketIdStr, qrSize);
         }
       } catch (e) {
-        renderQrImageFallback(ticketIdStr, ticketIdStr);
+        renderQrImageFallback(ticketIdStr, ticketIdStr, 160);
       }
 
       // Build calendar URLs
@@ -8518,13 +8510,13 @@
       els.qrWrap.appendChild(mark);
     }
 
-    function renderLocalQr(qrText) {
+    function renderLocalQr(qrText, size) {
       if (!els.qrWrap) return;
       const qr = qrcode(0, "H");
       qr.addData(qrText);
       qr.make();
 
-      const size = 140;
+      size = size || 160;
       const quiet = 4;
       const count = qr.getModuleCount();
       const total = count + quiet * 2;
@@ -8552,17 +8544,17 @@
       addQrLogoMark();
     }
 
-    function renderQrImageFallback(qrText, ticketIdStr) {
+    function renderQrImageFallback(qrText, ticketIdStr, size) {
       if (!els.qrWrap) return;
       if (typeof qrcode !== "undefined") {
-        renderLocalQr(qrText);
+        renderLocalQr(qrText, size || 160);
         return;
       }
       const img = document.createElement("img");
-      img.width = 140;
-      img.height = 140;
+      img.width = size || 160;
+      img.height = size || 160;
       img.alt = "Ticket QR";
-      img.src = "https://api.qrserver.com/v1/create-qr-code/?size=140x140&ecc=H&margin=0&data=" + encodeURIComponent(qrText);
+      img.src = "https://api.qrserver.com/v1/create-qr-code/?size=" + (size || 160) + "x" + (size || 160) + "&ecc=H&margin=0&data=" + encodeURIComponent(qrText);
       img.onerror = function() {
         els.qrWrap.innerHTML = `<div style="font-family:monospace; padding:30px; color:#1a1212; font-weight:700; font-size:18px;">${ticketIdStr}</div>`;
       };
