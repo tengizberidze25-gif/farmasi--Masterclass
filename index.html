@@ -6041,13 +6041,20 @@
             <input class="input-field" type="tel" id="phone" name="phone" placeholder="ტელეფონის ნომერი" required />
           </div>
 
-          <!-- Hidden field that receives the seat number from the seat-picker modal -->
-          <input type="hidden" id="seat_number" name="seat_number" required />
+          <div class="input-group">
+            <select class="input-field" id="transport_mode" name="transport_mode" required>
+              <option value="bus" selected>ავტობუსით მოვდივარ თბილისიდან</option>
+              <option value="car">საკუთარი ავტომობილით მოვდივარ</option>
+            </select>
+          </div>
+
+          <!-- Hidden field that receives the bus seat number from the seat-picker modal -->
+          <input type="hidden" id="seat_number" name="seat_number" />
 
           <!-- Step 1: Reserve seat (opens seat picker modal) -->
           <button type="button" class="btn btn-ghost reserve-seat-btn" id="reserveSeatBtn" style="margin-top:6px;width:100%;">
             <span class="rsb-icon">🚌</span>
-            <span class="rsb-label">დაჯავშნე ადგილი</span>
+            <span class="rsb-label">დაჯავშნე ავტობუსის ადგილი</span>
             <span class="rsb-arrow">→</span>
           </button>
 
@@ -6884,6 +6891,7 @@
       // Seat picker
       seatGrid: document.getElementById("seatGrid"),
       seatNumberInput: document.getElementById("seat_number"),
+      transportMode: document.getElementById("transport_mode"),
       seatSelectedDisplay: document.getElementById("seatSelectedDisplay"),
 
       // My ticket persistence
@@ -7155,6 +7163,51 @@
       // Also update the save-seat button (in modal) if it exists
       if (typeof updateSaveSeatButton === "function") {
         updateSaveSeatButton();
+      }
+    }
+
+    function getTransportMode() {
+      return (els.transportMode && els.transportMode.value) || "bus";
+    }
+
+    function updateTransportModeUI() {
+      const mode = getTransportMode();
+      const reserveBtn = document.getElementById("reserveSeatBtn");
+      const registerBtn = document.getElementById("registerBtn");
+
+      if (mode === "car") {
+        selectedSeat = null;
+        if (els.seatNumberInput) els.seatNumberInput.value = "";
+        if (els.seatSelectedDisplay) {
+          els.seatSelectedDisplay.innerHTML = `<span class="seat-pill">🚗 საკუთარი ავტომობილი</span>`;
+        }
+        if (reserveBtn) {
+          reserveBtn.style.display = "none";
+          reserveBtn.classList.remove("has-seat");
+        }
+        if (registerBtn) {
+          registerBtn.disabled = false;
+          registerBtn.style.opacity = "1";
+          registerBtn.style.cursor = "pointer";
+        }
+        return;
+      }
+
+      if (reserveBtn) {
+        reserveBtn.style.display = "";
+        if (selectedSeat) {
+          reserveBtn.innerHTML = '<span class="rsb-label">✓ ავტობუსის ადგილი #' + selectedSeat + ' — შეცვლა</span>';
+          reserveBtn.classList.add("has-seat");
+        } else {
+          reserveBtn.innerHTML = '<span class="rsb-icon">🚌</span><span class="rsb-label">დაჯავშნე ავტობუსის ადგილი</span><span class="rsb-arrow">→</span>';
+          reserveBtn.classList.remove("has-seat");
+        }
+      }
+
+      if (registerBtn) {
+        registerBtn.disabled = !selectedSeat;
+        registerBtn.style.opacity = selectedSeat ? "1" : "0.5";
+        registerBtn.style.cursor = selectedSeat ? "pointer" : "not-allowed";
       }
     }
 
@@ -8133,10 +8186,11 @@
     function saveMyTicket(registrationData, formData) {
       try {
         const data = {
-          ticket_id: (registrationData && registrationData.ticket_id) || null,
-          tier: (registrationData && registrationData.tier) || "Standard",
-          seat_number: (registrationData && registrationData.seat_number) || null,
-          first_name: formData.first_name || "",
+        ticket_id: (registrationData && registrationData.ticket_id) || null,
+        tier: (registrationData && registrationData.tier) || "Standard",
+        seat_number: (registrationData && registrationData.seat_number) || null,
+        transport_mode: (registrationData && registrationData.transport_mode) || (formData && formData.transport_mode) || "bus",
+        first_name: formData.first_name || "",
           last_name: formData.last_name || "",
           phone: formData.phone || "",
           city: formData.city_area_village || "",
@@ -8482,6 +8536,7 @@
       // Save context for potential cancellation
       currentTicketContext = {
         ticket_id: ticketIdStr,
+        transport_mode: (registrationData && registrationData.transport_mode) || "bus",
         phone: formData.phone || "",
         name: formData.first_name + " " + formData.last_name
       };
@@ -8831,12 +8886,13 @@
         city_area_village: document.getElementById("city_area_village").value,
         position: document.getElementById("position").value,
         phone: document.getElementById("phone").value,
+        transport_mode: document.getElementById("transport_mode").value,
         seat_number: document.getElementById("seat_number").value
       };
 
-      // Validate seat selection
-      if (!formData.seat_number) {
-        showMessage("error", "გთხოვთ, აირჩიოთ ადგილი ⚠", els.registerError);
+      // Validate bus seat only when the user chose bus transport.
+      if (formData.transport_mode === "bus" && !formData.seat_number) {
+        showMessage("error", "გთხოვთ, აირჩიოთ ავტობუსის ადგილი ⚠", els.registerError);
         els.registerBtn.disabled = false;
         els.registerBtn.textContent = t("register_button", "დარეგისტრირდი");
         return;
@@ -8875,11 +8931,13 @@
           ticketData = {
             ticket_id: "FM-" + new Date().getFullYear() + "-" + String(currentTotal).padStart(5, '0'),
             tier: getNextTierLocal(currentTotal - 1),
-            seat_number: parseInt(formData.seat_number)
+            seat_number: formData.seat_number ? parseInt(formData.seat_number) : null,
+            transport_mode: formData.transport_mode
           };
         } else {
           // Make sure seat_number is in there
-          ticketData.seat_number = ticketData.seat_number || parseInt(formData.seat_number);
+          ticketData.seat_number = ticketData.seat_number || (formData.seat_number ? parseInt(formData.seat_number) : null);
+          ticketData.transport_mode = ticketData.transport_mode || formData.transport_mode;
         }
 
         // Save ticket to localStorage so user can re-open it later
@@ -9264,7 +9322,7 @@
       const reserveBtn = document.getElementById("reserveSeatBtn");
       if (reserveBtn) {
         reserveBtn.innerHTML =
-          '<span class="rsb-label">✓ ადგილი #' + selectedSeat + ' — შეცვლა</span>';
+          '<span class="rsb-label">✓ ავტობუსის ადგილი #' + selectedSeat + ' — შეცვლა</span>';
         reserveBtn.classList.add("has-seat");
       }
 
@@ -9478,6 +9536,10 @@
       if (els.ticketCancelConfirm) {
         els.ticketCancelConfirm.addEventListener("click", handleTicketCancel);
       }
+      if (els.transportMode) {
+        els.transportMode.addEventListener("change", updateTransportModeUI);
+        updateTransportModeUI();
+      }
 
       refreshMyTicketCard();
       startSimulatedRegistrations();
@@ -9520,7 +9582,8 @@
         const registrationData = {
           ticket_id: ticket.ticket_id,
           tier: ticket.tier,
-          seat_number: ticket.seat_number
+          seat_number: ticket.seat_number,
+          transport_mode: ticket.transport_mode || "bus"
         };
 
         // Save it to localStorage so it appears in "My Ticket" card
