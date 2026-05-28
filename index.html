@@ -6520,6 +6520,103 @@
     // ⚠️ შენი Apps Script Web App URL
     const API_URL = "https://script.google.com/macros/s/AKfycbz40UE4b9og1Yjs0rPPfDe1H-yRi90hKbK2WOXej4CAWPCnncDFcetadMEdQSYJO7nf/exec";
 
+    let siteTexts = {};
+
+    function t(key, fallback) {
+      const value = siteTexts && siteTexts[key];
+      return value === undefined || value === null || String(value).trim() === "" ? fallback : String(value);
+    }
+
+    async function loadSiteTexts() {
+      try {
+        const res = await fetch(API_URL + "?action=get_site_texts");
+        const data = await res.json();
+        if (data && data.ok && data.texts) {
+          siteTexts = data.texts;
+        }
+      } catch (e) {
+        siteTexts = {};
+      }
+      return siteTexts;
+    }
+
+    function setTextById(id, key, fallback) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = t(key, fallback);
+    }
+
+    function setPlaceholderById(id, key, fallback) {
+      const el = document.getElementById(id);
+      if (el) el.placeholder = t(key, fallback);
+    }
+
+    function replaceVisibleText(oldText, newText) {
+      if (!oldText || !newText || oldText === newText) return;
+      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      const nodes = [];
+      let node;
+      while ((node = walker.nextNode())) {
+        if (node.nodeValue && node.nodeValue.indexOf(oldText) !== -1) nodes.push(node);
+      }
+      nodes.forEach(n => {
+        n.nodeValue = n.nodeValue.split(oldText).join(newText);
+      });
+    }
+
+    function replaceExactVisibleText(oldText, newText) {
+      if (!oldText || !newText || oldText === newText) return;
+      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      const nodes = [];
+      let node;
+      while ((node = walker.nextNode())) {
+        if (node.nodeValue && node.nodeValue.trim() === oldText) nodes.push(node);
+      }
+      nodes.forEach(n => {
+        n.nodeValue = n.nodeValue.replace(oldText, newText);
+      });
+    }
+
+    function applySiteTexts(config) {
+      const metaTitle = t("meta_title", document.title || "Farmasi მარკეტინგის მასტერკლასი 2026");
+      const metaDescription = t("meta_description", "Farmasi მარკეტინგის მასტერკლასი 2026 — დაიკავე ადგილი, ნახე პროგრამა და მიიღე შენი პერსონალური ბილეთი.");
+      document.title = metaTitle;
+      const metaDescriptionEl = document.querySelector('meta[name="description"]');
+      if (metaDescriptionEl) metaDescriptionEl.setAttribute("content", metaDescription);
+      const ogTitleEl = document.querySelector('meta[property="og:title"]');
+      if (ogTitleEl) ogTitleEl.setAttribute("content", metaTitle);
+      const ogDescriptionEl = document.querySelector('meta[property="og:description"]');
+      if (ogDescriptionEl) ogDescriptionEl.setAttribute("content", metaDescription);
+      const twitterTitleEl = document.querySelector('meta[name="twitter:title"]');
+      if (twitterTitleEl) twitterTitleEl.setAttribute("content", metaTitle);
+      const twitterDescriptionEl = document.querySelector('meta[name="twitter:description"]');
+      if (twitterDescriptionEl) twitterDescriptionEl.setAttribute("content", metaDescription);
+
+      replaceExactVisibleText("FARMASI", t("hero_brand", "FARMASI"));
+      replaceExactVisibleText("მასტერკლასი", t("hero_title", "მასტერკლასი"));
+      replaceExactVisibleText("ექსკლუზიური მარკეტინგის დღე — დაიკავე ადგილი", t("hero_subtitle", "ექსკლუზიური მარკეტინგის დღე — დაიკავე ადგილი"));
+      replaceExactVisibleText("✦ სრული პროგრამის ნახვა ✦", t("cta_program", "✦ სრული პროგრამის ნახვა ✦"));
+      replaceExactVisibleText("დაიკავე ადგილი", t("cta_register", "დაიკავე ადგილი"));
+      replaceVisibleText("მოგესალმებით მარკეტინგის მასტერკლასზე", t("farewell", "მოგესალმებით მარკეტინგის მასტერკლასზე"));
+      replaceVisibleText("რეგისტრაციის გაუქმება", t("cancel_button", "რეგისტრაციის გაუქმება"));
+      replaceVisibleText("ბილეთის ნახვა", t("ticket_view_button", "ბილეთის ნახვა"));
+      replaceVisibleText("📲 გამომიგზავნე SMS-ით ლინკი", t("ticket_sms_button", "📲 გამომიგზავნე SMS-ით ლინკი"));
+
+      setPlaceholderById("first_name", "first_name_placeholder", "სახელი");
+      setPlaceholderById("last_name", "last_name_placeholder", "გვარი");
+      setPlaceholderById("city_area_village", "city_placeholder", "ქალაქი / რაიონი / სოფელი");
+      setPlaceholderById("phone", "phone_placeholder", "ტელეფონის ნომერი");
+      setPlaceholderById("cancel_reason", "cancel_reason_placeholder", "მაგ: ჯანმრთელობის პრობლემა, სამუშაო, ან რამე სხვა...");
+      setPlaceholderById("ticketCancelReason", "cancel_reason_placeholder", "მაგ: ჯანმრთელობის პრობლემა, სამუშაო, ან რამე სხვა...");
+
+      if (config) {
+        Object.keys(siteTexts || {}).forEach(key => {
+          if (config[key] === undefined || config[key] === null || String(config[key]).trim() === "") {
+            config[key] = siteTexts[key];
+          }
+        });
+      }
+    }
+
     let countdownTimer = null;
     let livePopupTimer = null;
     let simulatedPopupInterval = null;
@@ -7269,13 +7366,13 @@
           msg.textContent = (data && data.error) || "ვერ გაიგზავნა — სცადე თავიდან";
           msg.className = "phone-verify-msg error";
           btn.disabled = false;
-          btn.textContent = "📲 გამომიგზავნე SMS-ით ლინკი";
+          btn.textContent = t("ticket_sms_button", "📲 გამომიგზავნე SMS-ით ლინკი");
         }
       } catch (e) {
         msg.textContent = friendlyNetworkError("SMS-ის გაგზავნა");
         msg.className = "phone-verify-msg error";
         btn.disabled = false;
-        btn.textContent = "📲 გამომიგზავნე SMS-ით ლინკი";
+        btn.textContent = t("ticket_sms_button", "📲 გამომიგზავნე SMS-ით ლინკი");
       }
     }
 
@@ -7848,6 +7945,9 @@
           els.pageSubtitle.textContent = "მონაცემების ჩატვირთვა ვერ მოხერხდა";
           return;
         }
+        await loadSiteTexts();
+        data.config = data.config || {};
+        applySiteTexts(data.config);
         lastConfig = data.config || {};
         renderStatus(data.status);
         renderStats(data);
@@ -8178,7 +8278,7 @@
         msg.className = "phone-verify-msg error";
       } finally {
         btn.disabled = false;
-        btn.textContent = "ბილეთის ნახვა →";
+        btn.textContent = t("ticket_view_button", "ბილეთის ნახვა") + " →";
       }
     }
 
@@ -8557,7 +8657,7 @@
       if (!formData.seat_number) {
         showMessage("error", "გთხოვთ, აირჩიოთ ადგილი ⚠", els.registerError);
         els.registerBtn.disabled = false;
-        els.registerBtn.textContent = "დარეგისტრირება";
+        els.registerBtn.textContent = t("register_button", "დარეგისტრირდი");
         return;
       }
 
@@ -8620,7 +8720,7 @@
         showMessage("error", friendlyNetworkError("რეგისტრაცია"), els.registerError);
       } finally {
         els.registerBtn.disabled = false;
-        els.registerBtn.textContent = "დარეგისტრირება";
+        els.registerBtn.textContent = t("register_button", "დარეგისტრირდი");
       }
     }
 
@@ -8665,7 +8765,7 @@
         showMessage("error", friendlyNetworkError("გაუქმება"), els.cancelError);
       } finally {
         els.cancelBtn.disabled = false;
-        els.cancelBtn.textContent = "გაუქმება";
+        els.cancelBtn.textContent = t("cancel_button", "გაუქმება");
       }
     }
 
