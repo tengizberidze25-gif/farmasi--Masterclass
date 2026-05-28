@@ -2617,9 +2617,32 @@
       border-radius: 12px;
       margin-bottom: 12px;
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      position: relative;
     }
 
     .qr-wrap canvas, .qr-wrap img {
+      display: block;
+    }
+
+    .qr-logo-mark {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 34px;
+      height: 34px;
+      transform: translate(-50%, -50%);
+      border-radius: 10px;
+      background: #fff;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 0 4px #fff, 0 3px 10px rgba(26, 18, 18, 0.22);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .qr-logo-mark svg {
+      width: 24px;
+      height: 18px;
       display: block;
     }
 
@@ -8432,6 +8455,7 @@
             colorLight: "#ffffff",
             correctLevel: QRCode.CorrectLevel.H
           });
+          addQrLogoMark();
         } else {
           // QRCode library failed to load — show ticket ID as plain text fallback
           els.qrWrap.innerHTML = `<div style="font-family:monospace; padding:30px; color:#1a1212; font-weight:700; font-size:18px;">${ticketIdStr}</div>`;
@@ -8459,6 +8483,20 @@
 
       // Show modal
       els.ticketModal.classList.add("open");
+    }
+
+    function addQrLogoMark() {
+      if (!els.qrWrap) return;
+      const mark = document.createElement("div");
+      mark.className = "qr-logo-mark";
+      mark.setAttribute("aria-hidden", "true");
+      mark.innerHTML = `
+        <svg viewBox="0 0 64 42" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9.2 31.8c9.1-.6 15.7-4.2 20.2-10.9 3.6-5.4 5.4-11.4 9.1-16.1-8.3.4-15 3.7-19.7 9.8-4.1 5.4-5.8 12.4-9.6 17.2Z" fill="#ff5b78"/>
+          <path d="M29.6 36.4c8.9-.5 15.6-4 20.2-10.5 3.9-5.5 5.8-12.1 9.5-17-8.6.3-15.5 3.7-20.2 10-4.1 5.5-5.7 12.5-9.5 17.5Z" fill="#ff5b78"/>
+        </svg>
+      `;
+      els.qrWrap.appendChild(mark);
     }
 
     function resetTicketCancelUI() {
