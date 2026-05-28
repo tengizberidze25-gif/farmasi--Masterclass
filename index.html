@@ -9482,18 +9482,19 @@
       refreshMyTicketCard();
       startSimulatedRegistrations();
 
-      // Always wait for main data to load BEFORE opening ticket from URL
-      // This ensures the page is fully rendered when ticket modal appears on top
-      await loadData();
-
-      // 🎫 If URL has ?t=FM-2026-XXXXX — open ticket modal automatically
-      // Run AFTER main page is rendered so it doesn't block the UI
+      // Open ticket links immediately; load the landing data in parallel.
       tryOpenTicketFromUrl();
+      setTimeout(tryOpenTicketFromUrl, 350);
+      setTimeout(tryOpenTicketFromUrl, 900);
+
+      await loadData();
+      setTimeout(tryOpenTicketFromUrl, 1200);
     }
 
     async function tryOpenTicketFromUrl() {
-      const params = new URLSearchParams(window.location.search);
-      const ticketId = params.get("t");
+      if (window.__ticketUrlOpened) return;
+
+      const ticketId = getTicketIdFromUrl();
       if (!ticketId) return;
 
       try {
@@ -9506,6 +9507,7 @@
           console.warn("Ticket not found:", ticketId);
           return;
         }
+        window.__ticketUrlOpened = true;
 
         const ticket = data.ticket;
         const formData = {
@@ -9525,10 +9527,16 @@
         saveMyTicket(registrationData, formData);
         refreshMyTicketCard();
 
-        // Show ticket modal with a slight delay so the page settles first
-        setTimeout(() => {
+        const openTicket = () => {
           showTicketModal(registrationData, formData);
-        }, 800);
+          const modal = document.getElementById("ticketModal");
+          if (modal) modal.classList.add("open");
+        };
+
+        // Show ticket modal quickly, with retries for slow mobile rendering.
+        openTicket();
+        setTimeout(openTicket, 350);
+        setTimeout(openTicket, 900);
 
         // Clean URL (remove ?t= parameter so it's not in history)
         if (window.history && window.history.replaceState) {
@@ -9537,6 +9545,16 @@
       } catch (err) {
         console.warn("Failed to load ticket from URL:", err);
       }
+    }
+
+    function getTicketIdFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const direct = params.get("t") || params.get("ticket") || params.get("ticket_id") || params.get("id");
+      if (direct) return String(direct).trim();
+
+      const hash = String(window.location.hash || "");
+      const match = hash.match(/FM-\d{4}-\d{5}/i);
+      return match ? match[0].toUpperCase() : "";
     }
 
     init();
