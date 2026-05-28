@@ -138,6 +138,69 @@
     .msg.warn { display: block; background: #ffedd5; color: var(--warn); }
     .msg.bad { display: block; background: #fee2e2; color: var(--bad); }
 
+    .result {
+      display: none;
+      margin-top: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .result.show {
+      display: block;
+    }
+
+    .result-head {
+      padding: 14px;
+      background: #2b1b24;
+      color: #fff;
+    }
+
+    .result-status {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #ffd7e7;
+    }
+
+    .result-name {
+      margin-top: 5px;
+      font-size: 24px;
+      font-weight: 900;
+      line-height: 1.15;
+    }
+
+    .result-body {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1px;
+      background: var(--line);
+    }
+
+    .result-item {
+      padding: 12px;
+      background: #fff;
+      min-width: 0;
+    }
+
+    .result-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+
+    .result-item strong {
+      display: block;
+      font-size: 15px;
+      overflow-wrap: anywhere;
+    }
+
     .stats {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -190,6 +253,19 @@
       <button class="secondary" id="scanBtn" style="width:100%; margin-top:10px;">კამერის ჩართვა</button>
       <video id="video" playsinline></video>
       <div id="msg" class="msg"></div>
+
+      <div id="result" class="result">
+        <div class="result-head">
+          <div id="resultStatus" class="result-status">დადასტურდა</div>
+          <div id="resultName" class="result-name">სტუმარი</div>
+        </div>
+        <div class="result-body">
+          <div class="result-item"><span>ბილეთი</span><strong id="resultTicket">-</strong></div>
+          <div class="result-item"><span>ადგილი</span><strong id="resultSeat">-</strong></div>
+          <div class="result-item"><span>ქალაქი</span><strong id="resultCity">-</strong></div>
+          <div class="result-item"><span>დრო</span><strong id="resultTime">-</strong></div>
+        </div>
+      </div>
     </section>
 
     <section class="stats">
@@ -208,6 +284,13 @@
     const checkBtn = document.getElementById("checkBtn");
     const scanBtn = document.getElementById("scanBtn");
     const video = document.getElementById("video");
+    const result = document.getElementById("result");
+    const resultStatus = document.getElementById("resultStatus");
+    const resultName = document.getElementById("resultName");
+    const resultTicket = document.getElementById("resultTicket");
+    const resultSeat = document.getElementById("resultSeat");
+    const resultCity = document.getElementById("resultCity");
+    const resultTime = document.getElementById("resultTime");
     let stream = null;
     let scanning = false;
 
@@ -218,6 +301,25 @@
 
     function cleanTicket(value) {
       return String(value || "").trim().toUpperCase();
+    }
+
+    function formatTime(value) {
+      if (!value) return "-";
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return String(value);
+      return d.toLocaleString("ka-GE", { dateStyle: "medium", timeStyle: "short" });
+    }
+
+    function showResult(ticketData, already) {
+      const t = ticketData || {};
+      const name = [t.first_name, t.last_name].filter(Boolean).join(" ") || "სტუმარი";
+      resultStatus.textContent = already ? "უკვე შემოსულია" : "დადასტურდა";
+      resultName.textContent = name;
+      resultTicket.textContent = t.ticket_id || "-";
+      resultSeat.textContent = t.seat_number ? "#" + t.seat_number : "-";
+      resultCity.textContent = t.city || "-";
+      resultTime.textContent = formatTime(t.checked_in_at) || "-";
+      result.classList.add("show");
     }
 
     async function api(params) {
@@ -250,6 +352,7 @@
           const t = data.ticket || {};
           const name = [t.first_name, t.last_name].filter(Boolean).join(" ");
           show(data.already_checked_in ? "warn" : "ok", (data.already_checked_in ? "უკვე შემოსულია: " : "დადასტურდა: ") + (name || id));
+          showResult(t, data.already_checked_in);
           ticket.value = "";
           await refreshStats();
         } else {
