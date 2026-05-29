@@ -852,7 +852,11 @@
       show("good", "გამარჯვებული გამოვლინდა");
       burstConfetti();
       renderHistory();
-      buildPool();
+      const winnerKey = String(winner.ticket_id || winner.phone || "");
+      pool = pool.filter(p => String(p.ticket_id || p.phone || "") !== winnerKey);
+      els.poolCount.textContent = pool.length;
+      els.winnerCount.textContent = winners.length;
+      els.spinBtn.disabled = !pool.length || spinning;
       notifyWinnerSms(winner);
     }
 
