@@ -9089,12 +9089,17 @@
 
         // Check if response indicates an error
         if (response && response.ok === false) {
-          let errMsg = "დაფიქსირდა შეცდომა ⚠";
-          if (response.error === "Already registered") errMsg = "ეს ნომერი უკვე დარეგისტრირებულია";
+          const rawError = String(response.error || "").trim();
+          let errMsg = rawError || "დაფიქსირდა შეცდომა ⚠";
+          if (rawError === "Already registered") errMsg = "ეს ნომერი უკვე დარეგისტრირებულია";
           else if (response.error === "No spots left") errMsg = "ადგილები ამოიწურა";
           else if (response.error === "Registration is closed") errMsg = "რეგისტრაცია დახურულია";
           else if (response.error === "Seat taken") errMsg = "ეს ადგილი უკვე დაკავებულია — აირჩიე სხვა";
           else if (response.error === "Invalid seat") errMsg = "ადგილის ნომერი არასწორია";
+          else if (response.error === "Invalid phone") errMsg = "ტელეფონის ნომერი არასწორია";
+          else if (response.error === "Missing required fields") errMsg = "შეავსე ყველა სავალდებულო ველი";
+          else if (response.error === "invited_by required") errMsg = "გთხოვთ, მიუთითოთ ვინ მოგიწვიათ";
+          console.warn("Registration failed:", response);
           showMessage("error", errMsg, els.registerError);
           return;
         }
@@ -9142,7 +9147,8 @@
         }, 1400);
 
       } catch (err) {
-        showMessage("error", friendlyNetworkError("რეგისტრაცია"), els.registerError);
+        console.error("Registration request failed:", err);
+        showMessage("error", err && err.message ? err.message : friendlyNetworkError("რეგისტრაცია"), els.registerError);
       } finally {
         els.registerBtn.disabled = false;
         els.registerBtn.textContent = t("register_button", "დარეგისტრირდი");
