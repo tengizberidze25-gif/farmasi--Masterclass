@@ -5,15 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#0a0808" />
   <title>Farmasi მარკეტინგის მასტერკლასი 2026</title>
-  <meta name="description" content="Farmasi მარკეტინგის მასტერკლასი 2026 — დაიკავე ადგილი, ნახე პროგრამა და მიიღე შენი პერსონალური ბილეთი." />
-  <link rel="canonical" href="https://masterclass.farmasi.ge/" />
 
   <!-- 🔗 Link previews (WhatsApp / Telegram / Facebook / Messenger) -->
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://masterclass.farmasi.ge/" />
+  <meta property="og:url" content="https://farmasi-masterclass.vercel.app/" />
   <meta property="og:title" content="Farmasi მარკეტინგის მასტერკლასი 2026" />
-  <meta property="og:description" content="დაიკავე ადგილი, ნახე პროგრამა და მიიღე შენი პერსონალური ბილეთი Farmasi მარკეტინგის მასტერკლასზე." />
-  <meta property="og:image" content="https://masterclass.farmasi.ge/farmasi.png" />
+  <meta property="og:description" content="ექსკლუზიური მარკეტინგის მასტერკლასი — დაიკავე ადგილი" />
+  <meta property="og:image" content="https://farmasi-masterclass.vercel.app/farmasi.png" />
   <meta property="og:image:width" content="512" />
   <meta property="og:image:height" content="512" />
   <meta property="og:image:alt" content="Farmasi" />
@@ -23,8 +21,8 @@
   <!-- 🐦 Twitter/X cards -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Farmasi მარკეტინგის მასტერკლასი 2026" />
-  <meta name="twitter:description" content="დაიკავე ადგილი, ნახე პროგრამა და მიიღე შენი პერსონალური ბილეთი Farmasi მარკეტინგის მასტერკლასზე." />
-  <meta name="twitter:image" content="https://masterclass.farmasi.ge/farmasi.png" />
+  <meta name="twitter:description" content="ექსკლუზიური მარკეტინგის მასტერკლასი — დაიკავე ადგილი" />
+  <meta name="twitter:image" content="https://farmasi-masterclass.vercel.app/farmasi.png" />
 
   <!-- 🌐 Browser tab icon -->
   <link rel="icon" type="image/png" href="farmasi.png" />
@@ -43,15 +41,6 @@
 
   <!-- QR Code + Confetti libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="qrcode-generator.js"></script>
-  <script>
-    window.addEventListener("load", function() {
-      if (typeof QRCode !== "undefined") return;
-      var s = document.createElement("script");
-      s.src = "https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js";
-      document.head.appendChild(s);
-    });
-  </script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 
   <style>
@@ -2626,39 +2615,9 @@
       border-radius: 12px;
       margin-bottom: 12px;
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-      position: relative;
     }
 
     .qr-wrap canvas, .qr-wrap img {
-      display: block;
-    }
-
-    .qr-logo-mark {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 30px;
-      height: 22px;
-      transform: translate(-50%, -50%);
-      border-radius: 7px;
-      background: #fff;
-      display: grid;
-      place-items: center;
-      box-shadow: 0 0 0 3px #fff, 0 2px 6px rgba(26, 18, 18, 0.16);
-      pointer-events: none;
-      z-index: 2;
-    }
-
-    .qr-logo-mark svg {
-      width: 26px;
-      height: 18px;
-      display: block;
-    }
-
-    .qr-logo-mark img {
-      width: 19px;
-      height: 14px;
-      object-fit: contain;
       display: block;
     }
 
@@ -5999,7 +5958,6 @@
       <div class="inline-register-card">
         <!-- Overlay shown when registration_status !== 'open' (auto-toggled by renderStatus) -->
         <div class="closed-overlay" aria-hidden="true">
-          <div class="closed-overlay-icon">🔒</div>
           <div class="closed-overlay-title">რეგისტრაცია დახურულია</div>
           <div class="closed-overlay-subtitle">
             მადლობას გიხდით ინტერესისთვის
@@ -6010,16 +5968,6 @@
         <div class="modal-title" style="text-align:center;margin-bottom:14px;">დაიკავე <span class="accent">ადგილი</span></div>
 
         <form id="registerForm" class="form-compact">
-          <div class="input-group">
-            <select class="input-field" id="attendee_type" name="attendee_type" required>
-              <option value="" disabled selected>აირჩიე მონაწილეობის ტიპი</option>
-              <option value="title_holder">FARMASI ტიტულის მქონე წარმომადგენელი</option>
-              <option value="guest">მოწვეული სტუმარი / წარმომადგენელი</option>
-            </select>
-          </div>
-          <div class="input-group" id="invitedByWrap" style="display:none;">
-            <input class="input-field" type="text" id="invited_by" name="invited_by" placeholder="ვინ მოგიწვიათ? სახელი და გვარი" />
-          </div>
           <div class="form-row">
             <div class="input-group">
               <input class="input-field" type="text" id="first_name" name="first_name" placeholder="სახელი" required />
@@ -6033,7 +5981,7 @@
           </div>
           <div class="input-group">
             <select class="input-field" id="position" name="position" required>
-              <option value="" disabled selected hidden>აირჩიე წოდება</option>
+              <option value="" disabled selected>აირჩიე წოდება</option>
               <option value="ინფლუენსერი">ინფლუენსერი</option>
               <option value="მენეჯერი">მენეჯერი</option>
               <option value="ბრინჯაოს მენეჯერი">ბრინჯაოს მენეჯერი</option>
@@ -6051,18 +5999,17 @@
             <input class="input-field" type="tel" id="phone" name="phone" placeholder="ტელეფონის ნომერი" required />
           </div>
 
-          <div class="input-group" style="display:none;">
-            <select class="input-field" id="transport_mode" name="transport_mode">
-              <option value="" selected>აირჩიე ტრანსპორტი</option>
-              <option value="bus">ავტობუსით მოვდივარ თბილისიდან</option>
-              <option value="car">საკუთარი ავტომობილით მოვდივარ</option>
-            </select>
-          </div>
+          <!-- Hidden field that receives the seat number from the seat-picker modal -->
+          <input type="hidden" id="seat_number" name="seat_number" required />
 
-          <!-- Hidden field that receives the bus seat number from the seat-picker modal -->
-          <input type="hidden" id="seat_number" name="seat_number" />
+          <!-- Step 1: Reserve seat (opens seat picker modal) -->
+          <button type="button" class="btn btn-ghost reserve-seat-btn" id="reserveSeatBtn" style="margin-top:6px;width:100%;">
+            <span class="rsb-icon">🚌</span>
+            <span class="rsb-label">დაჯავშნე ადგილი</span>
+            <span class="rsb-arrow">→</span>
+          </button>
 
-          <!-- Register (transport choice opens after click) -->
+          <!-- Step 2: Register (only enabled after a seat is chosen) -->
           <button class="btn btn-primary submit-btn" id="registerBtn" type="submit" disabled style="margin-top:10px;opacity:0.5;cursor:not-allowed;">
             <span class="rgb-label">დარეგისტრირდი</span>
             <span class="rgb-arrow">→</span>
@@ -6443,10 +6390,10 @@
       <div class="card-eyebrow" style="justify-content:center; margin-top:6px;">დაამატე კალენდარში</div>
       <div class="action-grid">
         <a class="action-btn" id="googleCalBtn" href="#" target="_blank" rel="noopener">
-          <span class="ico">📅</span> Google-ში დამატება
+          <span class="ico">📅</span> Google Calendar
         </a>
         <a class="action-btn" id="appleCalBtn" href="#" download="masterclass.ics">
-          <span class="ico">🍎</span> Apple-ში დამატება
+          <span class="ico">🍎</span> Apple / .ics
         </a>
       </div>
 
@@ -6570,142 +6517,6 @@
     // ⚠️ შენი Apps Script Web App URL
     const API_URL = "https://script.google.com/macros/s/AKfycbz40UE4b9og1Yjs0rPPfDe1H-yRi90hKbK2WOXej4CAWPCnncDFcetadMEdQSYJO7nf/exec";
 
-    let siteTexts = {};
-
-    function t(key, fallback) {
-      const value = siteTexts && siteTexts[key];
-      return value === undefined || value === null || String(value).trim() === "" ? fallback : String(value);
-    }
-
-    async function loadSiteTexts() {
-      try {
-        const res = await fetch(API_URL + "?action=get_site_texts");
-        const data = await res.json();
-        if (data && data.ok && data.texts) {
-          siteTexts = data.texts;
-        }
-      } catch (e) {
-        siteTexts = {};
-      }
-      return siteTexts;
-    }
-
-    function setTextById(id, key, fallback) {
-      const el = document.getElementById(id);
-      if (el) el.textContent = t(key, fallback);
-    }
-
-    function setPlaceholderById(id, key, fallback) {
-      const el = document.getElementById(id);
-      if (el) el.placeholder = t(key, fallback);
-    }
-
-    function replaceVisibleText(oldText, newText) {
-      if (!oldText || !newText || oldText === newText) return;
-      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-      const nodes = [];
-      let node;
-      while ((node = walker.nextNode())) {
-        if (node.nodeValue && node.nodeValue.indexOf(oldText) !== -1) nodes.push(node);
-      }
-      nodes.forEach(n => {
-        n.nodeValue = n.nodeValue.split(oldText).join(newText);
-      });
-    }
-
-    function replaceExactVisibleText(oldText, newText) {
-      if (!oldText || !newText || oldText === newText) return;
-      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-      const nodes = [];
-      let node;
-      while ((node = walker.nextNode())) {
-        if (node.nodeValue && node.nodeValue.trim() === oldText) nodes.push(node);
-      }
-      nodes.forEach(n => {
-        n.nodeValue = n.nodeValue.replace(oldText, newText);
-      });
-    }
-
-    function applySiteTexts(config) {
-      const metaTitle = t("meta_title", document.title || "Farmasi მარკეტინგის მასტერკლასი 2026");
-      const metaDescription = t("meta_description", "Farmasi მარკეტინგის მასტერკლასი 2026 — დაიკავე ადგილი, ნახე პროგრამა და მიიღე შენი პერსონალური ბილეთი.");
-      document.title = metaTitle;
-      const metaDescriptionEl = document.querySelector('meta[name="description"]');
-      if (metaDescriptionEl) metaDescriptionEl.setAttribute("content", metaDescription);
-      const ogTitleEl = document.querySelector('meta[property="og:title"]');
-      if (ogTitleEl) ogTitleEl.setAttribute("content", metaTitle);
-      const ogDescriptionEl = document.querySelector('meta[property="og:description"]');
-      if (ogDescriptionEl) ogDescriptionEl.setAttribute("content", metaDescription);
-      const twitterTitleEl = document.querySelector('meta[name="twitter:title"]');
-      if (twitterTitleEl) twitterTitleEl.setAttribute("content", metaTitle);
-      const twitterDescriptionEl = document.querySelector('meta[name="twitter:description"]');
-      if (twitterDescriptionEl) twitterDescriptionEl.setAttribute("content", metaDescription);
-
-      replaceExactVisibleText("FARMASI", t("hero_brand", "FARMASI"));
-      replaceExactVisibleText("მასტერკლასი", t("hero_title", "მასტერკლასი"));
-      replaceExactVisibleText("ექსკლუზიური მარკეტინგის დღე — დაიკავე ადგილი", t("hero_subtitle", "ექსკლუზიური მარკეტინგის დღე — დაიკავე ადგილი"));
-      replaceExactVisibleText("✦ სრული პროგრამის ნახვა ✦", t("cta_program", "✦ სრული პროგრამის ნახვა ✦"));
-      replaceExactVisibleText("დაიკავე ადგილი", t("cta_register", "დაიკავე ადგილი"));
-      replaceVisibleText("მოგესალმებით მარკეტინგის მასტერკლასზე", t("farewell", "მოგესალმებით მარკეტინგის მასტერკლასზე"));
-      replaceVisibleText("რეგისტრაციის გაუქმება", t("cancel_button", "რეგისტრაციის გაუქმება"));
-      replaceVisibleText("ბილეთის ნახვა", t("ticket_view_button", "ბილეთის ნახვა"));
-      replaceVisibleText("📲 გამომიგზავნე SMS-ით ლინკი", t("ticket_sms_button", "📲 გამომიგზავნე SMS-ით ლინკი"));
-
-      setPlaceholderById("first_name", "first_name_placeholder", "სახელი");
-      setPlaceholderById("last_name", "last_name_placeholder", "გვარი");
-      setPlaceholderById("city_area_village", "city_placeholder", "ქალაქი / რაიონი / სოფელი");
-      setPlaceholderById("phone", "phone_placeholder", "ტელეფონის ნომერი");
-      setPlaceholderById("cancel_reason", "cancel_reason_placeholder", "მაგ: ჯანმრთელობის პრობლემა, სამუშაო, ან რამე სხვა...");
-      setPlaceholderById("ticketCancelReason", "cancel_reason_placeholder", "მაგ: ჯანმრთელობის პრობლემა, სამუშაო, ან რამე სხვა...");
-
-      if (config) {
-        const configTextKeys = new Set([
-          "event_city",
-          "event_location",
-          "farewell",
-          "schedule",
-          "transport_type",
-          "transport_address",
-          "transport_note",
-          "transport_photo",
-          "transport_photo_2",
-          "bus_pickup_map",
-          "transport_map",
-          "info_what_to_bring",
-          "info_dress_code",
-          "info_food",
-          "info_drinks",
-          "info_coffee_break",
-          "info_parking",
-          "info_wifi",
-          "info_contact",
-          "info_languages",
-          "info_certificate",
-          "info_materials",
-          "info_gift",
-          "info_photo",
-          "info_age",
-          "faq_1_q",
-          "faq_1_a",
-          "faq_2_q",
-          "faq_2_a",
-          "faq_3_q",
-          "faq_3_a",
-          "faq_4_q",
-          "faq_4_a",
-          "faq_5_q",
-          "faq_5_a"
-        ]);
-
-        Object.keys(siteTexts || {}).forEach(key => {
-          if (!configTextKeys.has(key)) return;
-          if (config[key] === undefined || config[key] === null || String(config[key]).trim() === "") {
-            config[key] = siteTexts[key];
-          }
-        });
-      }
-    }
-
     let countdownTimer = null;
     let livePopupTimer = null;
     let simulatedPopupInterval = null;
@@ -6793,9 +6604,6 @@
       moreInfoList: document.getElementById("moreInfoList"),
       registerForm: document.getElementById("registerForm"),
       cancelForm: document.getElementById("cancelForm"),
-      attendeeType: document.getElementById("attendee_type"),
-      invitedByWrap: document.getElementById("invitedByWrap"),
-      invitedBy: document.getElementById("invited_by"),
       registerBtn: document.getElementById("registerBtn"),
       cancelBtn: document.getElementById("cancelBtn"),
       registerSuccess: document.getElementById("registerSuccess"),
@@ -6898,7 +6706,6 @@
       // Seat picker
       seatGrid: document.getElementById("seatGrid"),
       seatNumberInput: document.getElementById("seat_number"),
-      transportMode: document.getElementById("transport_mode"),
       seatSelectedDisplay: document.getElementById("seatSelectedDisplay"),
 
       // My ticket persistence
@@ -6913,7 +6720,6 @@
     let modalTransportSlideshowTimer = null;
     let occupiedSeats = []; // updated from server on every loadData()
     let selectedSeat = null; // currently picked seat number
-    let transportChoiceConfirmed = false;
     let currentTicketContext = null; // { ticket_id, phone } — for cancel
 
     els.music.volume = 0.3;
@@ -6999,6 +6805,7 @@
         "city_area_village",
         "position",
         "phone",
+        "reserveSeatBtn",
         "registerBtn"
       ];
       controlIds.forEach(id => {
@@ -7170,65 +6977,6 @@
       // Also update the save-seat button (in modal) if it exists
       if (typeof updateSaveSeatButton === "function") {
         updateSaveSeatButton();
-      }
-    }
-
-    function getTransportMode() {
-      return (els.transportMode && els.transportMode.value) || "";
-    }
-
-    function updateTransportModeUI() {
-      const mode = getTransportMode();
-      const reserveBtn = document.getElementById("reserveSeatBtn");
-      const registerBtn = document.getElementById("registerBtn");
-      const attendeeReady = !!getAttendeeType();
-
-      if (!mode) {
-        if (reserveBtn) {
-          reserveBtn.style.display = "none";
-          reserveBtn.classList.remove("has-seat");
-        }
-        if (registerBtn) {
-          registerBtn.disabled = !attendeeReady;
-          registerBtn.style.opacity = attendeeReady ? "1" : "0.5";
-          registerBtn.style.cursor = attendeeReady ? "pointer" : "not-allowed";
-        }
-        return;
-      }
-
-      if (mode === "car") {
-        selectedSeat = null;
-        if (els.seatNumberInput) els.seatNumberInput.value = "";
-        if (els.seatSelectedDisplay) {
-          els.seatSelectedDisplay.innerHTML = `<span class="seat-pill">🚗 საკუთარი ავტომობილი</span>`;
-        }
-        if (reserveBtn) {
-          reserveBtn.style.display = "none";
-          reserveBtn.classList.remove("has-seat");
-        }
-        if (registerBtn) {
-          registerBtn.disabled = !attendeeReady;
-          registerBtn.style.opacity = attendeeReady ? "1" : "0.5";
-          registerBtn.style.cursor = attendeeReady ? "pointer" : "not-allowed";
-        }
-        return;
-      }
-
-      if (reserveBtn) {
-        reserveBtn.style.display = "";
-        if (selectedSeat) {
-          reserveBtn.innerHTML = '<span class="rsb-label">✓ ავტობუსის ადგილი #' + selectedSeat + ' — შეცვლა</span>';
-          reserveBtn.classList.add("has-seat");
-        } else {
-          reserveBtn.innerHTML = '<span class="rsb-icon">🚌</span><span class="rsb-label">დაჯავშნე ავტობუსის ადგილი</span><span class="rsb-arrow">→</span>';
-          reserveBtn.classList.remove("has-seat");
-        }
-      }
-
-      if (registerBtn) {
-        registerBtn.disabled = !attendeeReady || !selectedSeat;
-        registerBtn.style.opacity = attendeeReady && selectedSeat ? "1" : "0.5";
-        registerBtn.style.cursor = attendeeReady && selectedSeat ? "pointer" : "not-allowed";
       }
     }
 
@@ -7518,13 +7266,13 @@
           msg.textContent = (data && data.error) || "ვერ გაიგზავნა — სცადე თავიდან";
           msg.className = "phone-verify-msg error";
           btn.disabled = false;
-          btn.textContent = t("ticket_sms_button", "📲 გამომიგზავნე SMS-ით ლინკი");
+          btn.textContent = "📲 გამომიგზავნე SMS-ით ლინკი";
         }
       } catch (e) {
-        msg.textContent = friendlyNetworkError("SMS-ის გაგზავნა");
+        msg.textContent = "ქსელის შეცდომა";
         msg.className = "phone-verify-msg error";
         btn.disabled = false;
-        btn.textContent = t("ticket_sms_button", "📲 გამომიგზავნე SMS-ით ლინკი");
+        btn.textContent = "📲 გამომიგზავნე SMS-ით ლინკი";
       }
     }
 
@@ -8097,51 +7845,7 @@
           els.pageSubtitle.textContent = "მონაცემების ჩატვირთვა ვერ მოხერხდა";
           return;
         }
-    await loadSiteTexts();
-    data.config = data.config || {};
-    applySiteTexts(data.config);
-    Object.keys(data.config).forEach(key => {
-      const visibleInfoKeys = [
-        "info_what_to_bring",
-        "info_dress_code",
-        "info_food",
-        "info_certificate",
-        "info_gift",
-        "info_photo",
-        "info_drinks",
-        "info_coffee_break",
-        "info_parking",
-        "info_wifi",
-        "info_contact",
-        "info_languages",
-        "info_materials",
-        "info_age"
-      ];
-
-      const isVisibleInfo =
-        key.indexOf("faq_") === 0 ||
-        visibleInfoKeys.includes(key) ||
-        [
-          "event_city",
-          "event_location",
-          "farewell",
-          "transport_type",
-          "transport_address",
-          "transport_note",
-          "transport_photo",
-          "transport_photo_2",
-          "bus_pickup_map",
-          "transport_map",
-          "schedule",
-          "registration_status",
-          "admin_phones"
-        ].includes(key);
-
-      if (!isVisibleInfo && siteTexts && Object.prototype.hasOwnProperty.call(siteTexts, key)) {
-        delete data.config[key];
-      }
-    });
-    lastConfig = data.config || {};
+        lastConfig = data.config || {};
         renderStatus(data.status);
         renderStats(data);
         renderProgress(data);
@@ -8171,34 +7875,52 @@
         validateMyTicketAgainstServer(data);
       } catch (e) {
         console.error("loadData error:", e);
-        els.pageSubtitle.textContent = "სერვერთან კავშირი ვერ მოხერხდა — გადაამოწმე ინტერნეტი და განაახლე გვერდი";
+        els.pageSubtitle.textContent = "მონაცემების ჩატვირთვა ვერ მოხერხდა";
       }
     }
 
-    function friendlyNetworkError(actionText) {
-      return (actionText || "მოქმედება") + " ვერ შესრულდა — გადაამოწმე ინტერნეტი და სცადე თავიდან";
+    function jsonpAction(fields, timeoutMs = 20000) {
+      return new Promise((resolve, reject) => {
+        const callbackName = "farmasiCb_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+        const params = new URLSearchParams();
+        Object.keys(fields || {}).forEach((key) => {
+          if (fields[key] !== undefined && fields[key] !== null) params.append(key, fields[key]);
+        });
+        params.append("callback", callbackName);
+
+        const script = document.createElement("script");
+        const cleanup = () => {
+          delete window[callbackName];
+          if (script.parentNode) script.parentNode.removeChild(script);
+        };
+        const timer = setTimeout(() => {
+          cleanup();
+          reject(new Error("Request timed out"));
+        }, timeoutMs);
+
+        window[callbackName] = (data) => {
+          clearTimeout(timer);
+          cleanup();
+          resolve(data);
+        };
+
+        script.onerror = () => {
+          clearTimeout(timer);
+          cleanup();
+          reject(new Error("Network error"));
+        };
+        script.src = API_URL + "?" + params.toString();
+        document.body.appendChild(script);
+      });
     }
 
     async function postAction(fields) {
-      const fd = new FormData();
-      Object.keys(fields).forEach(k => fd.append(k, fields[k]));
-      await fetch(API_URL, { method: "POST", body: fd, mode: "no-cors" });
+      return jsonpAction(fields);
     }
 
-    // POST that tries to read response (use only for register where we want ticket back)
+    // Safe cross-origin request with readable response. Avoids no-cors duplicate submissions.
     async function postActionWithResponse(fields) {
-      const fd = new FormData();
-      Object.keys(fields).forEach(k => fd.append(k, fields[k]));
-      try {
-        const res = await fetch(API_URL, { method: "POST", body: fd });
-        return await res.json();
-      } catch (e) {
-        // Fallback: in case CORS blocks reading, fire-and-forget
-        try {
-          await fetch(API_URL, { method: "POST", body: fd, mode: "no-cors" });
-        } catch (_) {}
-        return null;
-      }
+      return jsonpAction(fields);
     }
 
     // ============= MY TICKET PERSISTENCE =============
@@ -8207,11 +7929,10 @@
     function saveMyTicket(registrationData, formData) {
       try {
         const data = {
-        ticket_id: (registrationData && registrationData.ticket_id) || null,
-        tier: (registrationData && registrationData.tier) || "Standard",
-        seat_number: (registrationData && registrationData.seat_number) || null,
-        transport_mode: (registrationData && registrationData.transport_mode) || (formData && formData.transport_mode) || "bus",
-        first_name: formData.first_name || "",
+          ticket_id: (registrationData && registrationData.ticket_id) || null,
+          tier: (registrationData && registrationData.tier) || "Standard",
+          seat_number: (registrationData && registrationData.seat_number) || null,
+          first_name: formData.first_name || "",
           last_name: formData.last_name || "",
           phone: formData.phone || "",
           city: formData.city_area_village || "",
@@ -8425,7 +8146,7 @@
             smsBtn.textContent = "📲 SMS-ით ლინკის გაგზავნა";
           }
         } catch (e) {
-          msg.textContent = friendlyNetworkError("SMS-ის გაგზავნა");
+          msg.textContent = "ქსელის შეცდომა";
           msg.className = "phone-verify-msg error";
           smsBtn.disabled = false;
           smsBtn.textContent = "📲 SMS-ით ლინკის გაგზავნა";
@@ -8468,11 +8189,11 @@
           msg.className = "phone-verify-msg error";
         }
       } catch (e) {
-        msg.textContent = friendlyNetworkError("ბილეთის შემოწმება");
+        msg.textContent = "ქსელის შეცდომა — სცადე თავიდან";
         msg.className = "phone-verify-msg error";
       } finally {
         btn.disabled = false;
-        btn.textContent = t("ticket_view_button", "ბილეთის ნახვა") + " →";
+        btn.textContent = "ბილეთის ნახვა →";
       }
     }
 
@@ -8525,27 +8246,34 @@
       // Generate QR code
       els.qrWrap.innerHTML = "";
       try {
-        // Keep QR payload short for fast camera scanning on phones.
-        const qrText = ticketIdStr;
-        const qrSize = 160;
+        if (typeof QRCode !== "undefined") {
+          // Build QR text — always include ticket ID as primary identifier.
+          // Add name + phone only if they're present (may be missing when modal
+          // is opened via "ნახვა" → phone lookup before formData is fully populated).
+          const fn = (formData && formData.first_name) ? String(formData.first_name).trim() : "";
+          const ln = (formData && formData.last_name) ? String(formData.last_name).trim() : "";
+          const ph = (formData && formData.phone) ? String(formData.phone).trim() : "";
+          const fullName = (fn + " " + ln).trim();
 
-        if (typeof qrcode !== "undefined") {
-          renderLocalQr(qrText, qrSize);
-        } else if (typeof QRCode !== "undefined") {
+          let qrText = ticketIdStr;
+          if (fullName) qrText += "|" + fullName;
+          if (ph) qrText += "|" + ph;
+
           new QRCode(els.qrWrap, {
             text: qrText,
-            width: qrSize,
-            height: qrSize,
+            width: 140,
+            height: 140,
             colorDark: "#1a1212",
             colorLight: "#ffffff",
             correctLevel: QRCode.CorrectLevel.H
           });
-          addQrLogoMark();
         } else {
-          renderQrImageFallback(qrText, ticketIdStr, qrSize);
+          // QRCode library failed to load — show ticket ID as plain text fallback
+          els.qrWrap.innerHTML = `<div style="font-family:monospace; padding:30px; color:#1a1212; font-weight:700; font-size:18px;">${ticketIdStr}</div>`;
         }
       } catch (e) {
-        renderQrImageFallback(ticketIdStr, ticketIdStr, 160);
+        // Any error — show ticket ID as plain text fallback
+        els.qrWrap.innerHTML = `<div style="font-family:monospace; padding:30px; color:#1a1212; font-weight:700; font-size:18px;">${ticketIdStr}</div>`;
       }
 
       // Build calendar URLs
@@ -8557,7 +8285,6 @@
       // Save context for potential cancellation
       currentTicketContext = {
         ticket_id: ticketIdStr,
-        transport_mode: (registrationData && registrationData.transport_mode) || "bus",
         phone: formData.phone || "",
         name: formData.first_name + " " + formData.last_name
       };
@@ -8567,75 +8294,6 @@
 
       // Show modal
       els.ticketModal.classList.add("open");
-    }
-
-    function addQrLogoMark() {
-      if (!els.qrWrap) return;
-      const mark = document.createElement("div");
-      mark.className = "qr-logo-mark";
-      mark.setAttribute("aria-hidden", "true");
-      mark.innerHTML = `<img src="farmasi-mark.png" alt="">`;
-      mark.querySelector("img").onerror = function() {
-        mark.innerHTML = `
-        <svg viewBox="0 0 64 42" xmlns="http://www.w3.org/2000/svg">
-          <path d="M7.5 30.6c8.3-.2 14.8-3.2 19.5-8.8 4.2-5.1 6.2-11.2 11.3-16.5-8.6.1-15.3 3.1-20.1 8.9-4 4.8-6.1 11.1-10.7 16.4Z" fill="#ff4f73"/>
-          <path d="M25.8 35.2c8.6-.2 15.5-3.3 20.4-9.1 4.4-5.2 6.6-11.8 11.8-17.3-8.9.1-15.9 3.2-20.8 9.2-4.2 5-6.3 11.7-11.4 17.2Z" fill="#ff4f73"/>
-        </svg>
-      `;
-      };
-      els.qrWrap.appendChild(mark);
-    }
-
-    function renderLocalQr(qrText, size) {
-      if (!els.qrWrap) return;
-      const qr = qrcode(0, "H");
-      qr.addData(qrText);
-      qr.make();
-
-      size = size || 160;
-      const quiet = 4;
-      const count = qr.getModuleCount();
-      const total = count + quiet * 2;
-      const cell = size / total;
-      const canvas = document.createElement("canvas");
-      canvas.width = size;
-      canvas.height = size;
-
-      const ctx = canvas.getContext("2d");
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, size, size);
-      ctx.fillStyle = "#1a1212";
-
-      for (let row = 0; row < count; row++) {
-        for (let col = 0; col < count; col++) {
-          if (!qr.isDark(row, col)) continue;
-          const x = Math.round((col + quiet) * cell);
-          const y = Math.round((row + quiet) * cell);
-          const w = Math.ceil(cell);
-          ctx.fillRect(x, y, w, w);
-        }
-      }
-
-      els.qrWrap.appendChild(canvas);
-      addQrLogoMark();
-    }
-
-    function renderQrImageFallback(qrText, ticketIdStr, size) {
-      if (!els.qrWrap) return;
-      if (typeof qrcode !== "undefined") {
-        renderLocalQr(qrText, size || 160);
-        return;
-      }
-      const img = document.createElement("img");
-      img.width = size || 160;
-      img.height = size || 160;
-      img.alt = "Ticket QR";
-      img.src = "https://api.qrserver.com/v1/create-qr-code/?size=" + (size || 160) + "x" + (size || 160) + "&ecc=H&margin=0&data=" + encodeURIComponent(qrText);
-      img.onerror = function() {
-        els.qrWrap.innerHTML = `<div style="font-family:monospace; padding:30px; color:#1a1212; font-weight:700; font-size:18px;">${ticketIdStr}</div>`;
-      };
-      els.qrWrap.appendChild(img);
-      addQrLogoMark();
     }
 
     function resetTicketCancelUI() {
@@ -8894,165 +8552,9 @@
       fire(0.1, { spread: 120, startVelocity: 45 });
     }
 
-    function getAttendeeType() {
-      return (els.attendeeType && els.attendeeType.value) || "";
-    }
-
-    function getPositionInput() {
-      return document.getElementById("position");
-    }
-
-    function updateAttendeeTypeUI() {
-      const type = getAttendeeType();
-      const position = getPositionInput();
-      const positionWrap = position ? position.closest(".input-group") : null;
-      const registerFields = [
-        "first_name",
-        "last_name",
-        "city_area_village",
-        "phone"
-      ].map(id => document.getElementById(id)).filter(Boolean);
-      const isTypeChosen = !!type;
-
-      registerFields.forEach(field => {
-        field.disabled = !isTypeChosen;
-        field.style.opacity = isTypeChosen ? "1" : "0.55";
-        field.style.cursor = isTypeChosen ? "" : "not-allowed";
-      });
-
-      if (!isTypeChosen) {
-        if (els.invitedByWrap) els.invitedByWrap.style.display = "none";
-        if (els.invitedBy) {
-          els.invitedBy.required = false;
-          els.invitedBy.disabled = true;
-          els.invitedBy.value = "";
-        }
-        if (position) {
-          position.required = false;
-          position.disabled = true;
-          position.value = "";
-        }
-        if (positionWrap) {
-          positionWrap.style.display = "";
-          positionWrap.style.opacity = "0.55";
-        }
-        if (els.registerBtn) {
-          els.registerBtn.disabled = true;
-          els.registerBtn.style.opacity = "0.5";
-          els.registerBtn.style.cursor = "not-allowed";
-        }
-        return;
-      }
-
-      if (type === "guest") {
-        if (els.invitedByWrap) els.invitedByWrap.style.display = "";
-        if (els.invitedBy) {
-          els.invitedBy.required = true;
-          els.invitedBy.disabled = false;
-        }
-        if (position) {
-          position.required = false;
-          position.disabled = true;
-          position.value = "";
-        }
-        if (positionWrap) positionWrap.style.display = "none";
-      } else {
-        if (els.invitedByWrap) els.invitedByWrap.style.display = "none";
-        if (els.invitedBy) {
-          els.invitedBy.required = false;
-          els.invitedBy.disabled = true;
-          els.invitedBy.value = "";
-        }
-        if (position) {
-          position.required = true;
-          position.disabled = false;
-        }
-        if (positionWrap) {
-          positionWrap.style.display = "";
-          positionWrap.style.opacity = "1";
-        }
-      }
-
-      updateTransportModeUI();
-    }
-
-    function getRegistrationPosition() {
-      if (getAttendeeType() === "guest") return "წარმომადგენელი";
-      const position = getPositionInput();
-      return position ? position.value : "";
-    }
-
-    function showTransportChoiceModal() {
-      return new Promise(resolve => {
-        const old = document.getElementById("transportChoiceOverlay");
-        if (old) old.remove();
-
-        const overlay = document.createElement("div");
-        overlay.id = "transportChoiceOverlay";
-        overlay.style.cssText = [
-          "position:fixed",
-          "inset:0",
-          "z-index:99999",
-          "display:grid",
-          "place-items:center",
-          "padding:22px",
-          "background:rgba(8,4,5,.72)",
-          "backdrop-filter:blur(10px)"
-        ].join(";");
-
-        overlay.innerHTML = `
-          <div style="width:min(460px,100%);border:1px solid rgba(232,196,104,.48);border-radius:24px;background:linear-gradient(180deg,rgba(47,22,24,.96),rgba(25,10,12,.98));box-shadow:0 28px 90px rgba(0,0,0,.55);padding:26px;text-align:center;color:#fff;">
-            <div style="font-size:34px;margin-bottom:10px;">🚗 🚌</div>
-            <h3 style="margin:0 0 8px;color:#f3d07b;font-size:26px;line-height:1.25;">როგორ მოდიხარ?</h3>
-            <p style="margin:0 0 20px;color:rgba(255,255,255,.72);line-height:1.5;">აირჩიე ტრანსპორტი, რომ რეგისტრაცია სწორად დაფიქსირდეს.</p>
-            <button type="button" data-mode="bus" style="width:100%;min-height:54px;margin-bottom:10px;border:1px solid rgba(232,196,104,.55);border-radius:14px;background:#f3d07b;color:#1a090b;font-weight:800;font-size:16px;cursor:pointer;">🚌 ავტობუსით მოვდივარ</button>
-            <button type="button" data-mode="car" style="width:100%;min-height:54px;border:1px solid rgba(255,255,255,.18);border-radius:14px;background:rgba(255,255,255,.08);color:#fff;font-weight:800;font-size:16px;cursor:pointer;">🚗 საკუთარი ავტომობილით მოვდივარ</button>
-            <button type="button" data-mode="cancel" style="margin-top:14px;border:0;background:transparent;color:rgba(255,255,255,.55);font-size:13px;cursor:pointer;">გაუქმება</button>
-          </div>
-        `;
-
-        overlay.addEventListener("click", e => {
-          const btn = e.target.closest("[data-mode]");
-          if (!btn) return;
-          const mode = btn.getAttribute("data-mode");
-          overlay.remove();
-          resolve(mode === "cancel" ? "" : mode);
-        });
-
-        document.body.appendChild(overlay);
-      });
-    }
-
-    async function ensureTransportChoiceBeforeSubmit() {
-      if (transportChoiceConfirmed && getTransportMode()) {
-        if (getTransportMode() === "bus" && !selectedSeat) {
-          setTimeout(openSeatPickerModal, 120);
-          return false;
-        }
-        return true;
-      }
-
-      const mode = await showTransportChoiceModal();
-      if (!mode) return false;
-
-      transportChoiceConfirmed = true;
-      if (els.transportMode) els.transportMode.value = mode;
-      updateTransportModeUI();
-
-      if (mode === "bus" && !selectedSeat) {
-        setTimeout(openSeatPickerModal, 120);
-        return false;
-      }
-
-      return true;
-    }
-
     async function submitRegisterForm(e) {
       e.preventDefault();
       hideMessages();
-      const hasTransportChoice = await ensureTransportChoiceBeforeSubmit();
-      if (!hasTransportChoice) return;
-
       els.registerBtn.disabled = true;
       els.registerBtn.textContent = "იგზავნება...";
 
@@ -9061,26 +8563,16 @@
         first_name: document.getElementById("first_name").value,
         last_name: document.getElementById("last_name").value,
         city_area_village: document.getElementById("city_area_village").value,
-        attendee_type: getAttendeeType(),
-        invited_by: els.invitedBy ? els.invitedBy.value : "",
-        position: getRegistrationPosition(),
+        position: document.getElementById("position").value,
         phone: document.getElementById("phone").value,
-        transport_mode: document.getElementById("transport_mode").value,
         seat_number: document.getElementById("seat_number").value
       };
 
-      if (formData.attendee_type === "guest" && !String(formData.invited_by || "").trim()) {
-        showMessage("error", "გთხოვთ, მიუთითოთ ვინ მოგიწვიათ", els.registerError);
+      // Validate seat selection
+      if (!formData.seat_number) {
+        showMessage("error", "გთხოვთ, აირჩიოთ ადგილი ⚠", els.registerError);
         els.registerBtn.disabled = false;
-        els.registerBtn.textContent = t("register_button", "დარეგისტრირდი");
-        return;
-      }
-
-      // Validate bus seat only when the user chose bus transport.
-      if (formData.transport_mode === "bus" && !formData.seat_number) {
-        showMessage("error", "გთხოვთ, აირჩიოთ ავტობუსის ადგილი ⚠", els.registerError);
-        els.registerBtn.disabled = false;
-        els.registerBtn.textContent = t("register_button", "დარეგისტრირდი");
+        els.registerBtn.textContent = "დარეგისტრირება";
         return;
       }
 
@@ -9089,17 +8581,12 @@
 
         // Check if response indicates an error
         if (response && response.ok === false) {
-          const rawError = String(response.error || "").trim();
-          let errMsg = rawError || "დაფიქსირდა შეცდომა ⚠";
-          if (rawError === "Already registered") errMsg = "ეს ნომერი უკვე დარეგისტრირებულია";
+          let errMsg = "დაფიქსირდა შეცდომა ⚠";
+          if (response.error === "Already registered") errMsg = "ეს ნომერი უკვე დარეგისტრირებულია";
           else if (response.error === "No spots left") errMsg = "ადგილები ამოიწურა";
           else if (response.error === "Registration is closed") errMsg = "რეგისტრაცია დახურულია";
           else if (response.error === "Seat taken") errMsg = "ეს ადგილი უკვე დაკავებულია — აირჩიე სხვა";
           else if (response.error === "Invalid seat") errMsg = "ადგილის ნომერი არასწორია";
-          else if (response.error === "Invalid phone") errMsg = "ტელეფონის ნომერი არასწორია";
-          else if (response.error === "Missing required fields") errMsg = "შეავსე ყველა სავალდებულო ველი";
-          else if (response.error === "invited_by required") errMsg = "გთხოვთ, მიუთითოთ ვინ მოგიწვიათ";
-          console.warn("Registration failed:", response);
           showMessage("error", errMsg, els.registerError);
           return;
         }
@@ -9122,13 +8609,11 @@
           ticketData = {
             ticket_id: "FM-" + new Date().getFullYear() + "-" + String(currentTotal).padStart(5, '0'),
             tier: getNextTierLocal(currentTotal - 1),
-            seat_number: formData.seat_number ? parseInt(formData.seat_number) : null,
-            transport_mode: formData.transport_mode
+            seat_number: parseInt(formData.seat_number)
           };
         } else {
           // Make sure seat_number is in there
-          ticketData.seat_number = ticketData.seat_number || (formData.seat_number ? parseInt(formData.seat_number) : null);
-          ticketData.transport_mode = ticketData.transport_mode || formData.transport_mode;
+          ticketData.seat_number = ticketData.seat_number || parseInt(formData.seat_number);
         }
 
         // Save ticket to localStorage so user can re-open it later
@@ -9147,11 +8632,10 @@
         }, 1400);
 
       } catch (err) {
-        console.error("Registration request failed:", err);
-        showMessage("error", err && err.message ? err.message : friendlyNetworkError("რეგისტრაცია"), els.registerError);
+        showMessage("error", "დაფიქსირდა შეცდომა ⚠", els.registerError);
       } finally {
         els.registerBtn.disabled = false;
-        els.registerBtn.textContent = t("register_button", "დარეგისტრირდი");
+        els.registerBtn.textContent = "დარეგისტრირება";
       }
     }
 
@@ -9179,13 +8663,21 @@
           if (reason) payload.reason = reason;
         }
 
-        await postAction(payload);
+        const cancelledPhone = String(document.getElementById("cancel_phone").value || "").replace(/\D/g, "");
+        const response = await postAction(payload);
+        if (!response || response.ok === false) {
+          const msg = response && response.error === "Not found"
+            ? "ბილეთი ვერ მოიძებნა ⚠"
+            : "გაუქმება ვერ შესრულდა ⚠";
+          showMessage("error", msg, els.cancelError);
+          return;
+        }
+
         els.cancelForm.reset();
-        showMessage("success", "გაუქმების მოთხოვნა გაიგზავნა ✓", els.cancelSuccess);
+        showMessage("success", "რეგისტრაცია გაუქმდა ✓", els.cancelSuccess);
 
         // Clear local ticket if the cancelled phone matches saved one
         const t = loadMyTicket();
-        const cancelledPhone = String(document.getElementById("cancel_phone").value || "").replace(/\D/g, "");
         if (t && String(t.phone || "").replace(/\D/g, "") === cancelledPhone) {
           clearMyTicket();
           refreshMyTicketCard();
@@ -9193,10 +8685,10 @@
 
         await loadData();
       } catch (err) {
-        showMessage("error", friendlyNetworkError("გაუქმება"), els.cancelError);
+        showMessage("error", "გაუქმება ვერ შესრულდა ⚠", els.cancelError);
       } finally {
         els.cancelBtn.disabled = false;
-        els.cancelBtn.textContent = t("cancel_button", "გაუქმება");
+        els.cancelBtn.textContent = "გაუქმება";
       }
     }
 
@@ -9206,7 +8698,7 @@
      */
     async function handleTicketCancel() {
       if (!currentTicketContext || !currentTicketContext.phone) {
-      showTicketCancelMsg("error", "გაუქმება ვერ შესრულდა — ნომერი არ არის ხელმისაწვდომი");
+        showTicketCancelMsg("error", "გაუქმება ვერ შესრულდა — ნომერი არ არის ხელმისაწვდომი");
         return;
       }
 
@@ -9266,7 +8758,7 @@
         }, 2500);
 
       } catch (err) {
-        showTicketCancelMsg("error", friendlyNetworkError("გაუქმება"));
+        showTicketCancelMsg("error", "გაუქმება ვერ შესრულდა ⚠");
         els.ticketCancelConfirm.disabled = false;
         els.ticketCancelConfirm.textContent = "✕ დადასტურება — გავაუქმოთ ბილეთი";
       }
@@ -9514,7 +9006,7 @@
       const reserveBtn = document.getElementById("reserveSeatBtn");
       if (reserveBtn) {
         reserveBtn.innerHTML =
-          '<span class="rsb-label">✓ ავტობუსის ადგილი #' + selectedSeat + ' — შეცვლა</span>';
+          '<span class="rsb-label">✓ ადგილი #' + selectedSeat + ' — შეცვლა</span>';
         reserveBtn.classList.add("has-seat");
       }
 
@@ -9623,13 +9115,12 @@
       els.registerForm.addEventListener("submit", submitRegisterForm);
       els.cancelForm.addEventListener("submit", submitCancelForm);
 
-      if (els.attendeeType) {
-        els.attendeeType.addEventListener("change", updateAttendeeTypeUI);
-        updateAttendeeTypeUI();
-      }
-
       // Wire up share with friends section
       setupShareFriends();
+
+      // Inline form: "🚌 დაჯავშნე ადგილი" → opens seat picker modal
+      const reserveBtn = document.getElementById("reserveSeatBtn");
+      if (reserveBtn) reserveBtn.addEventListener("click", openSeatPickerModal);
 
       // Modal: "✓ შენახვა" → saves seat and closes modal
       const saveBtn = document.getElementById("saveSeatBtn");
@@ -9729,41 +9220,32 @@
       if (els.ticketCancelConfirm) {
         els.ticketCancelConfirm.addEventListener("click", handleTicketCancel);
       }
-      if (els.transportMode) {
-        els.transportMode.value = "";
-        els.transportMode.addEventListener("change", updateTransportModeUI);
-        updateTransportModeUI();
-      }
 
       refreshMyTicketCard();
       startSimulatedRegistrations();
 
-      // Open ticket links immediately; load the landing data in parallel.
-      tryOpenTicketFromUrl();
-      setTimeout(tryOpenTicketFromUrl, 350);
-      setTimeout(tryOpenTicketFromUrl, 900);
-
+      // Always wait for main data to load BEFORE opening ticket from URL
+      // This ensures the page is fully rendered when ticket modal appears on top
       await loadData();
-      setTimeout(tryOpenTicketFromUrl, 1200);
+
+      // 🎫 If URL has ?t=FM-2026-XXXXX — open ticket modal automatically
+      // Run AFTER main page is rendered so it doesn't block the UI
+      tryOpenTicketFromUrl();
     }
 
     async function tryOpenTicketFromUrl() {
-      if (window.__ticketUrlOpened) return;
-
-      const ticketId = getTicketIdFromUrl();
+      const params = new URLSearchParams(window.location.search);
+      const ticketId = params.get("t");
       if (!ticketId) return;
 
       try {
-        const url = API_URL + "?action=getTicket&id=" + encodeURIComponent(ticketId);
-        const response = await fetch(url, { method: "GET" });
-        const data = await response.json();
+        const data = await jsonpAction({ action: "getTicket", id: ticketId });
 
         if (!data.ok || !data.ticket) {
           // Don't show alert — just silently fail (page is still usable)
           console.warn("Ticket not found:", ticketId);
           return;
         }
-        window.__ticketUrlOpened = true;
 
         const ticket = data.ticket;
         const formData = {
@@ -9776,24 +9258,17 @@
         const registrationData = {
           ticket_id: ticket.ticket_id,
           tier: ticket.tier,
-          seat_number: ticket.seat_number,
-          transport_mode: ticket.transport_mode || "bus"
+          seat_number: ticket.seat_number
         };
 
         // Save it to localStorage so it appears in "My Ticket" card
         saveMyTicket(registrationData, formData);
         refreshMyTicketCard();
 
-        const openTicket = () => {
+        // Show ticket modal with a slight delay so the page settles first
+        setTimeout(() => {
           showTicketModal(registrationData, formData);
-          const modal = document.getElementById("ticketModal");
-          if (modal) modal.classList.add("open");
-        };
-
-        // Show ticket modal quickly, with retries for slow mobile rendering.
-        openTicket();
-        setTimeout(openTicket, 350);
-        setTimeout(openTicket, 900);
+        }, 800);
 
         // Clean URL (remove ?t= parameter so it's not in history)
         if (window.history && window.history.replaceState) {
@@ -9802,16 +9277,6 @@
       } catch (err) {
         console.warn("Failed to load ticket from URL:", err);
       }
-    }
-
-    function getTicketIdFromUrl() {
-      const params = new URLSearchParams(window.location.search);
-      const direct = params.get("t") || params.get("ticket") || params.get("ticket_id") || params.get("id");
-      if (direct) return String(direct).trim();
-
-      const hash = String(window.location.hash || "");
-      const match = hash.match(/FM-\d{4}-\d{5}/i);
-      return match ? match[0].toUpperCase() : "";
     }
 
     init();

@@ -1828,6 +1828,41 @@
       return /^https?:\/\//i.test(String(s || ""));
     }
 
+    function jsonpAction(fields, timeoutMs = 20000) {
+      return new Promise((resolve, reject) => {
+        const callbackName = "farmasiTicketCb_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+        const params = new URLSearchParams();
+        Object.keys(fields || {}).forEach((key) => {
+          if (fields[key] !== undefined && fields[key] !== null) params.append(key, fields[key]);
+        });
+        params.append("callback", callbackName);
+
+        const script = document.createElement("script");
+        const cleanup = () => {
+          delete window[callbackName];
+          if (script.parentNode) script.parentNode.removeChild(script);
+        };
+        const timer = setTimeout(() => {
+          cleanup();
+          reject(new Error("Request timed out"));
+        }, timeoutMs);
+
+        window[callbackName] = (data) => {
+          clearTimeout(timer);
+          cleanup();
+          resolve(data);
+        };
+
+        script.onerror = () => {
+          clearTimeout(timer);
+          cleanup();
+          reject(new Error("Network error"));
+        };
+        script.src = API_URL + "?" + params.toString();
+        document.body.appendChild(script);
+      });
+    }
+
     function spawnParticles(count) {
       for (let i = 0; i < count; i++) {
         const p = document.createElement("div");
@@ -1849,9 +1884,7 @@
       }
 
       try {
-        const url = API_URL + "?action=getTicket&id=" + encodeURIComponent(ticketId);
-        const response = await fetch(url, { method: "GET" });
-        const data = await response.json();
+        const data = await jsonpAction({ action: "getTicket", id: ticketId });
 
         if (!data.ok || !data.ticket) {
           showError(data.error === "Ticket not found"
@@ -2073,23 +2106,10 @@
       hideCancelMsg();
 
       try {
-        // Use form-encoded body so Apps Script doPost can read params from e.parameter
-        const formData = new URLSearchParams();
-        formData.append("action", "cancel");
-        formData.append("ticket_id", currentTicket.ticket_id);
-
-        const response = await fetch(API_URL, {
-          method: "POST",
-          body: formData
+        const data = await jsonpAction({
+          action: "cancel",
+          ticket_id: currentTicket.ticket_id
         });
-
-        let data = null;
-        try {
-          data = await response.json();
-        } catch {
-          // CORS may block reading the body — assume success based on HTTP code
-          data = { ok: response.ok };
-        }
 
         if (data && data.ok === false) {
           let errMsg = "გაუქმება ვერ შესრულდა";
@@ -2201,8 +2221,7 @@
 
     async function fetchOccupiedSeats() {
       try {
-        const response = await fetch(API_URL, { method: "GET" });
-        const data = await response.json();
+        const data = await jsonpAction({ action: "status" });
         if (data && data.ok && Array.isArray(data.occupiedSeats)) {
           occupiedSeatsCache = data.occupiedSeats;
         }
