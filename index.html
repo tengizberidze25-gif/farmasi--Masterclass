@@ -6033,7 +6033,7 @@
           </div>
           <div class="input-group">
             <select class="input-field" id="position" name="position" required>
-              <option value="" disabled selected>აირჩიე წოდება</option>
+              <option value="" disabled selected hidden>აირჩიე წოდება</option>
               <option value="ინფლუენსერი">ინფლუენსერი</option>
               <option value="მენეჯერი">მენეჯერი</option>
               <option value="ბრინჯაოს მენეჯერი">ბრინჯაოს მენეჯერი</option>
@@ -6062,14 +6062,7 @@
           <!-- Hidden field that receives the bus seat number from the seat-picker modal -->
           <input type="hidden" id="seat_number" name="seat_number" />
 
-          <!-- Step 1: Reserve seat (opens seat picker modal) -->
-          <button type="button" class="btn btn-ghost reserve-seat-btn" id="reserveSeatBtn" style="display:none;margin-top:6px;width:100%;">
-            <span class="rsb-icon">🚌</span>
-            <span class="rsb-label">დაჯავშნე ავტობუსის ადგილი</span>
-            <span class="rsb-arrow">→</span>
-          </button>
-
-          <!-- Step 2: Register (only enabled after a seat is chosen) -->
+          <!-- Register (transport choice opens after click) -->
           <button class="btn btn-primary submit-btn" id="registerBtn" type="submit" disabled style="margin-top:10px;opacity:0.5;cursor:not-allowed;">
             <span class="rgb-label">დარეგისტრირდი</span>
             <span class="rgb-arrow">→</span>
@@ -7006,7 +6999,6 @@
         "city_area_village",
         "position",
         "phone",
-        "reserveSeatBtn",
         "registerBtn"
       ];
       controlIds.forEach(id => {
@@ -9632,10 +9624,6 @@
 
       // Wire up share with friends section
       setupShareFriends();
-
-      // Inline form: "🚌 დაჯავშნე ადგილი" → opens seat picker modal
-      const reserveBtn = document.getElementById("reserveSeatBtn");
-      if (reserveBtn) reserveBtn.addEventListener("click", openSeatPickerModal);
 
       // Modal: "✓ შენახვა" → saves seat and closes modal
       const saveBtn = document.getElementById("saveSeatBtn");
