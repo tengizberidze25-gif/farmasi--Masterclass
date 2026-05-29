@@ -6022,6 +6022,15 @@
             <input class="input-field" type="text" id="city_area_village" name="city_area_village" placeholder="ქალაქი / რაიონი / სოფელი" />
           </div>
           <div class="input-group">
+            <select class="input-field" id="attendee_type" name="attendee_type" required>
+              <option value="title_holder" selected>FARMASI ტიტულის მქონე წარმომადგენელი</option>
+              <option value="guest">მოწვეული სტუმარი / წარმომადგენელი</option>
+            </select>
+          </div>
+          <div class="input-group" id="invitedByWrap" style="display:none;">
+            <input class="input-field" type="text" id="invited_by" name="invited_by" placeholder="ვინ მოგიწვიათ? სახელი და გვარი" />
+          </div>
+          <div class="input-group">
             <select class="input-field" id="position" name="position" required>
               <option value="" disabled selected>აირჩიე წოდება</option>
               <option value="ინფლუენსერი">ინფლუენსერი</option>
@@ -6790,6 +6799,9 @@
       moreInfoList: document.getElementById("moreInfoList"),
       registerForm: document.getElementById("registerForm"),
       cancelForm: document.getElementById("cancelForm"),
+      attendeeType: document.getElementById("attendee_type"),
+      invitedByWrap: document.getElementById("invitedByWrap"),
+      invitedBy: document.getElementById("invited_by"),
       registerBtn: document.getElementById("registerBtn"),
       cancelBtn: document.getElementById("cancelBtn"),
       registerSuccess: document.getElementById("registerSuccess"),
@@ -8888,6 +8900,44 @@
       fire(0.1, { spread: 120, startVelocity: 45 });
     }
 
+    function getAttendeeType() {
+      return (els.attendeeType && els.attendeeType.value) || "title_holder";
+    }
+
+    function getPositionInput() {
+      return document.getElementById("position");
+    }
+
+    function updateAttendeeTypeUI() {
+      const type = getAttendeeType();
+      const position = getPositionInput();
+      const positionWrap = position ? position.closest(".input-group") : null;
+
+      if (type === "guest") {
+        if (els.invitedByWrap) els.invitedByWrap.style.display = "";
+        if (els.invitedBy) els.invitedBy.required = true;
+        if (position) {
+          position.required = false;
+          position.value = "";
+        }
+        if (positionWrap) positionWrap.style.display = "none";
+      } else {
+        if (els.invitedByWrap) els.invitedByWrap.style.display = "none";
+        if (els.invitedBy) {
+          els.invitedBy.required = false;
+          els.invitedBy.value = "";
+        }
+        if (position) position.required = true;
+        if (positionWrap) positionWrap.style.display = "";
+      }
+    }
+
+    function getRegistrationPosition() {
+      if (getAttendeeType() === "guest") return "წარმომადგენელი";
+      const position = getPositionInput();
+      return position ? position.value : "";
+    }
+
     function showTransportChoiceModal() {
       return new Promise(resolve => {
         const old = document.getElementById("transportChoiceOverlay");
@@ -8967,11 +9017,20 @@
         first_name: document.getElementById("first_name").value,
         last_name: document.getElementById("last_name").value,
         city_area_village: document.getElementById("city_area_village").value,
-        position: document.getElementById("position").value,
+        attendee_type: getAttendeeType(),
+        invited_by: els.invitedBy ? els.invitedBy.value : "",
+        position: getRegistrationPosition(),
         phone: document.getElementById("phone").value,
         transport_mode: document.getElementById("transport_mode").value,
         seat_number: document.getElementById("seat_number").value
       };
+
+      if (formData.attendee_type === "guest" && !String(formData.invited_by || "").trim()) {
+        showMessage("error", "გთხოვთ, მიუთითოთ ვინ მოგიწვიათ", els.registerError);
+        els.registerBtn.disabled = false;
+        els.registerBtn.textContent = t("register_button", "დარეგისტრირდი");
+        return;
+      }
 
       // Validate bus seat only when the user chose bus transport.
       if (formData.transport_mode === "bus" && !formData.seat_number) {
@@ -9513,6 +9572,11 @@
       renderFAQ({});
       els.registerForm.addEventListener("submit", submitRegisterForm);
       els.cancelForm.addEventListener("submit", submitCancelForm);
+
+      if (els.attendeeType) {
+        els.attendeeType.addEventListener("change", updateAttendeeTypeUI);
+        updateAttendeeTypeUI();
+      }
 
       // Wire up share with friends section
       setupShareFriends();
