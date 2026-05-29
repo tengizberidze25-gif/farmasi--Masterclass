@@ -6010,6 +6010,16 @@
         <div class="modal-title" style="text-align:center;margin-bottom:14px;">დაიკავე <span class="accent">ადგილი</span></div>
 
         <form id="registerForm" class="form-compact">
+          <div class="input-group">
+            <select class="input-field" id="attendee_type" name="attendee_type" required>
+              <option value="" disabled selected>აირჩიე მონაწილეობის ტიპი</option>
+              <option value="title_holder">FARMASI ტიტულის მქონე წარმომადგენელი</option>
+              <option value="guest">მოწვეული სტუმარი / წარმომადგენელი</option>
+            </select>
+          </div>
+          <div class="input-group" id="invitedByWrap" style="display:none;">
+            <input class="input-field" type="text" id="invited_by" name="invited_by" placeholder="ვინ მოგიწვიათ? სახელი და გვარი" />
+          </div>
           <div class="form-row">
             <div class="input-group">
               <input class="input-field" type="text" id="first_name" name="first_name" placeholder="სახელი" required />
@@ -6020,15 +6030,6 @@
           </div>
           <div class="input-group">
             <input class="input-field" type="text" id="city_area_village" name="city_area_village" placeholder="ქალაქი / რაიონი / სოფელი" />
-          </div>
-          <div class="input-group">
-            <select class="input-field" id="attendee_type" name="attendee_type" required>
-              <option value="title_holder" selected>FARMASI ტიტულის მქონე წარმომადგენელი</option>
-              <option value="guest">მოწვეული სტუმარი / წარმომადგენელი</option>
-            </select>
-          </div>
-          <div class="input-group" id="invitedByWrap" style="display:none;">
-            <input class="input-field" type="text" id="invited_by" name="invited_by" placeholder="ვინ მოგიწვიათ? სახელი და გვარი" />
           </div>
           <div class="input-group">
             <select class="input-field" id="position" name="position" required>
@@ -7188,6 +7189,7 @@
       const mode = getTransportMode();
       const reserveBtn = document.getElementById("reserveSeatBtn");
       const registerBtn = document.getElementById("registerBtn");
+      const attendeeReady = !!getAttendeeType();
 
       if (!mode) {
         if (reserveBtn) {
@@ -7195,9 +7197,9 @@
           reserveBtn.classList.remove("has-seat");
         }
         if (registerBtn) {
-          registerBtn.disabled = false;
-          registerBtn.style.opacity = "1";
-          registerBtn.style.cursor = "pointer";
+          registerBtn.disabled = !attendeeReady;
+          registerBtn.style.opacity = attendeeReady ? "1" : "0.5";
+          registerBtn.style.cursor = attendeeReady ? "pointer" : "not-allowed";
         }
         return;
       }
@@ -7213,9 +7215,9 @@
           reserveBtn.classList.remove("has-seat");
         }
         if (registerBtn) {
-          registerBtn.disabled = false;
-          registerBtn.style.opacity = "1";
-          registerBtn.style.cursor = "pointer";
+          registerBtn.disabled = !attendeeReady;
+          registerBtn.style.opacity = attendeeReady ? "1" : "0.5";
+          registerBtn.style.cursor = attendeeReady ? "pointer" : "not-allowed";
         }
         return;
       }
@@ -7232,9 +7234,9 @@
       }
 
       if (registerBtn) {
-        registerBtn.disabled = !selectedSeat;
-        registerBtn.style.opacity = selectedSeat ? "1" : "0.5";
-        registerBtn.style.cursor = selectedSeat ? "pointer" : "not-allowed";
+        registerBtn.disabled = !attendeeReady || !selectedSeat;
+        registerBtn.style.opacity = attendeeReady && selectedSeat ? "1" : "0.5";
+        registerBtn.style.cursor = attendeeReady && selectedSeat ? "pointer" : "not-allowed";
       }
     }
 
@@ -8901,7 +8903,7 @@
     }
 
     function getAttendeeType() {
-      return (els.attendeeType && els.attendeeType.value) || "title_holder";
+      return (els.attendeeType && els.attendeeType.value) || "";
     }
 
     function getPositionInput() {
@@ -8912,12 +8914,53 @@
       const type = getAttendeeType();
       const position = getPositionInput();
       const positionWrap = position ? position.closest(".input-group") : null;
+      const registerFields = [
+        "first_name",
+        "last_name",
+        "city_area_village",
+        "phone"
+      ].map(id => document.getElementById(id)).filter(Boolean);
+      const isTypeChosen = !!type;
+
+      registerFields.forEach(field => {
+        field.disabled = !isTypeChosen;
+        field.style.opacity = isTypeChosen ? "1" : "0.55";
+        field.style.cursor = isTypeChosen ? "" : "not-allowed";
+      });
+
+      if (!isTypeChosen) {
+        if (els.invitedByWrap) els.invitedByWrap.style.display = "none";
+        if (els.invitedBy) {
+          els.invitedBy.required = false;
+          els.invitedBy.disabled = true;
+          els.invitedBy.value = "";
+        }
+        if (position) {
+          position.required = false;
+          position.disabled = true;
+          position.value = "";
+        }
+        if (positionWrap) {
+          positionWrap.style.display = "";
+          positionWrap.style.opacity = "0.55";
+        }
+        if (els.registerBtn) {
+          els.registerBtn.disabled = true;
+          els.registerBtn.style.opacity = "0.5";
+          els.registerBtn.style.cursor = "not-allowed";
+        }
+        return;
+      }
 
       if (type === "guest") {
         if (els.invitedByWrap) els.invitedByWrap.style.display = "";
-        if (els.invitedBy) els.invitedBy.required = true;
+        if (els.invitedBy) {
+          els.invitedBy.required = true;
+          els.invitedBy.disabled = false;
+        }
         if (position) {
           position.required = false;
+          position.disabled = true;
           position.value = "";
         }
         if (positionWrap) positionWrap.style.display = "none";
@@ -8925,11 +8968,20 @@
         if (els.invitedByWrap) els.invitedByWrap.style.display = "none";
         if (els.invitedBy) {
           els.invitedBy.required = false;
+          els.invitedBy.disabled = true;
           els.invitedBy.value = "";
         }
-        if (position) position.required = true;
-        if (positionWrap) positionWrap.style.display = "";
+        if (position) {
+          position.required = true;
+          position.disabled = false;
+        }
+        if (positionWrap) {
+          positionWrap.style.display = "";
+          positionWrap.style.opacity = "1";
+        }
       }
+
+      updateTransportModeUI();
     }
 
     function getRegistrationPosition() {
