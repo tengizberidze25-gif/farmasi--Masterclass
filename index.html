@@ -6042,7 +6042,7 @@
           </div>
 
           <div class="input-group">
-            <select class="input-field" id="transport_mode" name="transport_mode" required>
+            <select class="input-field" id="transport_mode" name="transport_mode" style="display:none;">
               <option value="bus" selected>ავტობუსით მოვდივარ თბილისიდან</option>
               <option value="car">საკუთარი ავტომობილით მოვდივარ</option>
             </select>
@@ -6906,6 +6906,7 @@
     let modalTransportSlideshowTimer = null;
     let occupiedSeats = []; // updated from server on every loadData()
     let selectedSeat = null; // currently picked seat number
+    let transportChoiceConfirmed = false;
     let currentTicketContext = null; // { ticket_id, phone } — for cancel
 
     els.music.volume = 0.3;
@@ -7167,13 +7168,26 @@
     }
 
     function getTransportMode() {
-      return (els.transportMode && els.transportMode.value) || "bus";
+      return (els.transportMode && els.transportMode.value) || "";
     }
 
     function updateTransportModeUI() {
       const mode = getTransportMode();
       const reserveBtn = document.getElementById("reserveSeatBtn");
       const registerBtn = document.getElementById("registerBtn");
+
+      if (!mode) {
+        if (reserveBtn) {
+          reserveBtn.style.display = "none";
+          reserveBtn.classList.remove("has-seat");
+        }
+        if (registerBtn) {
+          registerBtn.disabled = false;
+          registerBtn.style.opacity = "1";
+          registerBtn.style.cursor = "pointer";
+        }
+        return;
+      }
 
       if (mode === "car") {
         selectedSeat = null;
@@ -8873,9 +8887,77 @@
       fire(0.1, { spread: 120, startVelocity: 45 });
     }
 
+    function showTransportChoiceModal() {
+      return new Promise(resolve => {
+        const old = document.getElementById("transportChoiceOverlay");
+        if (old) old.remove();
+
+        const overlay = document.createElement("div");
+        overlay.id = "transportChoiceOverlay";
+        overlay.style.cssText = [
+          "position:fixed",
+          "inset:0",
+          "z-index:99999",
+          "display:grid",
+          "place-items:center",
+          "padding:22px",
+          "background:rgba(8,4,5,.72)",
+          "backdrop-filter:blur(10px)"
+        ].join(";");
+
+        overlay.innerHTML = `
+          <div style="width:min(460px,100%);border:1px solid rgba(232,196,104,.48);border-radius:24px;background:linear-gradient(180deg,rgba(47,22,24,.96),rgba(25,10,12,.98));box-shadow:0 28px 90px rgba(0,0,0,.55);padding:26px;text-align:center;color:#fff;">
+            <div style="font-size:34px;margin-bottom:10px;">🚗 🚌</div>
+            <h3 style="margin:0 0 8px;color:#f3d07b;font-size:26px;line-height:1.25;">როგორ მოდიხარ?</h3>
+            <p style="margin:0 0 20px;color:rgba(255,255,255,.72);line-height:1.5;">აირჩიე ტრანსპორტი, რომ რეგისტრაცია სწორად დაფიქსირდეს.</p>
+            <button type="button" data-mode="bus" style="width:100%;min-height:54px;margin-bottom:10px;border:1px solid rgba(232,196,104,.55);border-radius:14px;background:#f3d07b;color:#1a090b;font-weight:800;font-size:16px;cursor:pointer;">🚌 ავტობუსით მოვდივარ</button>
+            <button type="button" data-mode="car" style="width:100%;min-height:54px;border:1px solid rgba(255,255,255,.18);border-radius:14px;background:rgba(255,255,255,.08);color:#fff;font-weight:800;font-size:16px;cursor:pointer;">🚗 საკუთარი ავტომობილით მოვდივარ</button>
+            <button type="button" data-mode="cancel" style="margin-top:14px;border:0;background:transparent;color:rgba(255,255,255,.55);font-size:13px;cursor:pointer;">გაუქმება</button>
+          </div>
+        `;
+
+        overlay.addEventListener("click", e => {
+          const btn = e.target.closest("[data-mode]");
+          if (!btn) return;
+          const mode = btn.getAttribute("data-mode");
+          overlay.remove();
+          resolve(mode === "cancel" ? "" : mode);
+        });
+
+        document.body.appendChild(overlay);
+      });
+    }
+
+    async function ensureTransportChoiceBeforeSubmit() {
+      if (transportChoiceConfirmed && getTransportMode()) {
+        if (getTransportMode() === "bus" && !selectedSeat) {
+          setTimeout(openSeatPickerModal, 120);
+          return false;
+        }
+        return true;
+      }
+
+      const mode = await showTransportChoiceModal();
+      if (!mode) return false;
+
+      transportChoiceConfirmed = true;
+      if (els.transportMode) els.transportMode.value = mode;
+      updateTransportModeUI();
+
+      if (mode === "bus" && !selectedSeat) {
+        setTimeout(openSeatPickerModal, 120);
+        return false;
+      }
+
+      return true;
+    }
+
     async function submitRegisterForm(e) {
       e.preventDefault();
       hideMessages();
+      const hasTransportChoice = await ensureTransportChoiceBeforeSubmit();
+      if (!hasTransportChoice) return;
+
       els.registerBtn.disabled = true;
       els.registerBtn.textContent = "იგზავნება...";
 
@@ -9537,6 +9619,7 @@
         els.ticketCancelConfirm.addEventListener("click", handleTicketCancel);
       }
       if (els.transportMode) {
+        els.transportMode.value = "";
         els.transportMode.addEventListener("change", updateTransportModeUI);
         updateTransportModeUI();
       }
