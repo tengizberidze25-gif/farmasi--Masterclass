@@ -7,17 +7,18 @@
   <style>
     :root {
       color-scheme: dark;
-      --bg: #120709;
-      --card: rgba(42, 19, 20, .78);
-      --card-2: rgba(73, 34, 31, .72);
-      --gold: #f2cf78;
-      --gold-2: #9c7430;
+      --bg: #100506;
+      --panel: rgba(33, 12, 15, .78);
+      --panel-strong: rgba(55, 22, 21, .88);
+      --gold: #f5d77d;
+      --gold-deep: #9a722e;
       --pink: #e91e63;
-      --cream: #fff4dc;
-      --muted: rgba(255, 244, 220, .68);
-      --line: rgba(242, 207, 120, .34);
-      --good: #67e7a2;
-      --bad: #ff738a;
+      --cream: #fff3db;
+      --muted: rgba(255, 243, 219, .68);
+      --soft: rgba(255, 243, 219, .10);
+      --line: rgba(245, 215, 125, .34);
+      --good: #65e7a1;
+      --bad: #ff7289;
       font-family: Georgia, "Times New Roman", serif;
     }
 
@@ -26,14 +27,14 @@
     body {
       margin: 0;
       min-height: 100vh;
+      overflow-x: hidden;
       color: var(--cream);
       background:
-        linear-gradient(180deg, rgba(18, 7, 9, .30), rgba(18, 7, 9, .86)),
-        radial-gradient(circle at 50% 12%, rgba(233, 30, 99, .20), transparent 34%),
-        radial-gradient(circle at 15% 85%, rgba(242, 207, 120, .16), transparent 36%),
+        radial-gradient(circle at 50% 18%, rgba(233, 30, 99, .26), transparent 28%),
+        radial-gradient(circle at 76% 62%, rgba(245, 215, 125, .13), transparent 32%),
+        linear-gradient(180deg, rgba(16, 5, 6, .34), rgba(16, 5, 6, .94)),
         url("bg.jpg") center / cover fixed,
         var(--bg);
-      overflow-x: hidden;
     }
 
     body::before {
@@ -44,314 +45,421 @@
       background:
         linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px),
         linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px);
-      background-size: 64px 64px;
-      mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 84%, transparent);
+      background-size: 72px 72px;
+      mask-image: linear-gradient(to bottom, transparent, #000 13%, #000 86%, transparent);
+      opacity: .7;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 52%, transparent 0 34%, rgba(0,0,0,.34) 66%, rgba(0,0,0,.72) 100%),
+        linear-gradient(90deg, rgba(0,0,0,.56), transparent 22%, transparent 78%, rgba(0,0,0,.56));
     }
 
     .wrap {
-      width: min(1080px, calc(100% - 28px));
+      position: relative;
+      z-index: 1;
+      width: min(1280px, calc(100% - 32px));
       margin: 0 auto;
-      padding: 42px 0 34px;
+      padding: 34px 0 32px;
     }
 
     header {
       text-align: center;
-      margin-bottom: 22px;
+      margin-bottom: 20px;
     }
 
     .brand {
-      letter-spacing: 10px;
       font-family: Arial, sans-serif;
-      font-size: 26px;
-      color: rgba(255,255,255,.86);
-      margin-bottom: 6px;
+      letter-spacing: 12px;
+      font-size: clamp(20px, 3vw, 32px);
+      color: rgba(255,255,255,.9);
+      margin-bottom: 5px;
     }
 
     h1 {
       margin: 0;
-      font-size: clamp(36px, 7vw, 82px);
-      line-height: .95;
       color: var(--gold);
+      font-size: clamp(48px, 8vw, 112px);
+      line-height: .86;
       font-style: italic;
-      text-shadow: 0 16px 40px rgba(0,0,0,.45);
+      text-shadow: 0 18px 52px rgba(0,0,0,.62);
     }
 
     .sub {
       margin-top: 14px;
       color: var(--muted);
-      font-size: 17px;
+      font-size: clamp(14px, 1.8vw, 18px);
+      letter-spacing: .2px;
     }
 
-    .grid {
+    .layout {
       display: grid;
-      grid-template-columns: 360px 1fr;
+      grid-template-columns: 340px 1fr;
       gap: 18px;
       align-items: stretch;
     }
 
     .panel {
       border: 1px solid var(--line);
-      border-radius: 24px;
-      background: linear-gradient(180deg, var(--card), rgba(18, 7, 9, .76));
-      box-shadow: 0 22px 80px rgba(0,0,0,.34), inset 0 1px rgba(255,255,255,.05);
-      backdrop-filter: blur(14px);
+      border-radius: 28px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.07), transparent 18%),
+        linear-gradient(180deg, var(--panel), rgba(14, 5, 7, .82));
+      box-shadow:
+        0 28px 90px rgba(0,0,0,.46),
+        inset 0 1px rgba(255,255,255,.07);
+      backdrop-filter: blur(16px);
+    }
+
+    .control-panel {
       padding: 18px;
+    }
+
+    .stage {
+      min-height: 610px;
+      padding: 22px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 18px;
+      overflow: hidden;
     }
 
     .label {
       display: block;
       margin: 0 0 8px;
+      font-family: Arial, sans-serif;
       color: var(--gold);
       font-size: 11px;
-      letter-spacing: 2px;
+      font-weight: 900;
+      letter-spacing: 2.4px;
       text-transform: uppercase;
-      font-family: Arial, sans-serif;
-      font-weight: 800;
     }
 
-    input, select, button {
+    input, button {
       width: 100%;
-      min-height: 48px;
-      border-radius: 14px;
+      min-height: 50px;
+      border-radius: 16px;
       border: 1px solid var(--line);
-      background: rgba(9, 5, 6, .56);
+      background: rgba(7, 3, 4, .58);
       color: var(--cream);
-      padding: 0 14px;
+      padding: 0 15px;
       font: inherit;
       outline: none;
     }
 
-    input:focus, select:focus {
+    input:focus {
       border-color: var(--gold);
-      box-shadow: 0 0 0 3px rgba(242, 207, 120, .14);
+      box-shadow: 0 0 0 4px rgba(245, 215, 125, .14);
     }
 
     .field { margin-bottom: 14px; }
 
     .switch {
       display: flex;
-      gap: 10px;
+      gap: 11px;
       align-items: center;
-      min-height: 48px;
-      padding: 0 12px;
+      min-height: 50px;
+      padding: 0 13px;
       border: 1px solid var(--line);
-      border-radius: 14px;
-      background: rgba(9, 5, 6, .40);
+      border-radius: 16px;
+      background: rgba(7, 3, 4, .42);
+      color: var(--muted);
       cursor: pointer;
       user-select: none;
-      color: var(--muted);
     }
 
     .switch input {
-      width: 18px;
-      min-height: 18px;
+      width: 19px;
+      min-height: 19px;
       accent-color: var(--pink);
     }
 
     .btn {
       cursor: pointer;
       border: 0;
-      color: #1a090b;
+      color: #1b0909;
       font-family: Arial, sans-serif;
-      font-weight: 900;
-      letter-spacing: .5px;
-      background: linear-gradient(180deg, #ffe493, var(--gold));
-      box-shadow: 0 12px 28px rgba(242, 207, 120, .18), inset 0 1px rgba(255,255,255,.35);
+      font-weight: 950;
+      letter-spacing: .4px;
+      background: linear-gradient(180deg, #ffe99b, var(--gold));
+      box-shadow: 0 16px 36px rgba(245, 215, 125, .22), inset 0 1px rgba(255,255,255,.4);
+      transition: transform .18s ease, filter .18s ease, opacity .18s ease;
     }
 
     .btn:hover { filter: brightness(1.05); transform: translateY(-1px); }
-    .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+    .btn:disabled { opacity: .42; cursor: not-allowed; transform: none; }
 
     .btn-pink {
+      margin-top: 10px;
       color: #fff;
-      background: linear-gradient(180deg, #ff4e93, var(--pink));
-      box-shadow: 0 12px 28px rgba(233, 30, 99, .22);
+      background: linear-gradient(180deg, #ff5597, var(--pink));
+      box-shadow: 0 16px 38px rgba(233, 30, 99, .26);
     }
 
     .btn-ghost {
-      background: rgba(255,255,255,.06);
-      color: var(--cream);
-      border: 1px solid rgba(255,255,255,.12);
-      box-shadow: none;
       margin-top: 10px;
+      background: rgba(255,255,255,.055);
+      color: var(--cream);
+      border: 1px solid rgba(255,255,255,.13);
+      box-shadow: none;
     }
 
     .stats {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 8px;
-      margin-top: 14px;
+      margin-top: 15px;
     }
 
     .stat {
+      min-height: 72px;
+      border: 1px solid rgba(245, 215, 125, .22);
+      border-radius: 18px;
+      background: rgba(255,255,255,.045);
       text-align: center;
-      border: 1px solid rgba(242,207,120,.22);
-      border-radius: 16px;
-      padding: 10px 6px;
-      background: rgba(255,255,255,.04);
+      padding: 11px 6px;
     }
 
     .stat strong {
       display: block;
       color: var(--gold);
-      font-size: 24px;
-      line-height: 1;
-      font-family: Arial, sans-serif;
+      font: 900 28px/1 Arial, sans-serif;
     }
 
     .stat span {
       display: block;
-      margin-top: 5px;
+      margin-top: 6px;
       color: var(--muted);
       font-size: 12px;
     }
 
-    .stage {
-      min-height: 560px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      justify-content: center;
-    }
-
-    .roulette {
-      position: relative;
-      overflow: hidden;
-      height: 316px;
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.05), transparent 24%, transparent 76%, rgba(255,255,255,.04)),
-        rgba(0,0,0,.28);
-      box-shadow: inset 0 0 80px rgba(0,0,0,.42);
-    }
-
-    .roulette::before,
-    .roulette::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      height: 96px;
-      z-index: 3;
-      pointer-events: none;
-    }
-
-    .roulette::before {
-      top: 0;
-      background: linear-gradient(180deg, rgba(18,7,9,.98), transparent);
-    }
-
-    .roulette::after {
-      bottom: 0;
-      background: linear-gradient(0deg, rgba(18,7,9,.98), transparent);
-    }
-
-    .selector {
-      position: absolute;
-      left: 18px;
-      right: 18px;
-      top: 50%;
-      height: 72px;
-      transform: translateY(-50%);
-      border: 2px solid var(--gold);
-      border-radius: 18px;
-      box-shadow: 0 0 42px rgba(242,207,120,.22), inset 0 0 30px rgba(242,207,120,.08);
-      z-index: 4;
-      pointer-events: none;
-    }
-
-    .reel {
-      position: absolute;
-      left: 22px;
-      right: 22px;
-      top: 0;
-      will-change: transform;
-    }
-
-    .name-card {
-      height: 72px;
-      display: grid;
-      align-items: center;
-      border-bottom: 1px solid rgba(242,207,120,.12);
-      padding: 0 22px;
-    }
-
-    .name-card .name {
-      font-size: clamp(20px, 3.2vw, 34px);
-      font-weight: 900;
-      line-height: 1.05;
-      text-shadow: 0 6px 20px rgba(0,0,0,.45);
-    }
-
-    .name-card .meta {
+    .msg {
+      min-height: 22px;
+      margin-top: 13px;
       color: var(--muted);
-      font-size: 13px;
-      margin-top: 5px;
-      font-family: Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
     }
 
-    .winner {
-      display: none;
-      border: 1px solid rgba(242,207,120,.45);
-      border-radius: 24px;
-      padding: 22px;
-      text-align: center;
-      background: linear-gradient(180deg, rgba(242,207,120,.13), rgba(233,30,99,.08));
-    }
-
-    .winner.show { display: block; animation: pop .45s ease-out both; }
-
-    .winner-kicker {
-      color: var(--gold);
-      letter-spacing: 2px;
-      font-size: 12px;
-      font-family: Arial, sans-serif;
-      font-weight: 900;
-      text-transform: uppercase;
-    }
-
-    .winner-name {
-      margin: 8px 0 5px;
-      font-size: clamp(34px, 6vw, 70px);
-      line-height: 1;
-      color: var(--cream);
-      font-weight: 900;
-    }
-
-    .winner-meta {
-      color: var(--muted);
-      font-size: 16px;
-    }
+    .msg.good { color: var(--good); }
+    .msg.bad { color: var(--bad); }
 
     .history {
-      max-height: 210px;
+      max-height: 230px;
       overflow: auto;
-      border-top: 1px solid rgba(242,207,120,.18);
-      margin-top: 15px;
+      margin-top: 14px;
       padding-top: 12px;
+      border-top: 1px solid rgba(245, 215, 125, .18);
     }
 
     .history-item {
       display: flex;
       justify-content: space-between;
       gap: 10px;
-      padding: 8px 0;
+      padding: 9px 0;
       border-bottom: 1px solid rgba(255,255,255,.06);
       color: var(--muted);
       font-size: 14px;
     }
 
-    .msg {
-      min-height: 22px;
-      color: var(--muted);
-      font-size: 14px;
-      margin-top: 12px;
-      line-height: 1.45;
+    .stage-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      padding: 6px 4px 0;
     }
 
-    .msg.good { color: var(--good); }
-    .msg.bad { color: var(--bad); }
+    .stage-title {
+      color: var(--gold);
+      font-size: 13px;
+      letter-spacing: 2.8px;
+      text-transform: uppercase;
+      font-family: Arial, sans-serif;
+      font-weight: 900;
+    }
+
+    .stage-note {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .roulette {
+      position: relative;
+      min-height: 360px;
+      border: 1px solid rgba(245, 215, 125, .38);
+      border-radius: 32px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(245,215,125,.12), transparent 34%),
+        linear-gradient(180deg, rgba(255,255,255,.06), transparent 18%, transparent 82%, rgba(255,255,255,.04)),
+        rgba(0,0,0,.32);
+      box-shadow:
+        inset 0 0 95px rgba(0,0,0,.56),
+        0 25px 80px rgba(0,0,0,.36);
+    }
+
+    .roulette::before,
+    .roulette::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 22%;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .roulette::before {
+      left: 0;
+      background: linear-gradient(90deg, rgba(16,5,6,.98), transparent);
+    }
+
+    .roulette::after {
+      right: 0;
+      background: linear-gradient(270deg, rgba(16,5,6,.98), transparent);
+    }
+
+    .spotlight {
+      position: absolute;
+      inset: -18%;
+      pointer-events: none;
+      background:
+        conic-gradient(from 0deg, transparent, rgba(245,215,125,.08), transparent, rgba(233,30,99,.07), transparent);
+      animation: spinGlow 14s linear infinite;
+      opacity: .76;
+    }
+
+    .selector {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 8;
+      width: min(430px, 56%);
+      height: 128px;
+      transform: translate(-50%, -50%);
+      border: 2px solid var(--gold);
+      border-radius: 28px;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,.08),
+        0 0 60px rgba(245,215,125,.28),
+        inset 0 0 34px rgba(245,215,125,.10);
+      pointer-events: none;
+    }
+
+    .selector::before,
+    .selector::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      border-left: 16px solid transparent;
+      border-right: 16px solid transparent;
+    }
+
+    .selector::before {
+      top: -20px;
+      border-top: 0;
+      border-bottom: 18px solid var(--gold);
+      filter: drop-shadow(0 0 18px rgba(245,215,125,.42));
+    }
+
+    .selector::after {
+      bottom: -20px;
+      border-bottom: 0;
+      border-top: 18px solid var(--gold);
+      filter: drop-shadow(0 0 18px rgba(245,215,125,.42));
+    }
+
+    .reel {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      height: 132px;
+      transform: translate3d(0, -50%, 0);
+      will-change: transform;
+      padding: 0 40px;
+      z-index: 4;
+    }
+
+    .name-card {
+      flex: 0 0 380px;
+      height: 118px;
+      display: grid;
+      align-items: center;
+      padding: 0 24px;
+      border: 1px solid rgba(245,215,125,.25);
+      border-radius: 24px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.07), transparent),
+        rgba(34, 13, 14, .82);
+      box-shadow: 0 18px 48px rgba(0,0,0,.32);
+    }
+
+    .name-card .name {
+      font-size: clamp(27px, 3.6vw, 46px);
+      line-height: .98;
+      font-weight: 950;
+      color: var(--cream);
+      text-shadow: 0 8px 25px rgba(0,0,0,.52);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .name-card .meta {
+      margin-top: 7px;
+      color: var(--muted);
+      font: 700 13px/1.25 Arial, sans-serif;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .winner {
+      display: none;
+      position: relative;
+      border: 1px solid rgba(245, 215, 125, .55);
+      border-radius: 30px;
+      padding: 26px 22px;
+      text-align: center;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(245,215,125,.20), transparent 34%),
+        linear-gradient(180deg, rgba(245,215,125,.16), rgba(233,30,99,.08));
+      box-shadow: 0 24px 80px rgba(0,0,0,.38), inset 0 1px rgba(255,255,255,.10);
+    }
+
+    .winner.show { display: block; animation: reveal .54s ease-out both; }
+
+    .winner-kicker {
+      color: var(--gold);
+      letter-spacing: 3px;
+      font: 900 12px/1 Arial, sans-serif;
+      text-transform: uppercase;
+    }
+
+    .winner-name {
+      margin: 10px 0 7px;
+      font-size: clamp(42px, 7vw, 88px);
+      line-height: .9;
+      color: var(--cream);
+      font-weight: 950;
+      text-shadow: 0 16px 44px rgba(0,0,0,.55);
+    }
+
+    .winner-meta {
+      color: var(--muted);
+      font-size: 17px;
+    }
 
     .confetti {
       position: fixed;
@@ -375,17 +483,22 @@
       to { transform: translateY(110vh) rotate(760deg); }
     }
 
-    @keyframes pop {
-      from { opacity: 0; transform: scale(.96) translateY(8px); }
-      to { opacity: 1; transform: scale(1) translateY(0); }
+    @keyframes reveal {
+      from { opacity: 0; transform: scale(.94) translateY(16px); filter: blur(6px); }
+      to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
     }
 
-    @media (max-width: 860px) {
-      .grid { grid-template-columns: 1fr; }
+    @keyframes spinGlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 940px) {
+      .layout { grid-template-columns: 1fr; }
       .stage { min-height: auto; }
-      .roulette { height: 288px; }
-      .name-card { height: 68px; }
-      .selector { height: 68px; }
+      .roulette { min-height: 310px; }
+      .name-card { flex-basis: 300px; }
+      .selector { width: min(360px, 68%); }
     }
   </style>
 </head>
@@ -394,11 +507,11 @@
     <header>
       <div class="brand">FARMASI</div>
       <h1>გათამაშება</h1>
-      <div class="sub">ადმინის რულეტკა რეგისტრირებული მონაწილეებისთვის</div>
+      <div class="sub">პრემიუმ რულეტკა რეგისტრირებული მონაწილეებისთვის</div>
     </header>
 
-    <div class="grid">
-      <aside class="panel">
+    <div class="layout">
+      <aside class="panel control-panel">
         <div class="field">
           <label class="label" for="pin">PIN</label>
           <input id="pin" inputmode="numeric" autocomplete="off" placeholder="თუ Config-ში გაქვს PIN">
@@ -410,7 +523,7 @@
         </label>
 
         <button class="btn" id="loadBtn" type="button">მონაწილეების ჩატვირთვა</button>
-        <button class="btn btn-pink" id="spinBtn" type="button" disabled style="margin-top:10px;">რულეტკის დატრიალება</button>
+        <button class="btn btn-pink" id="spinBtn" type="button" disabled>რულეტკის დატრიალება</button>
         <button class="btn btn-ghost" id="resetBtn" type="button">გამარჯვებულების გასუფთავება</button>
 
         <div class="stats">
@@ -420,12 +533,20 @@
         </div>
 
         <div class="msg" id="msg">ჩატვირთე მონაწილეები და დაიწყე გათამაშება.</div>
-
         <div class="history" id="history"></div>
       </aside>
 
       <section class="panel stage">
+        <div class="stage-top">
+          <div>
+            <div class="stage-title">Live Draw</div>
+            <div class="stage-note">სახელი გაჩერდება ოქროს ჩარჩოში</div>
+          </div>
+          <div class="stage-note" id="stageStatus">მზადაა</div>
+        </div>
+
         <div class="roulette">
+          <div class="spotlight"></div>
           <div class="selector"></div>
           <div class="reel" id="reel"></div>
         </div>
@@ -444,6 +565,7 @@
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbz40UE4b9og1Yjs0rPPfDe1H-yRi90hKbK2WOXej4CAWPCnncDFcetadMEdQSYJO7nf/exec";
     const STORAGE_KEY = "farmasi_masterclass_raffle_winners_v1";
+    const CARD_WIDTH = 398;
 
     const els = {
       pin: document.getElementById("pin"),
@@ -455,6 +577,7 @@
       poolCount: document.getElementById("poolCount"),
       winnerCount: document.getElementById("winnerCount"),
       msg: document.getElementById("msg"),
+      stageStatus: document.getElementById("stageStatus"),
       reel: document.getElementById("reel"),
       winnerBox: document.getElementById("winnerBox"),
       winnerName: document.getElementById("winnerName"),
@@ -479,16 +602,28 @@
     }
 
     function show(type, text) {
-      els.msg.className = "msg " + (type || "");
-      els.msg.textContent = text;
+      els.msg.className = "msg" + (type ? " " + type : "");
+      els.msg.textContent = text || "";
+      if (els.stageStatus) els.stageStatus.textContent = text || "მზადაა";
+    }
+
+    function escapeHtml(value) {
+      return String(value || "").replace(/[&<>"']/g, c => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+      }[c]));
     }
 
     function participantName(p) {
-      return [p.first_name, p.last_name].filter(Boolean).join(" ") || p.name || "სტუმარი";
+      return [p.first_name, p.last_name].filter(Boolean).join(" ").trim() || "მონაწილე";
     }
 
     function participantMeta(p) {
       return [p.position, p.city, p.ticket_id].filter(Boolean).join(" · ");
+    }
+
+    function api(params) {
+      const url = API_URL + "?" + new URLSearchParams(params).toString();
+      return fetch(url).then(res => res.json());
     }
 
     function buildPool() {
@@ -519,51 +654,39 @@
       });
     }
 
+    function cardHtml(p) {
+      return '<div class="name-card">' +
+        '<div>' +
+          '<div class="name">' + escapeHtml(participantName(p)) + '</div>' +
+          '<div class="meta">' + escapeHtml(participantMeta(p)) + '</div>' +
+        '</div>' +
+      '</div>';
+    }
+
     function renderReel(items) {
       const list = (items && items.length ? items : [{ first_name: "მონაწილეები", last_name: "", city: "ჩატვირთე სია" }]);
       const repeated = [];
-      for (let i = 0; i < 12; i++) repeated.push(...list);
+      for (let i = 0; i < 8; i++) repeated.push(...list);
 
       els.reel.style.transition = "none";
-      els.reel.style.transform = "translateY(0px)";
-      els.reel.innerHTML = repeated.map(p => (
-        '<div class="name-card">' +
-          '<div>' +
-            '<div class="name">' + escapeHtml(participantName(p)) + '</div>' +
-            '<div class="meta">' + escapeHtml(participantMeta(p)) + '</div>' +
-          '</div>' +
-        '</div>'
-      )).join("");
-    }
-
-    function escapeHtml(value) {
-      return String(value || "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-
-    async function api(params) {
-      const url = API_URL + "?" + new URLSearchParams(params).toString();
-      const res = await fetch(url);
-      return res.json();
+      els.reel.style.transform = "translate3d(0px, -50%, 0)";
+      els.reel.innerHTML = repeated.map(cardHtml).join("");
     }
 
     async function loadParticipants() {
       els.loadBtn.disabled = true;
       els.spinBtn.disabled = true;
+      els.winnerBox.classList.remove("show");
       show("", "იტვირთება...");
       try {
         const data = await api({
           action: "get_raffle_pool",
-          pin: els.pin.value.trim(),
+          pin: els.pin.value,
           checked_only: els.checkedOnly.checked ? "1" : "0"
         });
 
-        if (!data.ok) {
-          show("bad", data.error || "მონაწილეები ვერ ჩაიტვირთა");
+        if (!data || !data.ok) {
+          show("bad", data && data.error ? data.error : "მონაწილეების ჩატვირთვა ვერ მოხერხდა");
           return;
         }
 
@@ -586,29 +709,26 @@
 
       const winnerIndex = Math.floor(Math.random() * pool.length);
       const winner = pool[winnerIndex];
-      const itemHeight = 72;
-      const laps = 8;
+      const laps = 9;
       const targetIndex = (pool.length * laps) + winnerIndex;
-      const centerOffset = 122;
-      const y = -targetIndex * itemHeight + centerOffset;
+      const viewportWidth = els.reel.parentElement.getBoundingClientRect().width;
+      const centerOffset = (viewportWidth / 2) - (CARD_WIDTH / 2);
+      const x = centerOffset - (targetIndex * CARD_WIDTH);
 
       const repeated = [];
       for (let i = 0; i < laps + 4; i++) repeated.push(...pool);
-      els.reel.innerHTML = repeated.map(p => (
-        '<div class="name-card">' +
-          '<div>' +
-            '<div class="name">' + escapeHtml(participantName(p)) + '</div>' +
-            '<div class="meta">' + escapeHtml(participantMeta(p)) + '</div>' +
-          '</div>' +
-        '</div>'
-      )).join("");
+      els.reel.innerHTML = repeated.map(cardHtml).join("");
+      els.reel.style.transition = "none";
+      els.reel.style.transform = "translate3d(0px, -50%, 0)";
 
       requestAnimationFrame(() => {
-        els.reel.style.transition = "transform 5.2s cubic-bezier(.12,.72,.12,1)";
-        els.reel.style.transform = "translateY(" + y + "px)";
+        requestAnimationFrame(() => {
+          els.reel.style.transition = "transform 5.8s cubic-bezier(.11,.72,.08,1)";
+          els.reel.style.transform = "translate3d(" + x + "px, -50%, 0)";
+        });
       });
 
-      setTimeout(() => announceWinner(winner), 5400);
+      setTimeout(() => announceWinner(winner), 6100);
     }
 
     function announceWinner(winner) {
@@ -628,17 +748,17 @@
 
     function burstConfetti() {
       els.confetti.innerHTML = "";
-      const colors = ["#f2cf78", "#e91e63", "#ffffff", "#67e7a2"];
-      for (let i = 0; i < 90; i++) {
+      const colors = ["#f5d77d", "#e91e63", "#fff3db", "#65e7a1"];
+      for (let i = 0; i < 130; i++) {
         const piece = document.createElement("div");
         piece.className = "piece";
         piece.style.left = Math.random() * 100 + "vw";
         piece.style.background = colors[Math.floor(Math.random() * colors.length)];
         piece.style.animationDelay = Math.random() * .35 + "s";
-        piece.style.transform = "rotate(" + Math.random() * 180 + "deg)";
+        piece.style.animationDuration = (1.9 + Math.random() * 1.6) + "s";
         els.confetti.appendChild(piece);
       }
-      setTimeout(() => { els.confetti.innerHTML = ""; }, 3100);
+      setTimeout(() => { els.confetti.innerHTML = ""; }, 3900);
     }
 
     els.loadBtn.addEventListener("click", loadParticipants);
