@@ -370,7 +370,9 @@
       left: 50%;
       top: 50%;
       z-index: 8;
-      width: min(500px, 72%);
+      width: calc((100% - 36px) / 3);
+      min-width: 260px;
+      max-width: 440px;
       height: 128px;
       transform: translate(-50%, -50%);
       border: 2px solid var(--gold);
@@ -413,15 +415,19 @@
       display: flex;
       align-items: center;
       gap: 18px;
+      width: 100%;
+      box-sizing: border-box;
       height: 132px;
       transform: translate3d(0, -50%, 0);
       will-change: transform;
-      padding: 0 40px;
+      padding: 0;
       z-index: 4;
     }
 
     .name-card {
-      flex: 0 0 440px;
+      flex: 0 0 calc((100% - 36px) / 3);
+      min-width: 260px;
+      max-width: 440px;
       height: 118px;
       display: grid;
       align-items: center;
@@ -430,8 +436,22 @@
       border-radius: 24px;
       background:
         linear-gradient(180deg, rgba(255,255,255,.07), transparent),
-        rgba(34, 13, 14, .82);
+        rgba(19, 8, 9, .88);
       box-shadow: 0 18px 48px rgba(0,0,0,.32);
+      opacity: .4;
+      transform: scale(.96);
+      transition: opacity .28s ease, transform .28s ease, border-color .28s ease, background .28s ease;
+    }
+
+    .name-card.is-active {
+      opacity: 1;
+      transform: scale(1.05);
+      border-color: rgba(245,215,125,.92);
+      background:
+        radial-gradient(circle at 50% 10%, rgba(245,215,125,.20), transparent 46%),
+        linear-gradient(180deg, rgba(255,255,255,.10), transparent),
+        rgba(48, 22, 20, .96);
+      box-shadow: 0 24px 70px rgba(245,215,125,.22), 0 22px 58px rgba(0,0,0,.44);
     }
 
     .name-card .name {
@@ -444,6 +464,10 @@
       overflow: hidden;
       text-overflow: ellipsis;
       text-align: center;
+    }
+
+    .name-card.is-active .name {
+      color: var(--gold);
     }
 
     .name-card .meta {
@@ -535,8 +559,8 @@
       .layout { grid-template-columns: 1fr; }
       .stage { min-height: auto; }
       .roulette { min-height: 310px; }
-      .name-card { flex-basis: 330px; padding: 0 20px; }
-      .selector { width: min(370px, 78%); }
+      .name-card { padding: 0 18px; }
+      .selector { min-width: 220px; }
     }
   </style>
 </head>
@@ -639,6 +663,9 @@
     let pool = [];
     let prizes = [];
     let spinning = false;
+    let raffleItems = [];
+    const RAFFLE_DUPLICATES = 15;
+    const RAFFLE_SPEED_MS = 7000;
 
     function getWinners() {
       try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
@@ -757,8 +784,8 @@
       });
     }
 
-    function cardHtml(p) {
-      return '<div class="name-card">' +
+    function cardHtml(p, active) {
+      return '<div class="name-card' + (active ? ' is-active' : '') + '">' +
         '<div>' +
           '<div class="name">' + escapeHtml(participantName(p)) + '</div>' +
           '<div class="meta">' + escapeHtml(participantMeta(p)) + '</div>' +
@@ -766,14 +793,38 @@
       '</div>';
     }
 
-    function renderReel(items) {
+    function loadRaffle(items, activeIndex) {
       const list = (items && items.length ? items : [{ first_name: "მონაწილეები", last_name: "", city: "ჩატვირთე სია" }]);
       const repeated = [];
-      for (let i = 0; i < 8; i++) repeated.push(...list);
+      for (let i = 0; i < RAFFLE_DUPLICATES; i++) repeated.push(...list);
+      raffleItems = repeated;
+
+      const safeActiveIndex = Number.isFinite(activeIndex) ? activeIndex : -1;
+      els.reel.innerHTML = repeated.map((p, idx) => cardHtml(p, idx === safeActiveIndex)).join("");
 
       els.reel.style.transition = "none";
       els.reel.style.transform = "translate3d(0px, -50%, 0)";
-      els.reel.innerHTML = repeated.map(cardHtml).join("");
+    }
+
+    function renderReel(items) {
+      loadRaffle(items, -1);
+    }
+
+    function centerReelOn(index, animated) {
+      const viewportWidth = els.reel.parentElement.getBoundingClientRect().width;
+      const card = els.reel.querySelector(".name-card");
+      const reelStyle = getComputedStyle(els.reel);
+      const cardWidth = card ? card.getBoundingClientRect().width : Math.max(260, (viewportWidth - 36) / 3);
+      const gap = parseFloat(reelStyle.columnGap || reelStyle.gap || "18") || 18;
+      const paddingLeft = parseFloat(reelStyle.paddingLeft || "0") || 0;
+      const step = cardWidth + gap;
+      const centerOffset = (viewportWidth / 2) - (cardWidth / 2);
+      const x = centerOffset - paddingLeft - (index * step);
+
+      els.reel.style.transition = animated
+        ? "transform " + RAFFLE_SPEED_MS + "ms cubic-bezier(0.1, 1, 0.1, 1)"
+        : "none";
+      els.reel.style.transform = "translate3d(" + x + "px, -50%, 0)";
     }
 
     async function loadParticipants() {
@@ -817,32 +868,24 @@
 
       const winnerIndex = Math.floor(Math.random() * pool.length);
       const winner = pool[winnerIndex];
-      const laps = 9;
-      const targetIndex = (pool.length * laps) + winnerIndex;
+      const targetRound = Math.max(10, RAFFLE_DUPLICATES - 3);
+      const targetIndex = (pool.length * targetRound) + winnerIndex;
 
-      const repeated = [];
-      for (let i = 0; i < laps + 4; i++) repeated.push(...pool);
-      els.reel.innerHTML = repeated.map(cardHtml).join("");
-      els.reel.style.transition = "none";
-      els.reel.style.transform = "translate3d(0px, -50%, 0)";
+      loadRaffle(pool, -1);
 
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          const viewportWidth = els.reel.parentElement.getBoundingClientRect().width;
-          const card = els.reel.querySelector(".name-card");
-          const reelStyle = getComputedStyle(els.reel);
-          const cardWidth = card ? card.getBoundingClientRect().width : 360;
-          const gap = parseFloat(reelStyle.columnGap || reelStyle.gap || "18") || 18;
-          const paddingLeft = parseFloat(reelStyle.paddingLeft || "0") || 0;
-          const step = cardWidth + gap;
-          const centerOffset = (viewportWidth / 2) - (cardWidth / 2);
-          const x = centerOffset - paddingLeft - (targetIndex * step);
-          els.reel.style.transition = "transform 5.8s cubic-bezier(.11,.72,.08,1)";
-          els.reel.style.transform = "translate3d(" + x + "px, -50%, 0)";
+          centerReelOn(targetIndex, true);
         });
       });
 
-      setTimeout(() => announceWinner(winner), 6100);
+      setTimeout(() => {
+        Array.from(els.reel.children).forEach((card, idx) => {
+          card.classList.toggle("is-active", idx === targetIndex);
+        });
+        console.log("Raffle winner:", participantName(winner));
+        announceWinner(winner);
+      }, RAFFLE_SPEED_MS + 120);
     }
 
     function announceWinner(winner) {
