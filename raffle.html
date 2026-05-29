@@ -370,7 +370,7 @@
       left: 50%;
       top: 50%;
       z-index: 8;
-      width: min(390px, 58%);
+      width: min(500px, 72%);
       height: 128px;
       transform: translate(-50%, -50%);
       border: 2px solid var(--gold);
@@ -421,11 +421,11 @@
     }
 
     .name-card {
-      flex: 0 0 360px;
+      flex: 0 0 440px;
       height: 118px;
       display: grid;
       align-items: center;
-      padding: 0 24px;
+      padding: 0 30px;
       border: 1px solid rgba(245,215,125,.25);
       border-radius: 24px;
       background:
@@ -435,14 +435,15 @@
     }
 
     .name-card .name {
-      font-size: clamp(27px, 3.6vw, 46px);
-      line-height: .98;
+      font-size: clamp(25px, 3.1vw, 42px);
+      line-height: 1.04;
       font-weight: 950;
       color: var(--cream);
       text-shadow: 0 8px 25px rgba(0,0,0,.52);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      text-align: center;
     }
 
     .name-card .meta {
@@ -452,6 +453,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      text-align: center;
     }
 
     .winner {
@@ -533,8 +535,8 @@
       .layout { grid-template-columns: 1fr; }
       .stage { min-height: auto; }
       .roulette { min-height: 310px; }
-      .name-card { flex-basis: 300px; }
-      .selector { width: min(360px, 68%); }
+      .name-card { flex-basis: 330px; padding: 0 20px; }
+      .selector { width: min(370px, 78%); }
     }
   </style>
 </head>
