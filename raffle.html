@@ -459,7 +459,8 @@
       position: relative;
       border: 1px solid rgba(245, 215, 125, .55);
       border-radius: 30px;
-      padding: 26px 22px;
+      padding: 34px 24px 30px;
+      min-height: 190px;
       text-align: center;
       overflow: hidden;
       background:
@@ -478,19 +479,22 @@
     }
 
     .winner-name {
-      margin: 10px 0 18px;
-      font-size: clamp(42px, 7vw, 88px);
-      line-height: .96;
+      margin: 12px auto 22px;
+      max-width: 100%;
+      font-size: clamp(38px, 6vw, 72px);
+      line-height: 1.06;
       color: var(--cream);
       font-weight: 950;
       text-shadow: 0 16px 44px rgba(0,0,0,.55);
+      overflow-wrap: anywhere;
     }
 
     .winner-meta {
       color: var(--muted);
-      font-size: 17px;
-      line-height: 1.45;
-      margin-top: 4px;
+      font-size: 16px;
+      line-height: 1.55;
+      margin: 0 auto;
+      max-width: 92%;
     }
 
     .confetti {
