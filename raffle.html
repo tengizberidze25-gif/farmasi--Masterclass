@@ -140,7 +140,7 @@
       text-transform: uppercase;
     }
 
-    input, button {
+    input, select, button {
       width: 100%;
       min-height: 50px;
       border-radius: 16px;
@@ -152,9 +152,23 @@
       outline: none;
     }
 
-    input:focus {
+    input:focus, select:focus {
       border-color: var(--gold);
       box-shadow: 0 0 0 4px rgba(245, 215, 125, .14);
+    }
+
+    select {
+      appearance: none;
+      cursor: pointer;
+      background-image:
+        linear-gradient(45deg, transparent 50%, var(--gold) 50%),
+        linear-gradient(135deg, var(--gold) 50%, transparent 50%);
+      background-position:
+        calc(100% - 22px) 21px,
+        calc(100% - 15px) 21px;
+      background-size: 7px 7px, 7px 7px;
+      background-repeat: no-repeat;
+      padding-right: 42px;
     }
 
     .field { margin-bottom: 14px; }
@@ -289,6 +303,22 @@
       font-size: 14px;
     }
 
+    .prize-ribbon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 8px 16px;
+      border: 1px solid rgba(245,215,125,.32);
+      border-radius: 999px;
+      background: rgba(245,215,125,.08);
+      color: var(--gold);
+      font-family: Arial, sans-serif;
+      font-weight: 900;
+      letter-spacing: .4px;
+      text-align: center;
+    }
+
     .roulette {
       position: relative;
       min-height: 360px;
@@ -340,7 +370,7 @@
       left: 50%;
       top: 50%;
       z-index: 8;
-      width: min(430px, 56%);
+      width: min(390px, 58%);
       height: 128px;
       transform: translate(-50%, -50%);
       border: 2px solid var(--gold);
@@ -391,7 +421,7 @@
     }
 
     .name-card {
-      flex: 0 0 380px;
+      flex: 0 0 360px;
       height: 118px;
       display: grid;
       align-items: center;
@@ -522,6 +552,13 @@
           <span>მხოლოდ ადგილზე შემოსულები</span>
         </label>
 
+        <div class="field">
+          <label class="label" for="prizeSelect">პრიზი</label>
+          <select id="prizeSelect">
+            <option value="">პრიზების ჩატვირთვა...</option>
+          </select>
+        </div>
+
         <button class="btn" id="loadBtn" type="button">მონაწილეების ჩატვირთვა</button>
         <button class="btn btn-pink" id="spinBtn" type="button" disabled>რულეტკის დატრიალება</button>
         <button class="btn btn-ghost" id="resetBtn" type="button">გამარჯვებულების გასუფთავება</button>
@@ -541,6 +578,9 @@
           <div>
             <div class="stage-title">Live Draw</div>
             <div class="stage-note">სახელი გაჩერდება ოქროს ჩარჩოში</div>
+          </div>
+          <div>
+            <div class="prize-ribbon" id="currentPrize">პრიზი აირჩიე</div>
           </div>
           <div class="stage-note" id="stageStatus">მზადაა</div>
         </div>
@@ -565,11 +605,12 @@
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbz40UE4b9og1Yjs0rPPfDe1H-yRi90hKbK2WOXej4CAWPCnncDFcetadMEdQSYJO7nf/exec";
     const STORAGE_KEY = "farmasi_masterclass_raffle_winners_v1";
-    const CARD_WIDTH = 398;
 
     const els = {
       pin: document.getElementById("pin"),
       checkedOnly: document.getElementById("checkedOnly"),
+      prizeSelect: document.getElementById("prizeSelect"),
+      currentPrize: document.getElementById("currentPrize"),
       loadBtn: document.getElementById("loadBtn"),
       spinBtn: document.getElementById("spinBtn"),
       resetBtn: document.getElementById("resetBtn"),
@@ -588,6 +629,7 @@
 
     let participants = [];
     let pool = [];
+    let prizes = [];
     let spinning = false;
 
     function getWinners() {
@@ -621,9 +663,62 @@
       return [p.position, p.city, p.ticket_id].filter(Boolean).join(" · ");
     }
 
+    function selectedPrize() {
+      const value = els.prizeSelect ? els.prizeSelect.value : "";
+      return prizes.find(p => String(p.id) === String(value)) || null;
+    }
+
+    function renderPrizeSelect() {
+      if (!els.prizeSelect) return;
+      if (!prizes.length) {
+        els.prizeSelect.innerHTML = '<option value="">პრიზი არ არის მითითებული</option>';
+        els.currentPrize.textContent = "პრიზი არ არის მითითებული";
+        return;
+      }
+
+      els.prizeSelect.innerHTML = prizes.map((p, idx) =>
+        '<option value="' + escapeHtml(p.id) + '"' + (idx === 0 ? ' selected' : '') + '>' +
+        escapeHtml(p.name) +
+        '</option>'
+      ).join("");
+      updatePrizeLabel();
+    }
+
+    function updatePrizeLabel() {
+      const prize = selectedPrize();
+      els.currentPrize.textContent = prize ? prize.name : "პრიზი აირჩიე";
+    }
+
     function api(params) {
       const url = API_URL + "?" + new URLSearchParams(params).toString();
       return fetch(url).then(res => res.json());
+    }
+
+    async function loadPrizes() {
+      try {
+        const data = await api({
+          action: "get_raffle_prizes",
+          pin: els.pin.value
+        });
+        if (data && data.ok && Array.isArray(data.prizes)) {
+          prizes = data.prizes;
+          renderPrizeSelect();
+        } else {
+          prizes = [
+            { id: "voucher_100", name: "თამაშდება 100-ლარიანი ვაუჩერი" },
+            { id: "voucher_200", name: "თამაშდება 200-ლარიანი ვაუჩერი" },
+            { id: "trip", name: "თამაშდება საგზური" }
+          ];
+          renderPrizeSelect();
+        }
+      } catch (e) {
+        prizes = [
+          { id: "voucher_100", name: "თამაშდება 100-ლარიანი ვაუჩერი" },
+          { id: "voucher_200", name: "თამაშდება 200-ლარიანი ვაუჩერი" },
+          { id: "trip", name: "თამაშდება საგზური" }
+        ];
+        renderPrizeSelect();
+      }
     }
 
     function buildPool() {
@@ -702,6 +797,11 @@
 
     function spin() {
       if (spinning || !pool.length) return;
+      const prize = selectedPrize();
+      if (!prize) {
+        show("bad", "ჯერ აირჩიე პრიზი");
+        return;
+      }
       spinning = true;
       els.spinBtn.disabled = true;
       els.winnerBox.classList.remove("show");
@@ -711,9 +811,6 @@
       const winner = pool[winnerIndex];
       const laps = 9;
       const targetIndex = (pool.length * laps) + winnerIndex;
-      const viewportWidth = els.reel.parentElement.getBoundingClientRect().width;
-      const centerOffset = (viewportWidth / 2) - (CARD_WIDTH / 2);
-      const x = centerOffset - (targetIndex * CARD_WIDTH);
 
       const repeated = [];
       for (let i = 0; i < laps + 4; i++) repeated.push(...pool);
@@ -723,6 +820,15 @@
 
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
+          const viewportWidth = els.reel.parentElement.getBoundingClientRect().width;
+          const card = els.reel.querySelector(".name-card");
+          const reelStyle = getComputedStyle(els.reel);
+          const cardWidth = card ? card.getBoundingClientRect().width : 360;
+          const gap = parseFloat(reelStyle.columnGap || reelStyle.gap || "18") || 18;
+          const paddingLeft = parseFloat(reelStyle.paddingLeft || "0") || 0;
+          const step = cardWidth + gap;
+          const centerOffset = (viewportWidth / 2) - (cardWidth / 2);
+          const x = centerOffset - paddingLeft - (targetIndex * step);
           els.reel.style.transition = "transform 5.8s cubic-bezier(.11,.72,.08,1)";
           els.reel.style.transform = "translate3d(" + x + "px, -50%, 0)";
         });
@@ -733,17 +839,43 @@
 
     function announceWinner(winner) {
       spinning = false;
+      const prize = selectedPrize();
+      winner.prize_id = prize ? prize.id : "";
+      winner.prize_name = prize ? prize.name : "";
       const winners = getWinners();
       winners.push(winner);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(winners));
 
       els.winnerName.textContent = participantName(winner);
-      els.winnerMeta.textContent = participantMeta(winner);
+      els.winnerMeta.textContent = [participantMeta(winner), winner.prize_name].filter(Boolean).join(" · ");
       els.winnerBox.classList.add("show");
       show("good", "გამარჯვებული გამოვლინდა");
       burstConfetti();
       renderHistory();
       buildPool();
+      notifyWinnerSms(winner);
+    }
+
+    async function notifyWinnerSms(winner) {
+      try {
+        const data = await api({
+          action: "announce_raffle_winner",
+          pin: els.pin.value,
+          checked_only: els.checkedOnly.checked ? "1" : "0",
+          ticket_id: winner.ticket_id || "",
+          phone: winner.phone || "",
+          prize_id: winner.prize_id || "",
+          prize_name: winner.prize_name || ""
+        });
+
+        if (data && data.ok) {
+          show("good", "გამარჯვებული გამოვლინდა · SMS გაიგზავნა: " + (data.sent || 0));
+        } else {
+          show("bad", "გამარჯვებული გამოვლინდა, SMS ვერ გაიგზავნა: " + ((data && data.error) || "უცნობი შეცდომა"));
+        }
+      } catch (e) {
+        show("bad", "გამარჯვებული გამოვლინდა, SMS მოთხოვნა ვერ გაიგზავნა");
+      }
     }
 
     function burstConfetti() {
@@ -764,6 +896,7 @@
     els.loadBtn.addEventListener("click", loadParticipants);
     els.spinBtn.addEventListener("click", spin);
     els.checkedOnly.addEventListener("change", loadParticipants);
+    els.prizeSelect.addEventListener("change", updatePrizeLabel);
     els.resetBtn.addEventListener("click", () => {
       if (!confirm("გავასუფთავოთ ამ ბრაუზერში შენახული გამარჯვებულები?")) return;
       setWinners([]);
@@ -773,6 +906,7 @@
 
     renderHistory();
     renderReel([]);
+    loadPrizes();
   </script>
 </body>
 </html>
