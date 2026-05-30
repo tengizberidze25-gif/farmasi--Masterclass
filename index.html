@@ -8733,6 +8733,7 @@
   tick();
 }
 
+
     function renderLastRegistrations(items) {
       els.lastRegistrations.innerHTML = "";
       const one = (items || []).slice(0, 1);
@@ -10483,7 +10484,7 @@
         const activeBox = els.spinSlotReel.querySelector('.spin-slot-name.active') || boxes[2];
         const n = spinWheelNames.length;
         const winnerIndex = Math.floor(Math.random() * n);
-        const duration = 6500;
+        const duration = 10000;
         const startTime = performance.now();
         const startIndex = Math.floor(Math.random() * n);
 
