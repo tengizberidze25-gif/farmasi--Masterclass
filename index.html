@@ -8733,48 +8733,6 @@
   tick();
 }
 
-  function animate(now) {
-    const progress = Math.min(1, (now - start) / duration);
-    const eased = easeOutQuint(progress); // ვიყენებთ ახალ ფორმულას
-
-    if (spinSound && spinSound.setProgress) {
-      spinSound.setProgress(progress);
-    }
-
-    spinWheelRotation = startRotation + (endRotation - startRotation) * eased;
-
-    drawSpinWheel();
-
-    if (progress < 1) {
-      requestAnimationFrame(animate);
-      return;
-    }
-
-    // ფინალი
-    spinWheelRotation = endRotation;
-    drawSpinWheel();
-
-    if (spinSound && spinSound.stop) spinSound.stop();
-    if (els.spinWheelCanvas) els.spinWheelCanvas.classList.remove("is-spinning");
-
-    els.spinWheelResult.innerHTML =
-      `გამარჯვებულია: <strong>${escapeHtml(spinWheelNames[winnerIndex])}</strong>`;
-
-    spinWheelBusy = false;
-    if (els.spinWheelBtn) els.spinWheelBtn.disabled = false;
-
-    playVictoryMusic();
-
-    try {
-      if (window.confetti) {
-        confetti({ particleCount: 180, spread: 82, origin: { y: 0.62 } });
-      }
-    } catch (e) {}
-  }
-
-  requestAnimationFrame(animate);
-}
-
     function renderLastRegistrations(items) {
       els.lastRegistrations.innerHTML = "";
       const one = (items || []).slice(0, 1);
