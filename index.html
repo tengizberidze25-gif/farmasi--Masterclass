@@ -8666,8 +8666,16 @@
       const duration = 10000;
       const start = performance.now();
       const startRotation = spinWheelRotation;
-      const fullSpins = 16 + Math.floor(Math.random() * 6); // fast 360° rotations
-      const targetRotation = fullSpins * Math.PI * 2 - winnerIndex * arc;
+      const fullSpins = 16 + Math.floor(Math.random() * 6);
+
+      const pointerAngle = -Math.PI / 2;
+      const winnerCenterAngle = winnerIndex * arc + arc / 2;
+
+      const targetRotation =
+            fullSpins * Math.PI * 2 +
+            pointerAngle -
+            winnerCenterAngle;
+
       const endRotation = startRotation + targetRotation;
 
       function easeOutCubic(t) {
