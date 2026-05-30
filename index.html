@@ -6242,6 +6242,26 @@
       transition: none !important;
       will-change: transform, opacity, filter;
     }
+
+
+    /* ===== FINAL OVERRIDE: center-card 360 flip, no slow vertical slide ===== */
+    .spin-slot-reel.final-fast-spin .spin-slot-name.prev,
+    .spin-slot-reel.final-fast-spin .spin-slot-name.next,
+    .spin-slot-reel.final-fast-spin .spin-slot-name.prev2,
+    .spin-slot-reel.final-fast-spin .spin-slot-name.next2 {
+      opacity: 0 !important;
+      filter: blur(2px) !important;
+      transform: translateY(0) rotateX(0deg) scale(0.92) !important;
+      transition: none !important;
+    }
+    .spin-slot-reel.final-fast-spin .spin-slot-name.active {
+      opacity: 1 !important;
+      filter: none !important;
+      transform-origin: center center !important;
+      transition: none !important;
+      will-change: transform;
+    }
+
 </style>
 </head>
 <body>
@@ -10384,7 +10404,8 @@
 
 
 
-      /* ===== OVERRIDE: current-style vertical 360° name spin ===== */
+
+      /* ===== FINAL OVERRIDE: fast center-card 360° name spin ===== */
       let farmasiSlotIndex = 0;
       let farmasiSlotSpinTimer = null;
 
@@ -10396,7 +10417,12 @@
         farmasiSlotIndex = ((centerIndex % n) + n) % n;
         const offsets = [-2, -1, 0, 1, 2];
         boxes.forEach(function(box, i) {
-          box.textContent = names[(farmasiSlotIndex + offsets[i] + n) % n];
+          const off = offsets[i] || 0;
+          box.textContent = names[(farmasiSlotIndex + off + n) % n];
+          box.style.removeProperty('transition');
+          box.style.removeProperty('transform');
+          box.style.removeProperty('opacity');
+          box.style.removeProperty('filter');
         });
       }
 
@@ -10425,56 +10451,53 @@
 
         const wrap = els.spinWheelCard ? els.spinWheelCard.querySelector('.spin-wheel-wrap') : null;
         const boxes = Array.from(els.spinSlotReel.querySelectorAll('.spin-slot-name'));
-        const offsets = [-2, -1, 0, 1, 2];
-        const rowH = 58;
+        const activeBox = els.spinSlotReel.querySelector('.spin-slot-name.active') || boxes[2];
         const n = spinWheelNames.length;
         const winnerIndex = Math.floor(Math.random() * n);
         const duration = 10000;
         const startTime = performance.now();
         const startIndex = Math.floor(Math.random() * n);
 
-        // ბევრი სრული წრე: 5 მონაწილეზე ~180+ სახელის გავლა, ამიტომ ერთი და იგივე სახელი რამდენჯერმე გამოჩნდება.
-        const fullRounds = 34 + Math.floor(Math.random() * 10);
+        // ბევრი სრული წრე: 5 მონაწილეზეც იგივე სახელი რამდენჯერმე გამოჩნდება.
+        const fullRounds = Math.max(32, 18 + Math.floor(220 / Math.max(1, n)));
         const winnerOffset = (winnerIndex - startIndex + n) % n;
         const totalSteps = fullRounds * n + winnerOffset;
         const spinSound = startWheelSpinSound ? startWheelSpinSound() : null;
 
         if (wrap) wrap.classList.remove('is-final');
-        els.spinSlotReel.classList.add('is-spinning');
+        els.spinSlotReel.classList.add('is-spinning', 'final-fast-spin');
+
+        boxes.forEach(function(box, i) {
+          if (box !== activeBox) {
+            box.style.setProperty('opacity', '0', 'important');
+            box.style.setProperty('transition', 'none', 'important');
+            box.style.setProperty('transform', 'translateY(0) rotateX(0deg) scale(0.92)', 'important');
+          }
+        });
 
         function easeOutQuint(t) {
           return 1 - Math.pow(1 - t, 5);
         }
 
-        function paint(phase, finalMode) {
+        let lastShown = -1;
+
+        function paint(phase) {
           const base = Math.floor(phase);
           const frac = phase - base;
+          const idx = ((base % n) + n) % n;
 
-          boxes.forEach(function(box, i) {
-            const offset = offsets[i];
-            const idx = ((base + offset) % n + n) % n;
-            box.textContent = spinWheelNames[idx];
+          if (idx !== lastShown) {
+            activeBox.textContent = spinWheelNames[idx];
+            lastShown = idx;
+          }
 
-            const y = (offset - frac) * rowH;
-            const dist = Math.abs(offset - frac);
-            const scale = Math.max(0.74, 1.06 - dist * 0.12);
-            const opacity = finalMode
-              ? (offset === 0 ? 1 : (dist <= 1 ? 0.34 : 0.12))
-              : Math.max(0.10, 1 - dist * 0.36);
-            const blur = finalMode ? (offset === 0 ? 0 : dist * 0.55) : Math.min(1.2, dist * 0.35);
-
-            // 360° ეფექტი: ტრიალისას თითო სახელი rotateX-ით სრულ ბრუნვებს აკეთებს.
-            const rotate = finalMode ? (offset === 0 ? 0 : offset * -52) : (-(phase * 360) + offset * 38);
-            box.classList.toggle('active', offset === 0);
-
-            // IMPORTANT: CSS-ში prev/next/active კლასებს transform-ზე !important ჰქონდა,
-            // ამიტომ ჩვეულებრივი inline style არ მოქმედებდა და ვიზუალურად არ ტრიალებდა.
-            // setProperty(..., 'important') რეალურად აძრავს ბლოკებს ყოველ კადრზე.
-            box.style.setProperty('transition', finalMode ? 'transform .45s cubic-bezier(.16,1,.3,1), opacity .35s ease, filter .35s ease' : 'none', 'important');
-            box.style.setProperty('transform', 'translateY(' + y + 'px) rotateX(' + rotate + 'deg) scale(' + scale + ')', 'important');
-            box.style.setProperty('opacity', String(opacity), 'important');
-            box.style.setProperty('filter', 'blur(' + blur + 'px)', 'important');
-          });
+          // რეალური 360° ეფექტი: ბარათი ადგილზე ბრუნავს, ზემოდან აღარ ჩამოდის.
+          const rotate = -(phase * 360);
+          const pulse = 1.04 + Math.sin(frac * Math.PI) * 0.045;
+          activeBox.style.setProperty('transition', 'none', 'important');
+          activeBox.style.setProperty('opacity', '1', 'important');
+          activeBox.style.setProperty('filter', 'none', 'important');
+          activeBox.style.setProperty('transform', 'translateY(0) rotateX(' + rotate + 'deg) scale(' + pulse + ')', 'important');
         }
 
         function frame(now) {
@@ -10483,7 +10506,7 @@
           if (spinSound && spinSound.setProgress) spinSound.setProgress(progress);
 
           const phase = startIndex + totalSteps * eased;
-          paint(phase, false);
+          paint(phase);
 
           if (progress < 1) {
             requestAnimationFrame(frame);
@@ -10493,8 +10516,16 @@
           // ზუსტად გამარჯვებულზე გაჩერება
           farmasiSlotIndex = winnerIndex;
           updateFarmasiNameReel(winnerIndex);
-          paint(winnerIndex, true);
-          els.spinSlotReel.classList.remove('is-spinning');
+          els.spinSlotReel.classList.remove('is-spinning', 'final-fast-spin');
+
+          const finalActive = els.spinSlotReel.querySelector('.spin-slot-name.active');
+          if (finalActive) {
+            finalActive.textContent = spinWheelNames[winnerIndex];
+            finalActive.style.setProperty('transition', 'transform .42s cubic-bezier(.16,1,.3,1), opacity .35s ease, filter .35s ease', 'important');
+            finalActive.style.setProperty('transform', 'translateY(0) rotateX(0deg) scale(1.08)', 'important');
+            finalActive.style.setProperty('opacity', '1', 'important');
+            finalActive.style.setProperty('filter', 'none', 'important');
+          }
 
           if (wrap) {
             wrap.classList.add('is-final');
