@@ -8658,60 +8658,77 @@
     }
 
     function spinRegistrationWheel() {
-      if (spinWheelBusy || !spinWheelNames.length) return;
-      spinWheelBusy = true;
-      if (els.spinWheelBtn) els.spinWheelBtn.disabled = true;
-      if (els.spinWheelCanvas) els.spinWheelCanvas.classList.add("is-spinning");
-      els.spinWheelResult.textContent = "კრუგი ტრიალებს...";
-      const spinSound = startWheelSpinSound();
+  if (spinWheelBusy || !spinWheelNames.length) return;
 
-      const n = spinWheelNames.length;
-      const arc = (Math.PI * 2) / n;
-      const winnerIndex = Math.floor(Math.random() * n);
-      const duration = 10000;
-      const start = performance.now();
-      const startRotation = spinWheelRotation;
-      const fullSpins = 16 + Math.floor(Math.random() * 6);
+  spinWheelBusy = true;
+  if (els.spinWheelBtn) els.spinWheelBtn.disabled = true;
+  if (els.spinWheelCanvas) els.spinWheelCanvas.classList.add("is-spinning");
+  els.spinWheelResult.textContent = "კრუგი ტრიალებს...";
 
-      const targetRotation =
-        fullSpins * Math.PI * 2 -
-        winnerIndex * arc;
+  const spinSound = startWheelSpinSound();
 
-      const endRotation = startRotation + targetRotation;
+  const n = spinWheelNames.length;
+  const arc = (Math.PI * 2) / n;
+  const winnerIndex = Math.floor(Math.random() * n);
 
-      function easeOutCubic(t) {
-        return 1 - Math.pow(1 - t, 3);
-      }
+  // 1. დრო შევამცირეთ 5 წამამდე (10 წამი ძალიან ნელი იყო)
+  const duration = 5000; 
+  const start = performance.now();
+  const startRotation = spinWheelRotation;
 
-      function animate(now) {
-        const progress = Math.min(1, (now - start) / duration);
-        const eased = easeOutCubic(progress);
-        if (spinSound && spinSound.setProgress) spinSound.setProgress(progress);
-        spinWheelRotation = startRotation + (endRotation - startRotation) * eased;
-        drawSpinWheel();
+  // 2. ბრუნების რაოდენობა (გავზარდეთ სიჩქარისთვის): მინიმუმ 10, მაქსიმუმ 14 სრული წრე
+  const fullSpins = 10 + Math.floor(Math.random() * 4);
 
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-          return;
-        }
+  // გათვლილი კუთხე, რომ გამარჯვებული ზუსტად ცენტრში (ისართან) დაჯდეს
+  const targetRotation = fullSpins * Math.PI * 2 - winnerIndex * arc;
+  const endRotation = startRotation + targetRotation;
 
-        spinWheelRotation = endRotation;
-        drawSpinWheel();
-        if (spinSound && spinSound.stop) spinSound.stop();
-        if (els.spinWheelCanvas) els.spinWheelCanvas.classList.remove("is-spinning");
-        els.spinWheelResult.innerHTML = `გამარჯვებულია:<strong>${escapeHtml(spinWheelNames[winnerIndex])}</strong>`;
-        spinWheelBusy = false;
-        if (els.spinWheelBtn) els.spinWheelBtn.disabled = false;
-        playVictoryMusic();
-        try {
-          if (window.confetti) {
-            confetti({ particleCount: 180, spread: 82, origin: { y: 0.62 } });
-          }
-        } catch (e) {}
-      }
+  // 3. ახალი ფორმულა (easeOutQuart): მომენტალური სტარტი და ძალიან რბილი, კინემატოგრაფიული შენელება
+  function easeOutQuart(t) {
+    return 1 - Math.pow(1 - t, 4);
+  }
 
-      requestAnimationFrame(animate);
+  function animate(now) {
+    const progress = Math.min(1, (now - start) / duration);
+    const eased = easeOutQuart(progress); // ვიყენებთ ახალ ფორმულას
+
+    if (spinSound && spinSound.setProgress) {
+      spinSound.setProgress(progress);
     }
+
+    spinWheelRotation = startRotation + (endRotation - startRotation) * eased;
+
+    drawSpinWheel();
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+      return;
+    }
+
+    // ფინალი
+    spinWheelRotation = endRotation;
+    drawSpinWheel();
+
+    if (spinSound && spinSound.stop) spinSound.stop();
+    if (els.spinWheelCanvas) els.spinWheelCanvas.classList.remove("is-spinning");
+
+    els.spinWheelResult.innerHTML =
+      `გამარჯვებულია: <strong>${escapeHtml(spinWheelNames[winnerIndex])}</strong>`;
+
+    spinWheelBusy = false;
+    if (els.spinWheelBtn) els.spinWheelBtn.disabled = false;
+
+    playVictoryMusic();
+
+    try {
+      if (window.confetti) {
+        confetti({ particleCount: 180, spread: 82, origin: { y: 0.62 } });
+      }
+    } catch (e) {}
+  }
+
+  requestAnimationFrame(animate);
+}
 
     function renderLastRegistrations(items) {
       els.lastRegistrations.innerHTML = "";
