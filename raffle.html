@@ -9,7 +9,110 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Sans+Georgian:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js">
+    /* ===== 60 PARTICIPANT WHEEL READABILITY PATCH ===== */
+    function __raffleShortName60(p, i){
+      const full = nameOf(p);
+      const parts = full.split(/\s+/).filter(Boolean);
+      if(parts.length >= 2){
+        return (parts[0][0] || "") + ". " + parts[parts.length - 1];
+      }
+      return full || ("#" + (i + 1));
+    }
+
+    function __drawRaffleWheel60(list, activeTicket){
+      const canvas = $('wheelCanvas');
+      if(!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      const cssSize = Math.min(560, Math.max(320, canvas.getBoundingClientRect().width || 520));
+      canvas.width = Math.round(cssSize * dpr);
+      canvas.height = Math.round(cssSize * dpr);
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+
+      const size = cssSize;
+      const cx = size/2;
+      const cy = size/2;
+      const r = size * 0.485;
+      const inner = size * 0.105;
+      const items = (list && list.length ? list : [{first_name:'მონაწილეები', last_name:'იტრიალებს', ticket_id:'FARMASI 2026'}]);
+      const n = items.length;
+      const arc = Math.PI * 2 / n;
+
+      ctx.clearRect(0,0,size,size);
+
+      for(let i=0;i<n;i++){
+        const start = -Math.PI/2 + i*arc;
+        const end = start + arc;
+
+        const grad = ctx.createRadialGradient(cx,cy,inner,cx,cy,r);
+        if(i % 3 === 0){
+          grad.addColorStop(0, '#fff6d8');
+          grad.addColorStop(1, '#e8c468');
+        }else if(i % 3 === 1){
+          grad.addColorStop(0, '#ffe0e5');
+          grad.addColorStop(1, '#ff6075');
+        }else{
+          grad.addColorStop(0, '#fff0c4');
+          grad.addColorStop(1, '#d8a94f');
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(cx,cy);
+        ctx.arc(cx,cy,r,start,end);
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(55,20,15,.32)';
+        ctx.lineWidth = n > 35 ? 0.65 : 1.2;
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(cx,cy);
+        ctx.rotate(start + arc/2);
+
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#3f130d';
+        ctx.font = '800 ' + (n > 45 ? 7.2 : n > 30 ? 8.6 : 11) + 'px var(--font)';
+        ctx.shadowColor = 'rgba(255,255,255,.20)';
+        ctx.shadowBlur = 1;
+
+        const label = __raffleShortName60(items[i], i);
+        const maxChars = n > 45 ? 9 : n > 30 ? 11 : 16;
+        const txt = label.length > maxChars ? label.slice(0, maxChars - 1) + '…' : label;
+
+        ctx.fillText(txt, r - (n > 45 ? 10 : 16), 0);
+        ctx.restore();
+      }
+
+      // outer rings
+      ctx.beginPath();
+      ctx.arc(cx,cy,r,0,Math.PI*2);
+      ctx.strokeStyle = '#f7dfa0';
+      ctx.lineWidth = 6;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(cx,cy,r-10,0,Math.PI*2);
+      ctx.strokeStyle = 'rgba(10,5,6,.85)';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+
+      // center cap
+      const centerGrad = ctx.createRadialGradient(cx-10,cy-14,4,cx,cy,inner*1.25);
+      centerGrad.addColorStop(0,'#3a3030');
+      centerGrad.addColorStop(1,'#070304');
+      ctx.beginPath();
+      ctx.arc(cx,cy,inner,0,Math.PI*2);
+      ctx.fillStyle = centerGrad;
+      ctx.fill();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#fff0c4';
+      ctx.stroke();
+    }
+
+  </script>
   <style>
     :root{
       --bg:#0a0506;--card:#1b0f13;--card2:#261319;--pink:#ff6075;--pink2:#e64a61;
@@ -101,6 +204,18 @@
       color:var(--cream);
       opacity:.85;
       font-size:clamp(14px,2.2vw,22px);
+    }
+
+  
+    /* 60-მონაწილეიანი ბორბლის გაუმჯობესება */
+    #wheelCanvas{
+      max-width:min(96vw, 560px) !important;
+      margin:0 auto;
+      display:block;
+    }
+    .machine{
+      padding-left:10px;
+      padding-right:10px;
     }
 
   </style>
@@ -231,11 +346,8 @@
     function renderPrizes(){ const sel=$('prizeSelect'); sel.innerHTML='<option value="">აირჩიე პრიზი ან ჩაწერე ხელით</option>'; prizes.forEach(p=>{ const o=document.createElement('option'); o.value=p.name; o.textContent=p.name; sel.appendChild(o); }); }
 
     function renderReel(list, activeTicket){
-      wheelItems = uniqueByKey((list && list.length ? list : available.length ? available : participants).filter(Boolean));
-      if(!wheelItems.length){
-        wheelItems = [{first_name:'მონაწილეები', last_name:'ჩაიტვირთება', ticket_id:'FARMASI 2026'}];
-      }
-      drawWheel(activeTicket);
+      // 60-ვე მონაწილე იხატება ბორბალზე.
+      __drawRaffleWheel60(uniqueByKey(list || available || participants), activeTicket);
     }
 
     function drawWheel(activeTicket){
@@ -460,6 +572,93 @@
     }
 
     function renderHistory(){ const box=$('historyList'); if(!winners.length){box.innerHTML='<div style="color:var(--dim);font-size:12px;text-align:center;padding:10px">ჯერ გამარჯვებული არ არის</div>';return;} box.innerHTML=winners.slice().reverse().map(w=>'<div class="history-item"><b>'+escapeHtml(w.name)+'</b><span>'+escapeHtml(w.prize||'პრიზი')+'</span></div>').join(''); }
+    
+    /* ===== ROUND WHEEL SPIN OVERRIDE FOR 60 PARTICIPANTS ===== */
+    function spin(){
+      if(spinning || !available.length) return;
+      const pickedPrize = selectedPrizeOrWarn();
+      if(!pickedPrize) return;
+
+      clearMsg();
+      spinning = true;
+      currentWinner = null;
+      $('winnerBox').classList.remove('show');
+
+      const idx = Math.floor(Math.random() * available.length);
+      const winner = available[idx];
+      const winnerKey = winner.ticket_id || winner.phone;
+      const wheelList = uniqueByKey(available);
+      const winnerIndex = Math.max(0, wheelList.findIndex(p => (p.ticket_id || p.phone) === winnerKey));
+
+      __drawRaffleWheel60(wheelList);
+
+      const canvas = $('wheelCanvas');
+      const n = wheelList.length;
+      const arcDeg = 360 / n;
+      const winnerCenterDeg = winnerIndex * arcDeg + arcDeg / 2;
+
+      // pointer ზემოთაა, ამიტომ 270°-ზე ვაჩერებთ გამარჯვებულის ცენტრს
+      const pointerDeg = 270;
+      const fullSpins = 11 + Math.floor(Math.random() * 3);
+      const finalRotation = (window.__raffleWheelRotation || 0) + fullSpins * 360 + pointerDeg - winnerCenterDeg;
+      window.__raffleWheelRotation = finalRotation;
+
+      const duration = 10500;
+      const spinSound = (typeof startWheelSpinSound === 'function') ? startWheelSpinSound() : null;
+
+      canvas.style.transition = 'none';
+      canvas.style.transform = 'rotate(' + ((window.__raffleWheelRotation || 0) % 360) + 'deg)';
+      canvas.offsetHeight;
+      canvas.style.transition = 'transform ' + duration + 'ms cubic-bezier(.05,.86,.12,1)';
+      canvas.style.transform = 'rotate(' + finalRotation + 'deg)';
+
+      if(spinSound && spinSound.setProgress){
+        const start = performance.now();
+        function soundFrame(now){
+          const p = Math.min(1, (now - start) / duration);
+          spinSound.setProgress(p);
+          if(p < 1) requestAnimationFrame(soundFrame);
+        }
+        requestAnimationFrame(soundFrame);
+      }
+
+      setTimeout(()=>{
+        if(spinSound && spinSound.stop) spinSound.stop();
+        spinning = false;
+        currentWinner = winner;
+
+        __drawRaffleWheel60(wheelList, winner.ticket_id);
+        $('winnerName').textContent = nameOf(winner);
+        $('winnerInfo').textContent = (winner.ticket_id||'') + ' · ' + (winner.city||'') + ' · ' + pickedPrize;
+        $('winnerBox').classList.add('show');
+
+        if($('winnerFullscreen') && $('winnerFullscreenName') && $('winnerFullscreenInfo')){
+          $('winnerFullscreenName').textContent = nameOf(winner);
+          $('winnerFullscreenInfo').textContent = (winner.ticket_id||'') + ' · ' + (winner.city||'') + ' · ' + pickedPrize;
+          $('winnerFullscreen').classList.add('show');
+          setTimeout(()=>{ if($('winnerFullscreen')) $('winnerFullscreen').classList.remove('show'); }, 5200);
+        }
+
+        playVictoryMusic();
+        announceWinnerAuto(winner, pickedPrize);
+
+        wonKeys.add(winnerKey);
+        sessionStorage.setItem('raffle_won_keys_v1', JSON.stringify(Array.from(wonKeys)));
+        available = available.filter(p => (p.ticket_id || p.phone) !== winnerKey);
+
+        winners.push({ticket_id:winner.ticket_id, phone:winner.phone, name:nameOf(winner), prize:pickedPrize, time:new Date().toISOString()});
+        sessionStorage.setItem('raffle_winners_v1', JSON.stringify(winners));
+
+        updateStats();
+        renderHistory();
+
+        if(window.confetti){
+          confetti({particleCount:180, spread:75, origin:{y:.62}});
+          setTimeout(()=>confetti({particleCount:110, spread:110, origin:{y:.5}}),350);
+        }
+      }, duration + 120);
+    }
+
     $('loadBtn').addEventListener('click', loadAll); $('spinBtn').addEventListener('click', spin); $('clearScreenBtn').addEventListener('click', clearScreen); $('manualPrize').addEventListener('input',()=>syncPrizeInputs('manual')); $('prizeSelect').addEventListener('change',()=>syncPrizeInputs('select')); renderHistory(); updateStats(); renderReel([{first_name:'მონაწილეები',last_name:'იტრიალებს',ticket_id:'FARMASI 2026'}]);
   </script>
 
