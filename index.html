@@ -6262,7 +6262,158 @@
       will-change: transform;
     }
 
-</style>
+
+
+    /* ============================================ */
+    /* FARMASI FULLSCREEN RAFFLE WHEEL (A VARIANT)  */
+    /* ============================================ */
+    .farmasi-wheel-card { text-align: center; }
+    .farmasi-wheel-note {
+      font-family: var(--sans-font);
+      font-size: 11px;
+      color: var(--cream-dim);
+      margin: 4px 0 12px;
+      line-height: 1.45;
+    }
+    .farmasi-wheel-preview {
+      width: min(76vw, 300px);
+      height: min(76vw, 300px);
+      margin: 8px auto 12px;
+      position: relative;
+    }
+    .farmasi-wheel-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border-radius: 50%;
+      border: 7px solid var(--gold-light);
+      background: rgba(0,0,0,.2);
+      box-shadow:
+        0 0 0 4px rgba(0,0,0,.55),
+        0 0 32px rgba(232,196,104,.24),
+        inset 0 0 32px rgba(0,0,0,.45);
+      transition: transform 7.2s cubic-bezier(.05,.86,.12,1);
+      will-change: transform;
+    }
+    .farmasi-wheel-pointer {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 3;
+      width: 0;
+      height: 0;
+      border-left: 22px solid transparent;
+      border-right: 22px solid transparent;
+      border-top: 40px solid var(--gold-light);
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,.65));
+    }
+    .farmasi-wheel-center {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #2d2525, #080606);
+      border: 4px solid #fff1c6;
+      box-shadow: 0 0 18px rgba(0,0,0,.7);
+      z-index: 2;
+    }
+    .farmasi-wheel-result {
+      min-height: 52px;
+      margin: 10px 0 10px;
+      padding: 10px 12px;
+      border-radius: 13px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.22);
+      color: var(--cream-dim);
+      font-family: var(--sans-font);
+      font-size: 11.5px;
+      line-height: 1.4;
+    }
+    .farmasi-wheel-result strong {
+      display: block;
+      margin-top: 4px;
+      color: var(--gold-light);
+      font-family: var(--display-font);
+      font-size: 23px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+    .farmasi-fullscreen-wheel {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      padding: 16px;
+      background:
+        radial-gradient(ellipse at 50% 18%, rgba(255,96,117,.22), transparent 45%),
+        radial-gradient(ellipse at 50% 88%, rgba(232,196,104,.18), transparent 55%),
+        rgba(5,3,4,.94);
+      backdrop-filter: blur(12px) saturate(1.15);
+      -webkit-backdrop-filter: blur(12px) saturate(1.15);
+    }
+    .farmasi-fullscreen-wheel.open { display: flex; }
+    .farmasi-fullscreen-inner {
+      width: 100%;
+      max-width: 760px;
+      text-align: center;
+      animation: fadeUp .35s cubic-bezier(.16,1,.3,1) both;
+    }
+    .farmasi-fullscreen-title {
+      margin: 0 0 12px;
+      font-family: var(--display-font);
+      font-size: clamp(28px, 6vw, 48px);
+      font-weight: 700;
+      color: var(--cream);
+      text-shadow: 0 8px 34px rgba(0,0,0,.85);
+    }
+    .farmasi-fullscreen-title span {
+      font-style: italic;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-dark));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .farmasi-fullscreen-wheelbox {
+      width: min(90vw, 66vh, 640px);
+      height: min(90vw, 66vh, 640px);
+      margin: 0 auto 14px;
+      position: relative;
+    }
+    .farmasi-fullscreen-result {
+      min-height: 70px;
+      max-width: 560px;
+      margin: 12px auto;
+      padding: 13px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(232,196,104,.42);
+      background: rgba(0,0,0,.33);
+      color: var(--cream);
+      font-family: var(--sans-font);
+      font-size: 14px;
+    }
+    .farmasi-fullscreen-result strong {
+      display: block;
+      margin-top: 5px;
+      color: var(--gold-light);
+      font-family: var(--display-font);
+      font-size: clamp(28px, 6vw, 46px);
+      font-weight: 700;
+      line-height: 1.05;
+    }
+    .farmasi-close-wheel {
+      display: none;
+      width: min(100%, 320px);
+      margin-top: 8px;
+    }
+    .farmasi-close-wheel.show { display: inline-block; }
+
+  </style>
 </head>
 <body>
   <div class="bg-photo"></div>
@@ -6603,29 +6754,34 @@
       <div id="lastRegistrations"></div>
     </div>
 
-
-
-    <!-- REGISTRATION SPIN CIRCLE -->
-    <div class="glass-card spin-wheel-card" id="spinWheelCard">
+    <!-- REGISTRATION FULLSCREEN RAFFLE WHEEL -->
+    <div class="glass-card farmasi-wheel-card" id="spinWheelCard">
       <div class="card-eyebrow">გათამაშების კრუგი</div>
-      <div class="spin-wheel-shell">
-        <div class="spin-wheel-wrap">
-          <div class="spin-wheel-pointer" aria-hidden="true"></div>
-          <canvas id="spinWheelCanvas" width="700" height="700" aria-hidden="true"></canvas>
-          <div class="spin-slot-reel" id="spinSlotReel" aria-live="polite">
-            <div class="spin-slot-name prev2"></div>
-            <div class="spin-slot-name prev"></div>
-            <div class="spin-slot-name active">იტვირთება...</div>
-            <div class="spin-slot-name next"></div>
-            <div class="spin-slot-name next2"></div>
-          </div>
-          <div class="spin-wheel-center">F</div>
-        </div>
-        <div class="spin-wheel-actions">
-          <button class="btn btn-primary" id="spinWheelBtn" type="button">დაატრიალე კრუგი</button>
-          <div class="spin-wheel-result" id="spinWheelResult">რეგისტრირებულები ჩაიტვირთება ავტომატურად</div>
-        </div>
+      <div class="farmasi-wheel-note">დააჭირე ღილაკს — ბორბალი მთელ ეკრანზე გაიხსნება, სწრაფად დატრიალდება და გამარჯვებულზე გაჩერდება.</div>
+      <div class="farmasi-wheel-preview">
+        <div class="farmasi-wheel-pointer" aria-hidden="true"></div>
+        <canvas id="spinWheelCanvas" class="farmasi-wheel-canvas" width="760" height="760" aria-label="გათამაშების ბორბალი"></canvas>
+        <div class="farmasi-wheel-center" aria-hidden="true"></div>
       </div>
+      <div class="spin-wheel-actions">
+        <button class="btn btn-primary" id="spinWheelBtn" type="button">დაატრიალე კრუგი</button>
+        <div class="farmasi-wheel-result" id="spinWheelResult">რეგისტრირებულები ჩაიტვირთება ავტომატურად</div>
+      </div>
+    </div>
+
+    <div class="farmasi-fullscreen-wheel" id="farmasiFullscreenWheel" aria-hidden="true">
+      <div class="farmasi-fullscreen-inner">
+        <h2 class="farmasi-fullscreen-title">გათამაშების <span>კრუგი</span></h2>
+        <div class="farmasi-fullscreen-wheelbox">
+          <div class="farmasi-wheel-pointer" aria-hidden="true"></div>
+          <canvas id="farmasiFullscreenWheelCanvas" class="farmasi-wheel-canvas" width="960" height="960" aria-label="სრული ეკრანის გათამაშების ბორბალი"></canvas>
+          <div class="farmasi-wheel-center" aria-hidden="true"></div>
+        </div>
+        <div class="farmasi-fullscreen-result" id="farmasiFullscreenWheelResult">კრუგი ტრიალებს...</div>
+        <button class="btn btn-ghost farmasi-close-wheel" id="farmasiCloseWheelBtn" type="button">დახურვა</button>
+      </div>
+    </div>
+
     </div>
 
 
@@ -10435,157 +10591,165 @@
 
 
 
-      /* ===== FINAL OVERRIDE: fast center-card 360° name spin ===== */
-      let farmasiSlotIndex = 0;
-      let farmasiSlotSpinTimer = null;
+      /* ===== A VARIANT: fullscreen round Farmasi raffle wheel ===== */
+      let farmasiWheelRotation = 0;
 
-      function updateFarmasiNameReel(centerIndex) {
-        if (!els.spinSlotReel) return;
-        const boxes = els.spinSlotReel.querySelectorAll('.spin-slot-name');
-        const names = spinWheelNames && spinWheelNames.length ? spinWheelNames : ['იტვირთება...'];
-        const n = names.length;
-        farmasiSlotIndex = ((centerIndex % n) + n) % n;
-        const offsets = [-2, -1, 0, 1, 2];
-        boxes.forEach(function(box, i) {
-          const off = offsets[i] || 0;
-          box.textContent = names[(farmasiSlotIndex + off + n) % n];
-          box.style.removeProperty('transition');
-          box.style.removeProperty('transform');
-          box.style.removeProperty('opacity');
-          box.style.removeProperty('filter');
-        });
+      const farmasiFullscreenWheel = document.getElementById("farmasiFullscreenWheel");
+      const farmasiFullscreenWheelCanvas = document.getElementById("farmasiFullscreenWheelCanvas");
+      const farmasiFullscreenWheelResult = document.getElementById("farmasiFullscreenWheelResult");
+      const farmasiCloseWheelBtn = document.getElementById("farmasiCloseWheelBtn");
+
+      function drawFarmasiWheelOn(canvasEl) {
+        if (!canvasEl) return;
+        const c = canvasEl.getContext("2d");
+        const names = spinWheelNames && spinWheelNames.length ? spinWheelNames : ["იტვირთება..."];
+        const n = Math.max(names.length, 1);
+        const size = canvasEl.width;
+        const cx = size / 2;
+        const cy = size / 2;
+        const r = size * 0.48;
+        const arc = Math.PI * 2 / n;
+
+        c.clearRect(0, 0, size, size);
+
+        for (let i = 0; i < n; i++) {
+          const a0 = -Math.PI / 2 + i * arc;
+          const a1 = a0 + arc;
+
+          c.beginPath();
+          c.moveTo(cx, cy);
+          c.arc(cx, cy, r, a0, a1);
+          c.closePath();
+
+          const grad = c.createRadialGradient(cx, cy, size * 0.03, cx, cy, r);
+          if (i % 3 === 0) {
+            grad.addColorStop(0, "#fff4d4");
+            grad.addColorStop(1, "#f5d98a");
+          } else if (i % 3 === 1) {
+            grad.addColorStop(0, "#ffd7de");
+            grad.addColorStop(1, "#ff6075");
+          } else {
+            grad.addColorStop(0, "#fff7e4");
+            grad.addColorStop(1, "#f1c775");
+          }
+          c.fillStyle = grad;
+          c.fill();
+          c.strokeStyle = "rgba(64,19,13,.45)";
+          c.lineWidth = Math.max(2, size / 250);
+          c.stroke();
+
+          c.save();
+          c.translate(cx, cy);
+          c.rotate(a0 + arc / 2);
+          c.textAlign = "right";
+          c.textBaseline = "middle";
+          c.fillStyle = i % 3 === 1 ? "#fff7e5" : "#40130d";
+          c.shadowColor = "rgba(0,0,0,.32)";
+          c.shadowBlur = 4;
+          c.font = `900 ${n > 12 ? Math.round(size * 0.030) : n > 8 ? Math.round(size * 0.036) : n > 5 ? Math.round(size * 0.044) : Math.round(size * 0.054)}px var(--sans-font), Arial`;
+          const raw = String(names[i] || "—");
+          const maxLen = n > 12 ? 13 : n > 8 ? 15 : 18;
+          const label = raw.length > maxLen ? raw.slice(0, maxLen - 1) + "…" : raw;
+          c.fillText(label, r - size * 0.065, 0);
+          c.restore();
+        }
+      }
+
+      function drawFarmasiWheels() {
+        drawFarmasiWheelOn(els.spinWheelCanvas);
+        drawFarmasiWheelOn(farmasiFullscreenWheelCanvas);
       }
 
       renderSpinWheel = function(items) {
         spinWheelNames = normalizeSpinWheelNames(items);
-        farmasiSlotIndex = 0;
         if (!els.spinWheelCard) return;
 
         if (!spinWheelNames.length) {
           if (els.spinWheelResult) els.spinWheelResult.innerHTML = `<span class="spin-wheel-empty">ჯერ რეგისტრაცია არ არის — გათამაშება გამოჩნდება რეგისტრაციის შემდეგ</span>`;
           if (els.spinWheelBtn) els.spinWheelBtn.disabled = true;
-          updateFarmasiNameReel(0);
         } else {
           if (els.spinWheelBtn) els.spinWheelBtn.disabled = false;
           if (els.spinWheelResult) els.spinWheelResult.textContent = `გათამაშებაშია ${spinWheelNames.length} მონაწილე`;
-          updateFarmasiNameReel(0);
         }
+        drawFarmasiWheels();
       };
 
       spinRegistrationWheel = function() {
-        if (spinWheelBusy || !spinWheelNames.length || !els.spinSlotReel) return;
-
-        const boxes = Array.from(els.spinSlotReel.querySelectorAll('.spin-slot-name'));
-        if (boxes.length < 5) return;
-
-        spinWheelBusy = true;
-        if (els.spinWheelBtn) els.spinWheelBtn.disabled = true;
-        if (els.spinWheelResult) els.spinWheelResult.textContent = 'სახელები სწრაფად ტრიალებს...';
+        if (spinWheelBusy || !spinWheelNames.length) return;
 
         const names = spinWheelNames.slice();
         const n = names.length;
+        if (n < 2) return;
+
+        spinWheelBusy = true;
+        if (els.spinWheelBtn) els.spinWheelBtn.disabled = true;
+        if (els.spinWheelResult) els.spinWheelResult.textContent = "კრუგი ტრიალებს...";
+        if (farmasiFullscreenWheelResult) farmasiFullscreenWheelResult.textContent = "კრუგი ტრიალებს...";
+        if (farmasiCloseWheelBtn) farmasiCloseWheelBtn.classList.remove("show");
+        if (farmasiFullscreenWheel) {
+          farmasiFullscreenWheel.classList.add("open");
+          farmasiFullscreenWheel.setAttribute("aria-hidden", "false");
+        }
+
+        drawFarmasiWheels();
+
         const winnerIndex = Math.floor(Math.random() * n);
-        const startIndex = farmasiSlotIndex || 0;
-        const duration = 8200;
-        const startTime = performance.now();
-        const fullRounds = Math.max(10, 6 + Math.ceil(40 / Math.max(1, n)));
-        const winnerOffset = (winnerIndex - startIndex + n) % n;
-        const totalSteps = fullRounds * n + winnerOffset;
+        const arc = 360 / n;
+        const winnerCenter = winnerIndex * arc + arc / 2;
+        const pointerAngle = 270;
+        const fullSpins = 8 + Math.floor(Math.random() * 4);
+        const finalRotation = farmasiWheelRotation + fullSpins * 360 + pointerAngle - winnerCenter;
+        const duration = 7200;
         const spinSound = startWheelSpinSound ? startWheelSpinSound() : null;
-        const wrap = els.spinWheelCard ? els.spinWheelCard.querySelector('.spin-wheel-wrap') : null;
 
-        if (wrap) wrap.classList.remove('is-final');
-        els.spinSlotReel.classList.add('is-spinning', 'final-fast-spin');
+        [els.spinWheelCanvas, farmasiFullscreenWheelCanvas].forEach(function(canvasEl) {
+          if (!canvasEl) return;
+          canvasEl.style.transition = "none";
+          canvasEl.style.transform = `rotate(${farmasiWheelRotation}deg)`;
+          canvasEl.offsetHeight;
+          canvasEl.style.transition = `transform ${duration}ms cubic-bezier(.05,.86,.12,1)`;
+          canvasEl.style.transform = `rotate(${finalRotation}deg)`;
+        });
 
-        function easeOutQuint(t) {
-          return 1 - Math.pow(1 - t, 5);
-        }
-
-        function paint(centerIndex, flipDeg) {
-          const offsets = [-2, -1, 0, 1, 2];
-          const cls = ['prev2', 'prev', 'active', 'next', 'next2'];
-
-          boxes.forEach(function(box, i) {
-            const idx = (centerIndex + offsets[i] + n) % n;
-            box.textContent = names[idx];
-            box.className = 'spin-slot-name ' + cls[i];
-            box.style.setProperty('transition', 'none', 'important');
-            box.style.setProperty('will-change', 'transform, opacity, filter');
-
-            if (i === 2) {
-              box.style.setProperty('opacity', '1', 'important');
-              box.style.setProperty('filter', 'none', 'important');
-              box.style.setProperty('transform', 'translateY(0) rotateX(' + flipDeg + 'deg) scale(1.08)', 'important');
-            } else {
-              box.style.removeProperty('opacity');
-              box.style.removeProperty('filter');
-              box.style.removeProperty('transform');
-            }
-          });
-        }
-
-        let lastStep = -1;
-
-        function frame(now) {
+        const startTime = performance.now();
+        function soundProgressFrame(now) {
           const progress = Math.min(1, (now - startTime) / duration);
-          const eased = easeOutQuint(progress);
           if (spinSound && spinSound.setProgress) spinSound.setProgress(progress);
+          if (progress < 1) requestAnimationFrame(soundProgressFrame);
+        }
+        requestAnimationFrame(soundProgressFrame);
 
-          const raw = totalSteps * eased;
-          const step = Math.floor(raw);
-          const frac = raw - step;
-          const centerIndex = (startIndex + step) % n;
+        farmasiWheelRotation = finalRotation;
 
-          // flipDeg ქმნის ნამდვილ 360° ბრუნს თითო სახელის ცვლილებაზე.
-          const flipDeg = -frac * 360;
-          paint(centerIndex, flipDeg);
-          lastStep = step;
-
-          if (progress < 1) {
-            requestAnimationFrame(frame);
-            return;
-          }
-
-          farmasiSlotIndex = winnerIndex;
-          paint(winnerIndex, 0);
-          els.spinSlotReel.classList.remove('is-spinning', 'final-fast-spin');
-
-          boxes.forEach(function(box) {
-            box.style.removeProperty('transition');
-            box.style.removeProperty('will-change');
-          });
-
-          if (wrap) {
-            wrap.classList.add('is-final');
-            setTimeout(function(){ wrap.classList.remove('is-final'); }, 2500);
-          }
-
+        setTimeout(function() {
+          const winnerName = names[winnerIndex];
           if (spinSound && spinSound.stop) spinSound.stop();
-          if (els.spinWheelResult) {
-            els.spinWheelResult.innerHTML = `გამარჯვებულია:<strong>${escapeHtml(names[winnerIndex])}</strong>`;
-          }
+          if (els.spinWheelResult) els.spinWheelResult.innerHTML = `გამარჯვებულია:<strong>${escapeHtml(winnerName)}</strong>`;
+          if (farmasiFullscreenWheelResult) farmasiFullscreenWheelResult.innerHTML = `გამარჯვებულია:<strong>${escapeHtml(winnerName)}</strong>`;
+          if (farmasiCloseWheelBtn) farmasiCloseWheelBtn.classList.add("show");
 
           spinWheelBusy = false;
           if (els.spinWheelBtn) els.spinWheelBtn.disabled = false;
           playVictoryMusic();
-
           try {
-            if (window.confetti) confetti({ particleCount: 180, spread: 82, origin: { y: 0.62 } });
+            if (window.confetti) confetti({ particleCount: 190, spread: 86, origin: { y: 0.62 } });
           } catch(e) {}
-        }
-
-        requestAnimationFrame(frame);
+        }, duration + 90);
       };
 
-      if (els.spinSlotReel) updateFarmasiNameReel(0);
+      if (farmasiCloseWheelBtn) {
+        farmasiCloseWheelBtn.addEventListener("click", function() {
+          if (farmasiFullscreenWheel) {
+            farmasiFullscreenWheel.classList.remove("open");
+            farmasiFullscreenWheel.setAttribute("aria-hidden", "true");
+          }
+        });
+      }
 
-
-      // Spin wheel button
       if (els.spinWheelBtn) {
         els.spinWheelBtn.onclick = spinRegistrationWheel;
-        els.spinWheelBtn.addEventListener("click", spinRegistrationWheel);
       }
-      drawSpinWheel();
+      drawFarmasiWheels();
 
       // Modal: "✓ შენახვა" → saves seat and closes modal
       const saveBtn = document.getElementById("saveSeatBtn");
