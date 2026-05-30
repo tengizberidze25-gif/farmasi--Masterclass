@@ -6064,7 +6064,7 @@
         <div class="modal-subtitle" style="text-align:center;">RSVP</div>
         <div class="modal-title" style="text-align:center;margin-bottom:14px;">დაიკავე <span class="accent">ადგილი</span></div>
 
-        <form id="registerForm" class="form-compact">
+        <form id="registerForm" class="form-compact form-locked">
           <div class="input-group attendee-type-group">
             <label for="attendee_type">რეგისტრაციის ტიპი</label>
             <select class="input-field attendee-type-select" id="attendee_type" name="attendee_type" required>
@@ -6080,17 +6080,17 @@
           </div>
           <div class="form-row">
             <div class="input-group">
-              <input class="input-field" type="text" id="first_name" name="first_name" placeholder="სახელი" required />
+              <input class="input-field" type="text" id="first_name" name="first_name" placeholder="სახელი" required disabled />
             </div>
             <div class="input-group">
-              <input class="input-field" type="text" id="last_name" name="last_name" placeholder="გვარი" required />
+              <input class="input-field" type="text" id="last_name" name="last_name" placeholder="გვარი" required disabled />
             </div>
           </div>
           <div class="input-group">
-            <input class="input-field" type="text" id="city_area_village" name="city_area_village" placeholder="ქალაქი / რაიონი / სოფელი" />
+            <input class="input-field" type="text" id="city_area_village" name="city_area_village" placeholder="ქალაქი / რაიონი / სოფელი" required disabled />
           </div>
           <div class="input-group">
-            <select class="input-field" id="position" name="position" required>
+            <select class="input-field" id="position" name="position" required disabled>
               <option value="" disabled selected hidden>აირჩიე წოდება</option>
               <option value="ინფლუენსერი">ინფლუენსერი</option>
               <option value="მენეჯერი">მენეჯერი</option>
@@ -6106,7 +6106,7 @@
             </select>
           </div>
           <div class="input-group">
-            <input class="input-field" type="tel" id="phone" name="phone" placeholder="ტელეფონის ნომერი" required />
+            <input class="input-field" type="tel" id="phone" name="phone" placeholder="ტელეფონის ნომერი" required disabled />
           </div>
 
           <div class="input-group" style="display:none;">
@@ -8972,6 +8972,10 @@
       ].map(id => document.getElementById(id)).filter(Boolean);
       const isTypeChosen = !!type;
 
+      if (els.registerForm) {
+        els.registerForm.classList.toggle("form-locked", !isTypeChosen);
+      }
+
       registerFields.forEach(field => {
         field.disabled = !isTypeChosen;
         field.style.opacity = isTypeChosen ? "1" : "0.55";
@@ -9108,6 +9112,17 @@
     async function submitRegisterForm(e) {
       e.preventDefault();
       hideMessages();
+
+      if (!getAttendeeType()) {
+        showMessage("error", "ჯერ აირჩიე რეგისტრაციის ტიპი", els.registerError);
+        if (els.attendeeType) {
+          els.attendeeType.focus();
+          els.attendeeType.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        updateAttendeeTypeUI();
+        return;
+      }
+
       const hasTransportChoice = await ensureTransportChoiceBeforeSubmit();
       if (!hasTransportChoice) return;
 
