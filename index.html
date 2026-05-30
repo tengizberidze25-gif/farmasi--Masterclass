@@ -8518,19 +8518,24 @@
     }
 
     function renderSpinWheel(items) {
-      spinWheelNames = normalizeSpinWheelNames(items);
-      spinWheelRotation = 0;
-      if (!els.spinWheelCard) return;
+  spinWheelNames = normalizeSpinWheelNames(items);
 
-      if (!spinWheelNames.length) {
-        els.spinWheelResult.innerHTML = `<span class="spin-wheel-empty">ჯერ რეგისტრაცია არ არის — კრუგი გამოჩნდება რეგისტრაციის შემდეგ</span>`;
-        if (els.spinWheelBtn) els.spinWheelBtn.disabled = true;
-      } else {
-        if (els.spinWheelBtn) els.spinWheelBtn.disabled = false;
-        els.spinWheelResult.textContent = `კრუგშია ${spinWheelNames.length} მონაწილე`;
-      }
-      drawSpinWheel();
-    }
+  if (!spinWheelBusy) {
+    spinWheelRotation = 0;
+  }
+
+  if (!els.spinWheelCard) return;
+
+  if (!spinWheelNames.length) {
+    els.spinWheelResult.innerHTML = `<span class="spin-wheel-empty">ჯერ რეგისტრაცია არ არის — კრუგი გამოჩნდება რეგისტრაციის შემდეგ</span>`;
+    if (els.spinWheelBtn) els.spinWheelBtn.disabled = true;
+  } else {
+    if (els.spinWheelBtn) els.spinWheelBtn.disabled = false;
+    els.spinWheelResult.textContent = `კრუგშია ${spinWheelNames.length} მონაწილე`;
+  }
+
+  drawSpinWheel();
+}
 
     function playVictoryMusic() {
       try {
@@ -8668,13 +8673,9 @@
       const startRotation = spinWheelRotation;
       const fullSpins = 16 + Math.floor(Math.random() * 6);
 
-      const pointerAngle = -Math.PI / 2;
-      const winnerCenterAngle = winnerIndex * arc + arc / 2;
-
       const targetRotation =
-            fullSpins * Math.PI * 2 +
-            pointerAngle -
-            winnerCenterAngle;
+        fullSpins * Math.PI * 2 -
+        winnerIndex * arc;
 
       const endRotation = startRotation + targetRotation;
 
@@ -8694,7 +8695,7 @@
           return;
         }
 
-        spinWheelRotation = endRotation % (Math.PI * 2);
+        spinWheelRotation = endRotation;
         drawSpinWheel();
         if (spinSound && spinSound.stop) spinSound.stop();
         if (els.spinWheelCanvas) els.spinWheelCanvas.classList.remove("is-spinning");
