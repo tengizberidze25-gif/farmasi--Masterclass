@@ -5916,11 +5916,12 @@
     .spin-wheel-wrap {
       position: relative;
       width: min(100%, 360px);
-      height: 210px;
+      aspect-ratio: 1 / 1;
+      height: auto;
       margin: 4px auto 0;
       border: 1px solid rgba(232,196,104,0.65);
-      border-radius: 20px;
-      overflow: hidden;
+      border-radius: 50%;
+      overflow: visible;
       background:
         radial-gradient(ellipse at center, rgba(255,96,117,0.20), transparent 62%),
         linear-gradient(180deg, rgba(0,0,0,0.72), rgba(20,14,16,0.88));
@@ -5936,60 +5937,57 @@
     .spin-wheel-wrap::after {
       content: '';
       position: absolute;
-      left: 0;
-      right: 0;
-      height: 70px;
-      z-index: 4;
+      inset: -8px;
+      border-radius: 50%;
+      border: 1px solid rgba(232,196,104,0.30);
+      z-index: 0;
       pointer-events: none;
-    }
-
-    .spin-wheel-wrap::before {
-      top: 0;
-      background: linear-gradient(180deg, rgba(10,8,8,0.96), transparent);
+      box-shadow: 0 0 26px rgba(232,196,104,0.18);
     }
 
     .spin-wheel-wrap::after {
-      bottom: 0;
-      background: linear-gradient(0deg, rgba(10,8,8,0.96), transparent);
+      inset: 18%;
+      background: radial-gradient(circle, rgba(10,8,8,0.92), rgba(20,14,16,0.72));
+      border-color: rgba(232,196,104,0.55);
+      box-shadow: inset 0 0 24px rgba(255,96,117,0.18), 0 0 22px rgba(232,196,104,0.18);
+      z-index: 3;
     }
 
     .spin-wheel-pointer {
       position: absolute;
-      left: 10px;
-      right: 10px;
-      top: 50%;
-      height: 62px;
-      transform: translateY(-50%);
-      border: 1px solid rgba(232,196,104,0.92);
-      border-radius: 14px;
-      z-index: 5;
-      box-shadow:
-        0 0 20px rgba(232,196,104,0.35),
-        inset 0 0 22px rgba(255,96,117,0.18);
+      left: 50%;
+      top: -11px;
+      width: 0;
+      height: 0;
+      transform: translateX(-50%);
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-top: 34px solid var(--gold-light);
+      z-index: 6;
+      filter: drop-shadow(0 0 12px rgba(232,196,104,0.95));
       pointer-events: none;
     }
 
     .spin-wheel-pointer::before,
-    .spin-wheel-pointer::after {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--gold-light);
-      font-size: 18px;
-      text-shadow: 0 0 12px rgba(232,196,104,0.75);
+    .spin-wheel-pointer::after { display: none; }
+
+    #spinWheelCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      z-index: 2;
+      border-radius: 50%;
+      filter: drop-shadow(0 16px 32px rgba(0,0,0,0.55));
+      transform-origin: center center;
     }
 
-    .spin-wheel-pointer::before { content: '✦'; left: 10px; }
-    .spin-wheel-pointer::after  { content: '✦'; right: 10px; }
-
-    #spinWheelCanvas { display: none; }
+    #spinWheelCanvas.is-spinning {
+      filter: drop-shadow(0 16px 36px rgba(0,0,0,0.62)) drop-shadow(0 0 18px rgba(232,196,104,0.34));
+    }
 
     .spin-slot-reel {
-      position: absolute;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      transform-style: preserve-3d;
+      display: none;
     }
 
     .spin-slot-name {
@@ -6039,7 +6037,25 @@
       100% { transform: translateY(0) rotateX(360deg) scale(1.06); }
     }
 
-    .spin-wheel-center { display: none; }
+    .spin-wheel-center {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      z-index: 5;
+      background: radial-gradient(circle, var(--gold-light), var(--gold-dark));
+      color: #1a1010;
+      font-family: var(--display-font);
+      font-size: 34px;
+      font-weight: 800;
+      box-shadow: 0 0 26px rgba(232,196,104,0.55), inset 0 2px 4px rgba(255,255,255,0.45);
+      pointer-events: none;
+    }
 
     .spin-wheel-actions {
       width: 100%;
@@ -6079,7 +6095,7 @@
     }
 
     @media (max-width: 380px) {
-      .spin-wheel-wrap { height: 190px; }
+      .spin-wheel-wrap { width: min(100%, 330px); }
       .spin-slot-name { font-size: 22px; }
     }
 
@@ -8225,11 +8241,10 @@
 
 
 
-    // ============= REGISTRATION VERTICAL 360 SPIN SLOT =============
+    // ============= REGISTRATION REAL 360 WHEEL =============
     let spinWheelNames = [];
     let spinWheelBusy = false;
-    let spinWheelTimer = null;
-    let spinWheelIndex = 0;
+    let spinWheelRotation = 0; // radians, real circular wheel rotation
 
     function normalizeSpinWheelNames(items) {
       const seen = new Set();
@@ -8244,24 +8259,104 @@
         });
     }
 
-    function getSlotName(offset) {
-      if (!spinWheelNames.length) return "ჯერ არ არის";
-      const i = (spinWheelIndex + offset + spinWheelNames.length) % spinWheelNames.length;
-      return spinWheelNames[i];
+    function resizeSpinCanvas() {
+      const canvas = els.spinWheelCanvas;
+      const wrap = els.spinWheelCard ? els.spinWheelCard.querySelector(".spin-wheel-wrap") : null;
+      if (!canvas || !wrap) return;
+      const size = Math.max(280, Math.round(wrap.getBoundingClientRect().width || 360));
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      canvas.width = Math.round(size * dpr);
+      canvas.height = Math.round(size * dpr);
+      canvas.style.width = size + "px";
+      canvas.style.height = size + "px";
+      const ctx = canvas.getContext("2d");
+      if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
     function drawSpinWheel() {
-      if (!els.spinSlotReel) return;
-      const slots = els.spinSlotReel.querySelectorAll(".spin-slot-name");
-      const offsets = [-2, -1, 0, 1, 2];
-      slots.forEach((slot, i) => {
-        slot.textContent = getSlotName(offsets[i]);
-      });
+      const canvas = els.spinWheelCanvas;
+      if (!canvas) return;
+      resizeSpinCanvas();
+      const ctx = canvas.getContext("2d");
+      const size = parseFloat(canvas.style.width) || 360;
+      const cx = size / 2;
+      const cy = size / 2;
+      const r = size * 0.47;
+      ctx.clearRect(0, 0, size, size);
+
+      if (!spinWheelNames.length) {
+        ctx.save();
+        ctx.fillStyle = "rgba(232,196,104,0.18)";
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#f5d98a";
+        ctx.font = "700 18px Noto Sans Georgian, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("ჯერ არ არის", cx, cy);
+        ctx.restore();
+        return;
+      }
+
+      const n = spinWheelNames.length;
+      const arc = (Math.PI * 2) / n;
+      const startBase = -Math.PI / 2 - arc / 2 + spinWheelRotation;
+
+      for (let i = 0; i < n; i++) {
+        const a0 = startBase + i * arc;
+        const a1 = a0 + arc;
+        const hue = (340 + i * (360 / Math.max(1, n))) % 360;
+        const grd = ctx.createRadialGradient(cx, cy, size * 0.08, cx, cy, r);
+        grd.addColorStop(0, i % 2 ? "rgba(255,96,117,0.72)" : "rgba(232,196,104,0.72)");
+        grd.addColorStop(1, `hsla(${hue}, 52%, 30%, 0.95)`);
+
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, r, a0, a1);
+        ctx.closePath();
+        ctx.fillStyle = grd;
+        ctx.fill();
+        ctx.strokeStyle = "rgba(245,217,138,0.55)";
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(a0 + arc / 2);
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "#fff4cf";
+        ctx.shadowColor = "rgba(0,0,0,0.70)";
+        ctx.shadowBlur = 8;
+        ctx.font = `700 ${n > 18 ? 10 : n > 10 ? 12 : 15}px Noto Serif Georgian, serif`;
+        const name = spinWheelNames[i];
+        const maxLen = n > 18 ? 18 : n > 10 ? 22 : 30;
+        const label = name.length > maxLen ? name.slice(0, maxLen - 1) + "…" : name;
+        ctx.fillText(label, r - 18, 0);
+        ctx.restore();
+      }
+
+      // outer ring
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(245,217,138,0.95)";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(cx, cy, size * 0.105, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(10,8,8,0.92)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(245,217,138,0.85)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
     }
 
     function renderSpinWheel(items) {
       spinWheelNames = normalizeSpinWheelNames(items);
-      spinWheelIndex = 0;
+      spinWheelRotation = 0;
       if (!els.spinWheelCard) return;
 
       if (!spinWheelNames.length) {
@@ -8284,24 +8379,24 @@
 
         const master = ctx.createGain();
         master.gain.setValueAtTime(0.0001, ctx.currentTime);
-        master.gain.exponentialRampToValueAtTime(0.24, ctx.currentTime + 0.03);
-        master.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 3.2);
+        master.gain.exponentialRampToValueAtTime(0.28, ctx.currentTime + 0.03);
+        master.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 3.6);
         master.connect(ctx.destination);
 
-        const notes = [523.25, 659.25, 783.99, 1046.5, 987.77, 1046.5, 1174.66, 1318.51];
-        notes.forEach((freq, i) => {
-          const t = ctx.currentTime + i * 0.18;
+        const melody = [523.25, 659.25, 783.99, 1046.5, 987.77, 1046.5, 1174.66, 1318.51, 1567.98];
+        melody.forEach((freq, i) => {
+          const t = ctx.currentTime + i * 0.16;
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
           osc.type = "triangle";
           osc.frequency.setValueAtTime(freq, t);
           gain.gain.setValueAtTime(0.0001, t);
           gain.gain.exponentialRampToValueAtTime(0.20, t + 0.025);
-          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
           osc.connect(gain);
           gain.connect(master);
           osc.start(t);
-          osc.stop(t + 0.2);
+          osc.stop(t + 0.18);
         });
 
         [261.63, 329.63, 392.0, 523.25].forEach((freq) => {
@@ -8312,54 +8407,138 @@
           osc.frequency.setValueAtTime(freq, t);
           gain.gain.setValueAtTime(0.0001, t);
           gain.gain.exponentialRampToValueAtTime(0.13, t + 0.05);
-          gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.4);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.5);
           osc.connect(gain);
           gain.connect(master);
           osc.start(t);
-          osc.stop(t + 1.5);
+          osc.stop(t + 1.6);
         });
       } catch (e) {}
+    }
+
+
+
+    function startWheelSpinSound() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return { stop: function(){} };
+        const ctx = window.__wheelSpinAudioCtx || new AudioCtx();
+        window.__wheelSpinAudioCtx = ctx;
+        if (ctx.state === "suspended") ctx.resume();
+
+        const master = ctx.createGain();
+        master.gain.setValueAtTime(0.0001, ctx.currentTime);
+        master.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.08);
+        master.connect(ctx.destination);
+
+        const whirr = ctx.createOscillator();
+        const whirrGain = ctx.createGain();
+        whirr.type = "sawtooth";
+        whirr.frequency.setValueAtTime(95, ctx.currentTime);
+        whirrGain.gain.setValueAtTime(0.025, ctx.currentTime);
+        whirr.connect(whirrGain);
+        whirrGain.connect(master);
+        whirr.start();
+
+        let tickDelay = 55;
+        let stopped = false;
+        let tickTimer = null;
+
+        function playTick() {
+          if (stopped) return;
+          const t = ctx.currentTime;
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "square";
+          osc.frequency.setValueAtTime(900 + Math.random() * 240, t);
+          gain.gain.setValueAtTime(0.0001, t);
+          gain.gain.exponentialRampToValueAtTime(0.10, t + 0.006);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
+          osc.connect(gain);
+          gain.connect(master);
+          osc.start(t);
+          osc.stop(t + 0.045);
+          tickTimer = setTimeout(playTick, tickDelay);
+        }
+        playTick();
+
+        return {
+          setProgress: function(progress) {
+            const p = Math.max(0, Math.min(1, progress || 0));
+            tickDelay = 45 + Math.round(185 * Math.pow(p, 1.7));
+            try {
+              whirr.frequency.setTargetAtTime(150 - 75 * p, ctx.currentTime, 0.04);
+              whirrGain.gain.setTargetAtTime(0.03 * (1 - p) + 0.008, ctx.currentTime, 0.06);
+            } catch (e) {}
+          },
+          stop: function() {
+            if (stopped) return;
+            stopped = true;
+            if (tickTimer) clearTimeout(tickTimer);
+            try {
+              master.gain.cancelScheduledValues(ctx.currentTime);
+              master.gain.setValueAtTime(Math.max(master.gain.value || 0.001, 0.001), ctx.currentTime);
+              master.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.25);
+              whirr.stop(ctx.currentTime + 0.28);
+            } catch (e) {}
+            setTimeout(function(){ try { master.disconnect(); } catch(e){} }, 450);
+          }
+        };
+      } catch (e) {
+        return { stop: function(){}, setProgress: function(){} };
+      }
     }
 
     function spinRegistrationWheel() {
       if (spinWheelBusy || !spinWheelNames.length) return;
       spinWheelBusy = true;
       if (els.spinWheelBtn) els.spinWheelBtn.disabled = true;
-      if (els.spinSlotReel) els.spinSlotReel.classList.add("is-spinning");
+      if (els.spinWheelCanvas) els.spinWheelCanvas.classList.add("is-spinning");
       els.spinWheelResult.textContent = "კრუგი ტრიალებს...";
+      const spinSound = startWheelSpinSound();
 
-      if (spinWheelTimer) clearTimeout(spinWheelTimer);
+      const n = spinWheelNames.length;
+      const arc = (Math.PI * 2) / n;
+      const winnerIndex = Math.floor(Math.random() * n);
       const duration = 10000;
       const start = performance.now();
-      const winnerIndex = Math.floor(Math.random() * spinWheelNames.length);
+      const startRotation = spinWheelRotation;
+      const fullSpins = 16 + Math.floor(Math.random() * 6); // fast 360° rotations
+      const targetRotation = fullSpins * Math.PI * 2 - winnerIndex * arc;
+      const endRotation = startRotation + targetRotation;
 
-      function tick() {
-        const elapsed = performance.now() - start;
-        const progress = Math.min(1, elapsed / duration);
-        const delay = 35 + Math.pow(progress, 3.2) * 420;
+      function easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+      }
 
-        if (progress >= 1) {
-          spinWheelIndex = winnerIndex;
-          drawSpinWheel();
-          if (els.spinSlotReel) els.spinSlotReel.classList.remove("is-spinning");
-          els.spinWheelResult.innerHTML = `გამარჯვებულია:<strong>${escapeHtml(spinWheelNames[winnerIndex])}</strong>`;
-          spinWheelBusy = false;
-          if (els.spinWheelBtn) els.spinWheelBtn.disabled = false;
-          playVictoryMusic();
-          try {
-            if (window.confetti) {
-              confetti({ particleCount: 160, spread: 78, origin: { y: 0.62 } });
-            }
-          } catch (e) {}
+      function animate(now) {
+        const progress = Math.min(1, (now - start) / duration);
+        const eased = easeOutCubic(progress);
+        if (spinSound && spinSound.setProgress) spinSound.setProgress(progress);
+        spinWheelRotation = startRotation + (endRotation - startRotation) * eased;
+        drawSpinWheel();
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
           return;
         }
 
-        spinWheelIndex = (spinWheelIndex + 1) % spinWheelNames.length;
+        spinWheelRotation = endRotation % (Math.PI * 2);
         drawSpinWheel();
-        spinWheelTimer = setTimeout(tick, delay);
+        if (spinSound && spinSound.stop) spinSound.stop();
+        if (els.spinWheelCanvas) els.spinWheelCanvas.classList.remove("is-spinning");
+        els.spinWheelResult.innerHTML = `გამარჯვებულია:<strong>${escapeHtml(spinWheelNames[winnerIndex])}</strong>`;
+        spinWheelBusy = false;
+        if (els.spinWheelBtn) els.spinWheelBtn.disabled = false;
+        playVictoryMusic();
+        try {
+          if (window.confetti) {
+            confetti({ particleCount: 180, spread: 82, origin: { y: 0.62 } });
+          }
+        } catch (e) {}
       }
 
-      tick();
+      requestAnimationFrame(animate);
     }
 
     function renderLastRegistrations(items) {
