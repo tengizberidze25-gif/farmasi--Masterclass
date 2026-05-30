@@ -217,8 +217,8 @@
 
 
     function clearScreen(){
-      // ეკრანის გასუფთავება არ შლის winners / wonKeys-ს.
-      // უკვე გამოვლენილი წარმომადგენლები კვლავ დაბლოკილი რჩებიან.
+      // ეკრანის გასუფთავება შლის მხოლოდ ვიზუალურ ისტორიას.
+      // wonKeys რჩება sessionStorage-ში, ამიტომ უკვე გამოვლენილი წარმომადგენელი მეორედ აღარ ამოვარდება.
       if(spinning) return;
       currentWinner = null;
       $('announceBtn').disabled = true;
@@ -226,6 +226,12 @@
       $('winnerName').textContent = '—';
       $('winnerInfo').textContent = '—';
       clearMsg();
+
+      // ქვედა ისტორიის ვიზუალური გასუფთავება
+      winners.length = 0;
+      sessionStorage.removeItem('raffle_winners_v1');
+      renderHistory();
+
       const placeholder = available.length
         ? available.slice(0, 20)
         : [{first_name:'ყველა', last_name:'გამოვლენილია', ticket_id:'FARMASI 2026'}];
@@ -234,6 +240,7 @@
       reel.style.transition = 'none';
       reel.style.transform = 'translateY(0px)';
       $('spinBtn').disabled = available.length < 1;
+      updateStats();
     }
 
     function renderHistory(){ const box=$('historyList'); if(!winners.length){box.innerHTML='<div style="color:var(--dim);font-size:12px;text-align:center;padding:10px">ჯერ გამარჯვებული არ არის</div>';return;} box.innerHTML=winners.slice().reverse().map(w=>'<div class="history-item"><b>'+escapeHtml(w.name)+'</b><span>'+escapeHtml(w.prize||'პრიზი')+'</span></div>').join(''); }
