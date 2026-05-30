@@ -8733,6 +8733,7 @@
   tick();
 }
 
+
     function renderLastRegistrations(items) {
       els.lastRegistrations.innerHTML = "";
       const one = (items || []).slice(0, 1);
@@ -10474,97 +10475,100 @@
       spinRegistrationWheel = function() {
         if (spinWheelBusy || !spinWheelNames.length || !els.spinSlotReel) return;
 
+        const boxes = Array.from(els.spinSlotReel.querySelectorAll('.spin-slot-name'));
+        if (boxes.length < 5) return;
+
         spinWheelBusy = true;
         if (els.spinWheelBtn) els.spinWheelBtn.disabled = true;
         if (els.spinWheelResult) els.spinWheelResult.textContent = 'სახელები სწრაფად ტრიალებს...';
 
-        const wrap = els.spinWheelCard ? els.spinWheelCard.querySelector('.spin-wheel-wrap') : null;
-        const boxes = Array.from(els.spinSlotReel.querySelectorAll('.spin-slot-name'));
-        const activeBox = els.spinSlotReel.querySelector('.spin-slot-name.active') || boxes[2];
-        const n = spinWheelNames.length;
+        const names = spinWheelNames.slice();
+        const n = names.length;
         const winnerIndex = Math.floor(Math.random() * n);
-        const duration = 10000;
+        const startIndex = farmasiSlotIndex || 0;
+        const duration = 8200;
         const startTime = performance.now();
-        const startIndex = Math.floor(Math.random() * n);
-
-        // ბევრი სრული წრე: 5 მონაწილეზეც იგივე სახელი რამდენჯერმე გამოჩნდება.
-        const fullRounds = Math.max(32, 18 + Math.floor(220 / Math.max(1, n)));
+        const fullRounds = Math.max(10, 6 + Math.ceil(40 / Math.max(1, n)));
         const winnerOffset = (winnerIndex - startIndex + n) % n;
         const totalSteps = fullRounds * n + winnerOffset;
         const spinSound = startWheelSpinSound ? startWheelSpinSound() : null;
+        const wrap = els.spinWheelCard ? els.spinWheelCard.querySelector('.spin-wheel-wrap') : null;
 
         if (wrap) wrap.classList.remove('is-final');
         els.spinSlotReel.classList.add('is-spinning', 'final-fast-spin');
-
-        boxes.forEach(function(box, i) {
-          if (box !== activeBox) {
-            box.style.setProperty('opacity', '0', 'important');
-            box.style.setProperty('transition', 'none', 'important');
-            box.style.setProperty('transform', 'translateY(0) rotateX(0deg) scale(0.92)', 'important');
-          }
-        });
 
         function easeOutQuint(t) {
           return 1 - Math.pow(1 - t, 5);
         }
 
-        let lastShown = -1;
+        function paint(centerIndex, flipDeg) {
+          const offsets = [-2, -1, 0, 1, 2];
+          const cls = ['prev2', 'prev', 'active', 'next', 'next2'];
 
-        function paint(phase) {
-          const base = Math.floor(phase);
-          const frac = phase - base;
-          const idx = ((base % n) + n) % n;
+          boxes.forEach(function(box, i) {
+            const idx = (centerIndex + offsets[i] + n) % n;
+            box.textContent = names[idx];
+            box.className = 'spin-slot-name ' + cls[i];
+            box.style.setProperty('transition', 'none', 'important');
+            box.style.setProperty('will-change', 'transform, opacity, filter');
 
-          if (idx !== lastShown) {
-            activeBox.textContent = spinWheelNames[idx];
-            lastShown = idx;
-          }
-
-          // რეალური 360° ეფექტი: ბარათი ადგილზე ბრუნავს, ზემოდან აღარ ჩამოდის.
-          const rotate = -(phase * 360);
-          const pulse = 1.04 + Math.sin(frac * Math.PI) * 0.045;
-          activeBox.style.setProperty('transition', 'none', 'important');
-          activeBox.style.setProperty('opacity', '1', 'important');
-          activeBox.style.setProperty('filter', 'none', 'important');
-          activeBox.style.setProperty('transform', 'translateY(0) rotateX(' + rotate + 'deg) scale(' + pulse + ')', 'important');
+            if (i === 2) {
+              box.style.setProperty('opacity', '1', 'important');
+              box.style.setProperty('filter', 'none', 'important');
+              box.style.setProperty('transform', 'translateY(0) rotateX(' + flipDeg + 'deg) scale(1.08)', 'important');
+            } else {
+              box.style.removeProperty('opacity');
+              box.style.removeProperty('filter');
+              box.style.removeProperty('transform');
+            }
+          });
         }
+
+        let lastStep = -1;
 
         function frame(now) {
           const progress = Math.min(1, (now - startTime) / duration);
           const eased = easeOutQuint(progress);
           if (spinSound && spinSound.setProgress) spinSound.setProgress(progress);
 
-          const phase = startIndex + totalSteps * eased;
-          paint(phase);
+          const raw = totalSteps * eased;
+          const step = Math.floor(raw);
+          const frac = raw - step;
+          const centerIndex = (startIndex + step) % n;
+
+          // flipDeg ქმნის ნამდვილ 360° ბრუნს თითო სახელის ცვლილებაზე.
+          const flipDeg = -frac * 360;
+          paint(centerIndex, flipDeg);
+          lastStep = step;
 
           if (progress < 1) {
             requestAnimationFrame(frame);
             return;
           }
 
-          // ზუსტად გამარჯვებულზე გაჩერება
           farmasiSlotIndex = winnerIndex;
-          updateFarmasiNameReel(winnerIndex);
+          paint(winnerIndex, 0);
           els.spinSlotReel.classList.remove('is-spinning', 'final-fast-spin');
 
-          const finalActive = els.spinSlotReel.querySelector('.spin-slot-name.active');
-          if (finalActive) {
-            finalActive.textContent = spinWheelNames[winnerIndex];
-            finalActive.style.setProperty('transition', 'transform .42s cubic-bezier(.16,1,.3,1), opacity .35s ease, filter .35s ease', 'important');
-            finalActive.style.setProperty('transform', 'translateY(0) rotateX(0deg) scale(1.08)', 'important');
-            finalActive.style.setProperty('opacity', '1', 'important');
-            finalActive.style.setProperty('filter', 'none', 'important');
-          }
+          boxes.forEach(function(box) {
+            box.style.removeProperty('transition');
+            box.style.removeProperty('will-change');
+          });
 
           if (wrap) {
             wrap.classList.add('is-final');
             setTimeout(function(){ wrap.classList.remove('is-final'); }, 2500);
           }
+
           if (spinSound && spinSound.stop) spinSound.stop();
-          if (els.spinWheelResult) els.spinWheelResult.innerHTML = `გამარჯვებულია:<strong>${escapeHtml(spinWheelNames[winnerIndex])}</strong>`;
+          if (els.spinWheelResult) {
+            els.spinWheelResult.innerHTML = `გამარჯვებულია:<strong>${escapeHtml(names[winnerIndex])}</strong>`;
+          }
+
           spinWheelBusy = false;
           if (els.spinWheelBtn) els.spinWheelBtn.disabled = false;
           playVictoryMusic();
+
           try {
             if (window.confetti) confetti({ particleCount: 180, spread: 82, origin: { y: 0.62 } });
           } catch(e) {}
@@ -10578,6 +10582,7 @@
 
       // Spin wheel button
       if (els.spinWheelBtn) {
+        els.spinWheelBtn.onclick = spinRegistrationWheel;
         els.spinWheelBtn.addEventListener("click", spinRegistrationWheel);
       }
       drawSpinWheel();
