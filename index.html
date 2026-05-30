@@ -1726,6 +1726,61 @@
     }
 
     /* ============================================ */
+    /* ATTENDEE TYPE — visible choice fix            */
+    /* ============================================ */
+    .attendee-type-group {
+      padding: 11px 12px;
+      border: 1.5px solid rgba(232, 196, 104, 0.45);
+      border-radius: 14px;
+      background:
+        radial-gradient(ellipse at top left, rgba(232, 196, 104, 0.12), transparent 55%),
+        rgba(0, 0, 0, 0.18);
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+        0 8px 24px rgba(232, 196, 104, 0.08);
+    }
+
+    .attendee-type-group label,
+    .invited-by-group label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--gold-light);
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-family: var(--sans-font);
+      font-weight: 700;
+    }
+
+    .attendee-type-select {
+      border-color: rgba(255, 96, 117, 0.45) !important;
+      background-color: rgba(0, 0, 0, 0.34) !important;
+      color: var(--cream) !important;
+      font-weight: 600;
+    }
+
+    .attendee-type-select:focus {
+      border-color: var(--gold-light) !important;
+      box-shadow: 0 0 0 3px rgba(232, 196, 104, 0.14) !important;
+    }
+
+    .attendee-type-hint {
+      margin-top: 6px;
+      font-family: var(--sans-font);
+      font-size: 10.5px;
+      line-height: 1.35;
+      color: var(--cream-dim);
+      opacity: 0.86;
+    }
+
+    .invited-by-group {
+      padding: 10px 12px;
+      border: 1px solid rgba(255, 96, 117, 0.35);
+      border-radius: 12px;
+      background: rgba(255, 96, 117, 0.06);
+    }
+
+    /* ============================================ */
     /* MESSAGES                                      */
     /* ============================================ */
     .msg {
@@ -6009,30 +6064,33 @@
         <div class="modal-subtitle" style="text-align:center;">RSVP</div>
         <div class="modal-title" style="text-align:center;margin-bottom:14px;">დაიკავე <span class="accent">ადგილი</span></div>
 
-        <form id="registerForm" class="form-compact">
-          <div class="input-group">
-            <select class="input-field" id="attendee_type" name="attendee_type" required>
-              <option value="" disabled selected>აირჩიე მონაწილეობის ტიპი</option>
-              <option value="title_holder">FARMASI ტიტულის მქონე წარმომადგენელი</option>
-              <option value="guest">მოწვეული სტუმარი / წარმომადგენელი</option>
+        <form id="registerForm" class="form-compact form-locked">
+          <div class="input-group attendee-type-group">
+            <label for="attendee_type">რეგისტრაციის ტიპი</label>
+            <select class="input-field attendee-type-select" id="attendee_type" name="attendee_type" required>
+              <option value="" disabled selected>აირჩიე: ტიტულიანი ხარ თუ მოწვევით?</option>
+              <option value="title_holder">FARMASI-ს ტიტულიანი წარმომადგენელი</option>
+              <option value="guest">მოწვევით ვრეგისტრირდები</option>
             </select>
+            <div class="attendee-type-hint">ჯერ აირჩიე რეგისტრაციის ტიპი — შემდეგ გაიხსნება დანარჩენი ველები.</div>
           </div>
-          <div class="input-group" id="invitedByWrap" style="display:none;">
-            <input class="input-field" type="text" id="invited_by" name="invited_by" placeholder="ვინ მოგიწვიათ? სახელი და გვარი" />
+          <div class="input-group invited-by-group" id="invitedByWrap" style="display:none;">
+            <label for="invited_by">ვინ მოგიწვია?</label>
+            <input class="input-field" type="text" id="invited_by" name="invited_by" placeholder="მომწვევის სახელი და გვარი" autocomplete="name" />
           </div>
           <div class="form-row">
             <div class="input-group">
-              <input class="input-field" type="text" id="first_name" name="first_name" placeholder="სახელი" required />
+              <input class="input-field" type="text" id="first_name" name="first_name" placeholder="სახელი" required disabled />
             </div>
             <div class="input-group">
-              <input class="input-field" type="text" id="last_name" name="last_name" placeholder="გვარი" required />
+              <input class="input-field" type="text" id="last_name" name="last_name" placeholder="გვარი" required disabled />
             </div>
           </div>
           <div class="input-group">
-            <input class="input-field" type="text" id="city_area_village" name="city_area_village" placeholder="ქალაქი / რაიონი / სოფელი" />
+            <input class="input-field" type="text" id="city_area_village" name="city_area_village" placeholder="ქალაქი / რაიონი / სოფელი" required disabled />
           </div>
           <div class="input-group">
-            <select class="input-field" id="position" name="position" required>
+            <select class="input-field" id="position" name="position" required disabled>
               <option value="" disabled selected hidden>აირჩიე წოდება</option>
               <option value="ინფლუენსერი">ინფლუენსერი</option>
               <option value="მენეჯერი">მენეჯერი</option>
@@ -6048,7 +6106,7 @@
             </select>
           </div>
           <div class="input-group">
-            <input class="input-field" type="tel" id="phone" name="phone" placeholder="ტელეფონის ნომერი" required />
+            <input class="input-field" type="tel" id="phone" name="phone" placeholder="ტელეფონის ნომერი" required disabled />
           </div>
 
           <div class="input-group" style="display:none;">
@@ -8914,6 +8972,10 @@
       ].map(id => document.getElementById(id)).filter(Boolean);
       const isTypeChosen = !!type;
 
+      if (els.registerForm) {
+        els.registerForm.classList.toggle("form-locked", !isTypeChosen);
+      }
+
       registerFields.forEach(field => {
         field.disabled = !isTypeChosen;
         field.style.opacity = isTypeChosen ? "1" : "0.55";
@@ -9050,6 +9112,17 @@
     async function submitRegisterForm(e) {
       e.preventDefault();
       hideMessages();
+
+      if (!getAttendeeType()) {
+        showMessage("error", "ჯერ აირჩიე რეგისტრაციის ტიპი", els.registerError);
+        if (els.attendeeType) {
+          els.attendeeType.focus();
+          els.attendeeType.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        updateAttendeeTypeUI();
+        return;
+      }
+
       const hasTransportChoice = await ensureTransportChoiceBeforeSubmit();
       if (!hasTransportChoice) return;
 
