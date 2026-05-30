@@ -1,967 +1,168 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>FARMASI Raffle</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Farmasi გათამაშება · Masterclass 2026</title>
+  <meta name="theme-color" content="#0a0506" />
+  <link rel="icon" type="image/png" href="farmasi.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Sans+Georgian:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <style>
-    :root {
-      color-scheme: dark;
-      --bg: #100506;
-      --panel: rgba(33, 12, 15, .78);
-      --panel-strong: rgba(55, 22, 21, .88);
-      --gold: #f5d77d;
-      --gold-deep: #9a722e;
-      --pink: #e91e63;
-      --cream: #fff3db;
-      --muted: rgba(255, 243, 219, .68);
-      --soft: rgba(255, 243, 219, .10);
-      --line: rgba(245, 215, 125, .34);
-      --good: #65e7a1;
-      --bad: #ff7289;
-      font-family: Georgia, "Times New Roman", serif;
+    :root{
+      --bg:#0a0506;--card:#1b0f13;--card2:#261319;--pink:#ff6075;--pink2:#e64a61;
+      --gold:#e8c468;--gold2:#f7dfa0;--cream:#f7efe6;--dim:#b9a99b;--line:rgba(232,196,104,.24);
+      --font:'Noto Sans Georgian',sans-serif;--display:'Cormorant Garamond','Noto Sans Georgian',serif;
     }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      overflow-x: hidden;
-      color: var(--cream);
-      background:
-        radial-gradient(circle at 50% 18%, rgba(233, 30, 99, .26), transparent 28%),
-        radial-gradient(circle at 76% 62%, rgba(245, 215, 125, .13), transparent 32%),
-        linear-gradient(180deg, rgba(16, 5, 6, .34), rgba(16, 5, 6, .94)),
-        url("bg.jpg") center / cover fixed,
-        var(--bg);
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background:
-        linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px),
-        linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px);
-      background-size: 72px 72px;
-      mask-image: linear-gradient(to bottom, transparent, #000 13%, #000 86%, transparent);
-      opacity: .7;
-    }
-
-    body::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background:
-        radial-gradient(circle at 50% 52%, transparent 0 34%, rgba(0,0,0,.34) 66%, rgba(0,0,0,.72) 100%),
-        linear-gradient(90deg, rgba(0,0,0,.56), transparent 22%, transparent 78%, rgba(0,0,0,.56));
-    }
-
-    .wrap {
-      position: relative;
-      z-index: 1;
-      width: min(1280px, calc(100% - 32px));
-      margin: 0 auto;
-      padding: 34px 0 32px;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    .brand {
-      font-family: Arial, sans-serif;
-      letter-spacing: 12px;
-      font-size: clamp(20px, 3vw, 32px);
-      color: rgba(255,255,255,.9);
-      margin-bottom: 5px;
-    }
-
-    h1 {
-      margin: 0;
-      color: var(--gold);
-      font-size: clamp(48px, 8vw, 112px);
-      line-height: .86;
-      font-style: italic;
-      text-shadow: 0 18px 52px rgba(0,0,0,.62);
-    }
-
-    .sub {
-      margin-top: 14px;
-      color: var(--muted);
-      font-size: clamp(14px, 1.8vw, 18px);
-      letter-spacing: .2px;
-    }
-
-    .layout {
-      display: grid;
-      grid-template-columns: 340px 1fr;
-      gap: 18px;
-      align-items: stretch;
-    }
-
-    .panel {
-      border: 1px solid var(--line);
-      border-radius: 28px;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.07), transparent 18%),
-        linear-gradient(180deg, var(--panel), rgba(14, 5, 7, .82));
-      box-shadow:
-        0 28px 90px rgba(0,0,0,.46),
-        inset 0 1px rgba(255,255,255,.07);
-      backdrop-filter: blur(16px);
-    }
-
-    .control-panel {
-      padding: 18px;
-    }
-
-    .stage {
-      min-height: 610px;
-      padding: 22px;
-      display: grid;
-      grid-template-rows: auto 1fr auto;
-      gap: 18px;
-      overflow: hidden;
-    }
-
-    .label {
-      display: block;
-      margin: 0 0 8px;
-      font-family: Arial, sans-serif;
-      color: var(--gold);
-      font-size: 11px;
-      font-weight: 900;
-      letter-spacing: 2.4px;
-      text-transform: uppercase;
-    }
-
-    input, select, button {
-      width: 100%;
-      min-height: 50px;
-      border-radius: 16px;
-      border: 1px solid var(--line);
-      background: rgba(7, 3, 4, .58);
-      color: var(--cream);
-      padding: 0 15px;
-      font: inherit;
-      outline: none;
-    }
-
-    input:focus, select:focus {
-      border-color: var(--gold);
-      box-shadow: 0 0 0 4px rgba(245, 215, 125, .14);
-    }
-
-    select {
-      appearance: none;
-      cursor: pointer;
-      background-image:
-        linear-gradient(45deg, transparent 50%, var(--gold) 50%),
-        linear-gradient(135deg, var(--gold) 50%, transparent 50%);
-      background-position:
-        calc(100% - 22px) 21px,
-        calc(100% - 15px) 21px;
-      background-size: 7px 7px, 7px 7px;
-      background-repeat: no-repeat;
-      padding-right: 42px;
-    }
-
-    .field { margin-bottom: 14px; }
-
-    .switch {
-      display: flex;
-      gap: 11px;
-      align-items: center;
-      min-height: 50px;
-      padding: 0 13px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: rgba(7, 3, 4, .42);
-      color: var(--muted);
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .switch input {
-      width: 19px;
-      min-height: 19px;
-      accent-color: var(--pink);
-    }
-
-    .btn {
-      cursor: pointer;
-      border: 0;
-      color: #1b0909;
-      font-family: Arial, sans-serif;
-      font-weight: 950;
-      letter-spacing: .4px;
-      background: linear-gradient(180deg, #ffe99b, var(--gold));
-      box-shadow: 0 16px 36px rgba(245, 215, 125, .22), inset 0 1px rgba(255,255,255,.4);
-      transition: transform .18s ease, filter .18s ease, opacity .18s ease;
-    }
-
-    .btn:hover { filter: brightness(1.05); transform: translateY(-1px); }
-    .btn:disabled { opacity: .42; cursor: not-allowed; transform: none; }
-
-    .btn-pink {
-      margin-top: 10px;
-      color: #fff;
-      background: linear-gradient(180deg, #ff5597, var(--pink));
-      box-shadow: 0 16px 38px rgba(233, 30, 99, .26);
-    }
-
-    .btn-ghost {
-      margin-top: 10px;
-      background: rgba(255,255,255,.055);
-      color: var(--cream);
-      border: 1px solid rgba(255,255,255,.13);
-      box-shadow: none;
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-top: 15px;
-    }
-
-    .stat {
-      min-height: 72px;
-      border: 1px solid rgba(245, 215, 125, .22);
-      border-radius: 18px;
-      background: rgba(255,255,255,.045);
-      text-align: center;
-      padding: 11px 6px;
-    }
-
-    .stat strong {
-      display: block;
-      color: var(--gold);
-      font: 900 28px/1 Arial, sans-serif;
-    }
-
-    .stat span {
-      display: block;
-      margin-top: 6px;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .msg {
-      min-height: 22px;
-      margin-top: 13px;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.45;
-    }
-
-    .msg.good { color: var(--good); }
-    .msg.bad { color: var(--bad); }
-
-    .history {
-      max-height: 230px;
-      overflow: auto;
-      margin-top: 14px;
-      padding-top: 12px;
-      border-top: 1px solid rgba(245, 215, 125, .18);
-    }
-
-    .history-item {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 9px 0;
-      border-bottom: 1px solid rgba(255,255,255,.06);
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .stage-top {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      align-items: center;
-      padding: 6px 4px 0;
-    }
-
-    .stage-title {
-      color: var(--gold);
-      font-size: 13px;
-      letter-spacing: 2.8px;
-      text-transform: uppercase;
-      font-family: Arial, sans-serif;
-      font-weight: 900;
-    }
-
-    .stage-note {
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .prize-ribbon {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 38px;
-      padding: 8px 16px;
-      border: 1px solid rgba(245,215,125,.32);
-      border-radius: 999px;
-      background: rgba(245,215,125,.08);
-      color: var(--gold);
-      font-family: Arial, sans-serif;
-      font-weight: 900;
-      letter-spacing: .4px;
-      text-align: center;
-    }
-
-    .roulette {
-      position: relative;
-      min-height: 360px;
-      border: 1px solid rgba(245, 215, 125, .38);
-      border-radius: 32px;
-      overflow: hidden;
-      background:
-        radial-gradient(circle at 50% 50%, rgba(245,215,125,.12), transparent 34%),
-        linear-gradient(180deg, rgba(255,255,255,.06), transparent 18%, transparent 82%, rgba(255,255,255,.04)),
-        rgba(0,0,0,.32);
-      box-shadow:
-        inset 0 0 95px rgba(0,0,0,.56),
-        0 25px 80px rgba(0,0,0,.36);
-    }
-
-    .roulette::before,
-    .roulette::after {
-      content: "";
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 22%;
-      z-index: 5;
-      pointer-events: none;
-    }
-
-    .roulette::before {
-      left: 0;
-      background: linear-gradient(90deg, rgba(16,5,6,.98), transparent);
-    }
-
-    .roulette::after {
-      right: 0;
-      background: linear-gradient(270deg, rgba(16,5,6,.98), transparent);
-    }
-
-    .spotlight {
-      position: absolute;
-      inset: -18%;
-      pointer-events: none;
-      background:
-        conic-gradient(from 0deg, transparent, rgba(245,215,125,.08), transparent, rgba(233,30,99,.07), transparent);
-      animation: spinGlow 14s linear infinite;
-      opacity: .76;
-    }
-
-    .selector {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      z-index: 8;
-      width: calc((100% - 36px) / 3);
-      min-width: 260px;
-      max-width: 440px;
-      height: 128px;
-      transform: translate(-50%, -50%);
-      border: 2px solid var(--gold);
-      border-radius: 28px;
-      box-shadow:
-        0 0 0 1px rgba(255,255,255,.08),
-        0 0 60px rgba(245,215,125,.28),
-        inset 0 0 34px rgba(245,215,125,.10);
-      pointer-events: none;
-    }
-
-    .selector::before,
-    .selector::after {
-      content: "";
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      border-left: 16px solid transparent;
-      border-right: 16px solid transparent;
-    }
-
-    .selector::before {
-      top: -20px;
-      border-top: 0;
-      border-bottom: 18px solid var(--gold);
-      filter: drop-shadow(0 0 18px rgba(245,215,125,.42));
-    }
-
-    .selector::after {
-      bottom: -20px;
-      border-bottom: 0;
-      border-top: 18px solid var(--gold);
-      filter: drop-shadow(0 0 18px rgba(245,215,125,.42));
-    }
-
-    .reel {
-      position: absolute;
-      top: 50%;
-      left: 0;
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      width: 100%;
-      box-sizing: border-box;
-      height: 132px;
-      transform: translate3d(0, -50%, 0);
-      will-change: transform;
-      padding: 0;
-      z-index: 4;
-    }
-
-    .name-card {
-      flex: 0 0 calc((100% - 36px) / 3);
-      min-width: 260px;
-      max-width: 440px;
-      height: 118px;
-      display: grid;
-      align-items: center;
-      padding: 0 30px;
-      border: 1px solid rgba(245,215,125,.25);
-      border-radius: 24px;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.07), transparent),
-        rgba(19, 8, 9, .88);
-      box-shadow: 0 18px 48px rgba(0,0,0,.32);
-      opacity: .4;
-      transform: scale(.96);
-      transition: opacity .28s ease, transform .28s ease, border-color .28s ease, background .28s ease;
-    }
-
-    .name-card.is-active {
-      opacity: 1;
-      transform: scale(1.05);
-      border-color: rgba(245,215,125,.92);
-      background:
-        radial-gradient(circle at 50% 10%, rgba(245,215,125,.20), transparent 46%),
-        linear-gradient(180deg, rgba(255,255,255,.10), transparent),
-        rgba(48, 22, 20, .96);
-      box-shadow: 0 24px 70px rgba(245,215,125,.22), 0 22px 58px rgba(0,0,0,.44);
-    }
-
-    .name-card .name {
-      font-size: clamp(25px, 3.1vw, 42px);
-      line-height: 1.04;
-      font-weight: 950;
-      color: var(--cream);
-      text-shadow: 0 8px 25px rgba(0,0,0,.52);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      text-align: center;
-    }
-
-    .name-card.is-active .name {
-      color: var(--gold);
-    }
-
-    .name-card .meta {
-      margin-top: 7px;
-      color: var(--muted);
-      font: 700 13px/1.25 Arial, sans-serif;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      text-align: center;
-    }
-
-    .winner {
-      display: none;
-      position: relative;
-      border: 1px solid rgba(245, 215, 125, .55);
-      border-radius: 30px;
-      padding: 34px 24px 30px;
-      min-height: 190px;
-      text-align: center;
-      overflow: hidden;
-      background:
-        radial-gradient(circle at 50% 0%, rgba(245,215,125,.20), transparent 34%),
-        linear-gradient(180deg, rgba(245,215,125,.16), rgba(233,30,99,.08));
-      box-shadow: 0 24px 80px rgba(0,0,0,.38), inset 0 1px rgba(255,255,255,.10);
-    }
-
-    .winner.show { display: block; animation: reveal .54s ease-out both; }
-
-    .winner-kicker {
-      color: var(--gold);
-      letter-spacing: 3px;
-      font: 900 12px/1 Arial, sans-serif;
-      text-transform: uppercase;
-    }
-
-    .winner-name {
-      margin: 12px auto 22px;
-      max-width: 100%;
-      font-size: clamp(38px, 6vw, 72px);
-      line-height: 1.06;
-      color: var(--cream);
-      font-weight: 950;
-      text-shadow: 0 16px 44px rgba(0,0,0,.55);
-      overflow-wrap: anywhere;
-    }
-
-    .winner-meta {
-      color: var(--muted);
-      font-size: 16px;
-      line-height: 1.55;
-      margin: 0 auto;
-      max-width: 92%;
-    }
-
-    .confetti {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      overflow: hidden;
-      z-index: 99;
-    }
-
-    .piece {
-      position: absolute;
-      width: 9px;
-      height: 15px;
-      background: var(--gold);
-      opacity: .95;
-      animation: fall 2.6s linear forwards;
-    }
-
-    @keyframes fall {
-      from { transform: translateY(-12vh) rotate(0deg); }
-      to { transform: translateY(110vh) rotate(760deg); }
-    }
-
-    @keyframes reveal {
-      from { opacity: 0; transform: scale(.94) translateY(16px); filter: blur(6px); }
-      to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
-    }
-
-    @keyframes spinGlow {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-    @media (max-width: 940px) {
-      .layout { grid-template-columns: 1fr; }
-      .stage { min-height: auto; }
-      .roulette { min-height: 310px; }
-      .name-card { padding: 0 18px; }
-      .selector { min-width: 220px; }
-    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{margin:0;min-height:100vh;background:
+      radial-gradient(ellipse at 50% 0%,rgba(232,196,104,.12),transparent 50%),
+      radial-gradient(ellipse at 50% 100%,rgba(255,96,117,.12),transparent 55%),
+      linear-gradient(180deg,#070304,#14080c 55%,#070304);color:var(--cream);font-family:var(--font);overflow-x:hidden;padding:18px 12px 40px}
+    .wrap{max-width:520px;margin:0 auto;position:relative;z-index:2}.header{text-align:center;margin:8px 0 18px}
+    .logo{width:132px;max-height:62px;object-fit:contain;filter:drop-shadow(0 0 18px rgba(232,196,104,.35));margin-bottom:10px}
+    .badge{display:inline-flex;gap:8px;align-items:center;padding:7px 16px;border-radius:999px;background:rgba(255,96,117,.12);border:1px solid rgba(255,96,117,.4);color:var(--pink);font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase}
+    h1{font-family:var(--display);font-size:42px;line-height:1;margin:12px 0 6px;font-weight:600}.accent{font-style:italic;color:var(--gold2)}
+    .sub{color:var(--dim);font-size:11px;letter-spacing:1.3px;text-transform:uppercase}.card{background:linear-gradient(180deg,rgba(38,19,25,.92),rgba(18,8,11,.92));border:1px solid var(--line);border-radius:24px;padding:16px;box-shadow:0 22px 70px rgba(0,0,0,.55);backdrop-filter:blur(20px);margin-bottom:12px;position:relative;overflow:hidden}
+    .card:before{content:"";position:absolute;top:-1px;left:20%;right:20%;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);filter:blur(.5px)}
+    .controls{display:grid;gap:9px}.row{display:grid;grid-template-columns:1fr 1fr;gap:9px}.group label{display:block;color:var(--gold);font-size:9px;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;margin:0 0 5px 4px}
+    input,select{width:100%;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.28);color:var(--cream);font-family:var(--font);font-size:13px;outline:none}option{background:#1b0f13}.btn{width:100%;border:0;border-radius:14px;padding:13px 16px;font-family:var(--font);font-size:12px;font-weight:900;letter-spacing:1.4px;text-transform:uppercase;cursor:pointer;transition:.2s;position:relative;overflow:hidden}.btn-primary{background:linear-gradient(135deg,var(--pink),#ff7f90,var(--pink2));color:white;box-shadow:0 10px 28px rgba(255,96,117,.38)}.btn-gold{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#23100f}.btn-ghost{background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--gold2)}.btn:disabled{opacity:.5;cursor:not-allowed}.btn:hover:not(:disabled){transform:translateY(-1px)}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.stat{text-align:center;background:rgba(0,0,0,.28);border:1px solid rgba(232,196,104,.14);border-radius:14px;padding:10px 6px}.stat b{display:block;font-family:var(--display);font-size:24px;color:var(--gold2);line-height:1}.stat span{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px}
+    .machine{padding:18px 14px 22px}.slot{height:276px;position:relative;border-radius:22px;overflow:hidden;background:linear-gradient(180deg,#12070a,#250f16 48%,#12070a);border:1px solid rgba(232,196,104,.34);box-shadow:inset 0 0 42px rgba(0,0,0,.6),0 0 50px rgba(232,196,104,.08)}
+    .slot:before,.slot:after{content:"";position:absolute;left:0;right:0;height:42%;z-index:4;pointer-events:none}.slot:before{top:0;background:linear-gradient(180deg,rgba(10,5,6,.98),rgba(10,5,6,.72),transparent)}.slot:after{bottom:0;background:linear-gradient(0deg,rgba(10,5,6,.98),rgba(10,5,6,.72),transparent)}
+    .win-line{position:absolute;left:10px;right:10px;top:50%;height:72px;transform:translateY(-50%);border-top:2px solid rgba(232,196,104,.85);border-bottom:2px solid rgba(232,196,104,.85);border-radius:16px;background:linear-gradient(90deg,transparent,rgba(232,196,104,.12),transparent);box-shadow:0 0 28px rgba(232,196,104,.26);z-index:3;pointer-events:none}.win-line:before,.win-line:after{content:"✦";position:absolute;top:50%;transform:translateY(-50%);color:var(--gold2);text-shadow:0 0 10px rgba(232,196,104,.8)}.win-line:before{left:10px}.win-line:after{right:10px}
+    .reel{position:absolute;left:0;right:0;top:0;will-change:transform}.reel-item{height:72px;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 46px;font-family:var(--display);font-size:26px;font-weight:700;letter-spacing:.3px;color:rgba(247,239,230,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.reel-item .ticket{display:block;font-family:var(--font);font-size:9px;letter-spacing:1.3px;color:rgba(232,196,104,.7);margin-top:2px}.reel-item.active{color:var(--gold2);text-shadow:0 0 18px rgba(232,196,104,.55);font-size:30px}
+    .winner{display:none;text-align:center;padding:16px 10px}.winner.show{display:block;animation:pop .55s cubic-bezier(.34,1.56,.64,1)}@keyframes pop{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}.winner small{color:var(--gold);letter-spacing:2px;text-transform:uppercase;font-size:10px;font-weight:800}.winner h2{font-family:var(--display);font-size:34px;line-height:1.05;margin:8px 0 4px}.winner p{margin:0;color:var(--dim);font-size:12px}.message{display:none;margin-top:10px;padding:10px;border-radius:12px;text-align:center;font-size:12px}.message.show{display:block}.message.err{background:rgba(255,96,117,.12);border:1px solid rgba(255,96,117,.3);color:#ff96a5}.message.ok{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.25);color:#73e49c}
+    .actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.history{max-height:220px;overflow:auto}.history-item{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid rgba(232,196,104,.1);font-size:12px}.history-item b{color:var(--cream)}.history-item span{color:var(--gold);text-align:right}.hide{display:none!important}@media(max-width:420px){h1{font-size:36px}.row{grid-template-columns:1fr}.reel-item{font-size:22px;padding:0 34px}.reel-item.active{font-size:25px}.slot{height:260px}}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <header>
-      <div class="brand">FARMASI</div>
-      <h1>გათამაშება</h1>
-      <div class="sub">პრემიუმ რულეტკა რეგისტრირებული მონაწილეებისთვის</div>
-    </header>
-
-    <div class="layout">
-      <aside class="panel control-panel">
-        <div class="field">
-          <label class="label" for="pin">PIN</label>
-          <input id="pin" inputmode="numeric" autocomplete="off" placeholder="თუ Config-ში გაქვს PIN">
-        </div>
-
-        <label class="switch field">
-          <input id="checkedOnly" type="checkbox" checked>
-          <span>მხოლოდ ადგილზე შემოსულები</span>
-        </label>
-
-        <div class="field">
-          <label class="label" for="prizeSelect">პრიზი</label>
-          <select id="prizeSelect">
-            <option value="">პრიზების ჩატვირთვა...</option>
-          </select>
-        </div>
-
-        <button class="btn" id="loadBtn" type="button">მონაწილეების ჩატვირთვა</button>
-        <button class="btn btn-pink" id="spinBtn" type="button" disabled>რულეტკის დატრიალება</button>
-        <button class="btn btn-ghost" id="resetBtn" type="button">გამარჯვებულების გასუფთავება</button>
-
-        <div class="stats">
-          <div class="stat"><strong id="totalCount">0</strong><span>სულ</span></div>
-          <div class="stat"><strong id="poolCount">0</strong><span>რულეტკაში</span></div>
-          <div class="stat"><strong id="winnerCount">0</strong><span>მოგებული</span></div>
-        </div>
-
-        <div class="msg" id="msg">ჩატვირთე მონაწილეები და დაიწყე გათამაშება.</div>
-        <div class="history" id="history"></div>
-      </aside>
-
-      <section class="panel stage">
-        <div class="stage-top">
-          <div>
-            <div class="stage-title">Live Draw</div>
-            <div class="stage-note">სახელი გაჩერდება ოქროს ჩარჩოში</div>
-          </div>
-          <div>
-            <div class="prize-ribbon" id="currentPrize">პრიზი აირჩიე</div>
-          </div>
-          <div class="stage-note" id="stageStatus">მზადაა</div>
-        </div>
-
-        <div class="roulette">
-          <div class="spotlight"></div>
-          <div class="selector"></div>
-          <div class="reel" id="reel"></div>
-        </div>
-
-        <div class="winner" id="winnerBox">
-          <div class="winner-kicker">გამარჯვებული</div>
-          <div class="winner-name" id="winnerName">-</div>
-          <div class="winner-meta" id="winnerMeta">-</div>
-        </div>
-      </section>
+    <div class="header">
+      <img src="farmasi.png" class="logo" alt="Farmasi" onerror="this.style.display='none'">
+      <div class="badge">✦ Raffle Draw ✦</div>
+      <h1>Farmasi <span class="accent">გათამაშება</span></h1>
+      <div class="sub">სახელები ტრიალებს და გამარჯვებული ფიქსირდება შუა ხაზზე</div>
     </div>
+
+    <div class="card controls">
+      <div class="row">
+        <div class="group"><label for="pin">Admin PIN</label><input id="pin" type="password" inputmode="numeric" placeholder="PIN" /></div>
+        <div class="group"><label for="checkedOnly">მონაწილეები</label><select id="checkedOnly"><option value="1">მხოლოდ Check-in გავლილი</option><option value="0">ყველა რეგისტრირებული</option></select></div>
+      </div>
+      <button class="btn btn-ghost" id="loadBtn">მონაწილეების ჩატვირთვა</button>
+      <div class="row">
+        <div class="group"><label for="prizeSelect">პრიზი</label><select id="prizeSelect"><option value="">პრიზის გარეშე / ხელით</option></select></div>
+        <div class="group"><label for="manualPrize">ხელით ჩაწერა</label><input id="manualPrize" type="text" placeholder="მაგ: სუნამო" /></div>
+      </div>
+      <div class="stats"><div class="stat"><b id="totalCount">0</b><span>მონაწილე</span></div><div class="stat"><b id="winCount">0</b><span>არჩეული</span></div><div class="stat"><b id="leftCount">0</b><span>დარჩა</span></div></div>
+      <div class="message" id="msg"></div>
+    </div>
+
+    <div class="card machine">
+      <div class="slot" id="slot"><div class="win-line"></div><div class="reel" id="reel"></div></div>
+      <div class="winner" id="winnerBox"><small>გამარჯვებული</small><h2 id="winnerName">—</h2><p id="winnerInfo">—</p></div>
+      <div class="actions"><button class="btn btn-primary" id="spinBtn" disabled>დატრიალება</button><button class="btn btn-gold" id="announceBtn" disabled>SMS გამოცხადება</button></div>
+    </div>
+
+    <div class="card history"><div class="group"><label>გამარჯვებულები ამ სესიაში</label></div><div id="historyList"></div></div>
   </div>
 
-  <div class="confetti" id="confetti"></div>
-
   <script>
+    'use strict';
     const API_URL = "https://script.google.com/macros/s/AKfycbz40UE4b9og1Yjs0rPPfDe1H-yRi90hKbK2WOXej4CAWPCnncDFcetadMEdQSYJO7nf/exec";
-    const STORAGE_KEY = "farmasi_masterclass_raffle_winners_v1";
+    const ITEM_H = 72;
+    const VISIBLE_CENTER_OFFSET = 102; // (276 - 72)/2
+    let participants = [], available = [], prizes = [], currentWinner = null, spinning = false;
+    const winners = JSON.parse(sessionStorage.getItem('raffle_winners_v1') || '[]');
+    const $ = id => document.getElementById(id);
 
-    const els = {
-      pin: document.getElementById("pin"),
-      checkedOnly: document.getElementById("checkedOnly"),
-      prizeSelect: document.getElementById("prizeSelect"),
-      currentPrize: document.getElementById("currentPrize"),
-      loadBtn: document.getElementById("loadBtn"),
-      spinBtn: document.getElementById("spinBtn"),
-      resetBtn: document.getElementById("resetBtn"),
-      totalCount: document.getElementById("totalCount"),
-      poolCount: document.getElementById("poolCount"),
-      winnerCount: document.getElementById("winnerCount"),
-      msg: document.getElementById("msg"),
-      stageStatus: document.getElementById("stageStatus"),
-      reel: document.getElementById("reel"),
-      winnerBox: document.getElementById("winnerBox"),
-      winnerName: document.getElementById("winnerName"),
-      winnerMeta: document.getElementById("winnerMeta"),
-      history: document.getElementById("history"),
-      confetti: document.getElementById("confetti")
-    };
+    function msg(text, type='ok') { const el=$('msg'); el.textContent=text; el.className='message show ' + (type==='err'?'err':'ok'); }
+    function clearMsg(){ $('msg').className='message'; $('msg').textContent=''; }
+    function nameOf(p){ return [p.first_name,p.last_name].filter(Boolean).join(' ').trim() || p.ticket_id || 'მონაწილე'; }
+    function prizeName(){ return ($('manualPrize').value || $('prizeSelect').value || 'პრიზი').trim(); }
+    function updateStats(){ $('totalCount').textContent=participants.length; $('winCount').textContent=winners.length; $('leftCount').textContent=available.length; }
 
-    let participants = [];
-    let pool = [];
-    let prizes = [];
-    let spinning = false;
-    let raffleItems = [];
-    const RAFFLE_DUPLICATES = 15;
-    const RAFFLE_SPEED_MS = 7000;
+    function api(params){ const url = API_URL + '?' + new URLSearchParams(params).toString(); return fetch(url).then(r=>r.json()); }
 
-    function getWinners() {
-      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
-      catch (e) { return []; }
-    }
+    function renderPrizes(){ const sel=$('prizeSelect'); sel.innerHTML='<option value="">პრიზის გარეშე / ხელით</option>'; prizes.forEach(p=>{ const o=document.createElement('option'); o.value=p.name; o.textContent=p.name; sel.appendChild(o); }); }
 
-    function setWinners(items) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items || []));
-      renderHistory();
-      buildPool();
-    }
-
-    function show(type, text) {
-      els.msg.className = "msg" + (type ? " " + type : "");
-      els.msg.textContent = text || "";
-      if (els.stageStatus) els.stageStatus.textContent = text || "მზადაა";
-    }
-
-    function escapeHtml(value) {
-      return String(value || "").replace(/[&<>"']/g, c => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
-      }[c]));
-    }
-
-    function participantName(p) {
-      return [p.first_name, p.last_name].filter(Boolean).join(" ").trim() || "მონაწილე";
-    }
-
-    function participantMeta(p) {
-      return [p.position, p.city, p.ticket_id].filter(Boolean).join(" · ");
-    }
-
-    function selectedPrize() {
-      const value = els.prizeSelect ? els.prizeSelect.value : "";
-      return prizes.find(p => String(p.id) === String(value)) || null;
-    }
-
-    function renderPrizeSelect() {
-      if (!els.prizeSelect) return;
-      if (!prizes.length) {
-        els.prizeSelect.innerHTML = '<option value="">პრიზი არ არის მითითებული</option>';
-        els.currentPrize.textContent = "პრიზი არ არის მითითებული";
-        return;
-      }
-
-      els.prizeSelect.innerHTML = prizes.map((p, idx) =>
-        '<option value="' + escapeHtml(p.id) + '"' + (idx === 0 ? ' selected' : '') + '>' +
-        escapeHtml(p.name) +
-        '</option>'
-      ).join("");
-      updatePrizeLabel();
-    }
-
-    function updatePrizeLabel() {
-      const prize = selectedPrize();
-      els.currentPrize.textContent = prize ? prize.name : "პრიზი აირჩიე";
-    }
-
-    function api(params) {
-      const url = API_URL + "?" + new URLSearchParams(params).toString();
-      return fetch(url).then(res => res.json());
-    }
-
-    async function loadPrizes() {
-      try {
-        const data = await api({
-          action: "get_raffle_prizes",
-          pin: els.pin.value
-        });
-        if (data && data.ok && Array.isArray(data.prizes)) {
-          prizes = data.prizes;
-          renderPrizeSelect();
-        } else {
-          prizes = [
-            { id: "voucher_100", name: "თამაშდება 100-ლარიანი ვაუჩერი" },
-            { id: "voucher_200", name: "თამაშდება 200-ლარიანი ვაუჩერი" },
-            { id: "trip", name: "თამაშდება საგზური" }
-          ];
-          renderPrizeSelect();
-        }
-      } catch (e) {
-        prizes = [
-          { id: "voucher_100", name: "თამაშდება 100-ლარიანი ვაუჩერი" },
-          { id: "voucher_200", name: "თამაშდება 200-ლარიანი ვაუჩერი" },
-          { id: "trip", name: "თამაშდება საგზური" }
-        ];
-        renderPrizeSelect();
-      }
-    }
-
-    function buildPool() {
-      const winners = new Set(getWinners().map(w => String(w.ticket_id || w.phone || "")));
-      pool = participants.filter(p => !winners.has(String(p.ticket_id || p.phone || "")));
-      els.totalCount.textContent = participants.length;
-      els.poolCount.textContent = pool.length;
-      els.winnerCount.textContent = getWinners().length;
-      els.spinBtn.disabled = !pool.length || spinning;
-      renderReel(pool.length ? pool : participants);
-    }
-
-    function renderHistory() {
-      const winners = getWinners();
-      els.winnerCount.textContent = winners.length;
-      els.history.innerHTML = "";
-
-      if (!winners.length) {
-        els.history.innerHTML = '<div class="history-item"><span>ჯერ გამარჯვებული არ არის</span><span>-</span></div>';
-        return;
-      }
-
-      winners.slice().reverse().forEach((w, idx) => {
-        const row = document.createElement("div");
-        row.className = "history-item";
-        row.innerHTML = '<span>' + (winners.length - idx) + '. ' + escapeHtml(participantName(w)) + '</span><span>' + escapeHtml(w.ticket_id || "") + '</span>';
-        els.history.appendChild(row);
+    function renderReel(list, activeTicket){
+      const reel=$('reel'); reel.innerHTML='';
+      list.forEach(p=>{
+        const div=document.createElement('div'); div.className='reel-item' + (activeTicket && p.ticket_id===activeTicket?' active':'');
+        div.innerHTML = '<div>' + escapeHtml(nameOf(p)) + '<span class="ticket">' + escapeHtml(p.ticket_id || p.phone || '') + '</span></div>';
+        reel.appendChild(div);
       });
     }
+    function escapeHtml(s){ return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
-    function cardHtml(p, active) {
-      return '<div class="name-card' + (active ? ' is-active' : '') + '">' +
-        '<div>' +
-          '<div class="name">' + escapeHtml(participantName(p)) + '</div>' +
-          '<div class="meta">' + escapeHtml(participantMeta(p)) + '</div>' +
-        '</div>' +
-      '</div>';
+    function buildSpinList(winner){
+      const base = available.length ? available : participants;
+      const mixed = [];
+      for(let i=0;i<34;i++) mixed.push(base[Math.floor(Math.random()*base.length)]);
+      mixed.push(winner);
+      for(let i=0;i<4;i++) mixed.push(base[Math.floor(Math.random()*base.length)]);
+      return mixed;
     }
 
-    function loadRaffle(items, activeIndex) {
-      const list = (items && items.length ? items : [{ first_name: "მონაწილეები", last_name: "", city: "ჩატვირთე სია" }]);
-      const repeated = [];
-      for (let i = 0; i < RAFFLE_DUPLICATES; i++) repeated.push(...list);
-      raffleItems = repeated;
-
-      const safeActiveIndex = Number.isFinite(activeIndex) ? activeIndex : -1;
-      els.reel.innerHTML = repeated.map((p, idx) => cardHtml(p, idx === safeActiveIndex)).join("");
-
-      els.reel.style.transition = "none";
-      els.reel.style.transform = "translate3d(0px, -50%, 0)";
+    async function loadAll(){
+      clearMsg(); $('loadBtn').disabled=true; $('loadBtn').textContent='იტვირთება...';
+      try{
+        const pin=$('pin').value.trim();
+        const [pool, prizeRes] = await Promise.all([
+          api({action:'get_raffle_pool', pin, checked_only:$('checkedOnly').value}),
+          api({action:'get_raffle_prizes', pin})
+        ]);
+        if(!pool.ok) throw new Error(pool.error || 'მონაწილეები ვერ ჩაიტვირთა');
+        participants = (pool.participants || []).filter(p=>p.ticket_id || p.phone);
+        const wonKeys = new Set(winners.map(w=>w.ticket_id || w.phone));
+        available = participants.filter(p=>!wonKeys.has(p.ticket_id || p.phone));
+        prizes = prizeRes && prizeRes.ok ? (prizeRes.prizes || []) : [];
+        renderPrizes(); renderReel(available.slice(0, 20)); updateStats(); renderHistory();
+        $('spinBtn').disabled = available.length < 1;
+        msg('ჩაიტვირთა: ' + participants.length + ' მონაწილე');
+      }catch(e){ msg(e.message || String(e),'err'); }
+      finally{ $('loadBtn').disabled=false; $('loadBtn').textContent='მონაწილეების ჩატვირთვა'; }
     }
 
-    function renderReel(items) {
-      loadRaffle(items, -1);
+    function spin(){
+      if(spinning || !available.length) return;
+      clearMsg(); spinning=true; currentWinner=null; $('announceBtn').disabled=true; $('winnerBox').classList.remove('show');
+      const idx = Math.floor(Math.random()*available.length);
+      const winner = available[idx];
+      const spinList = buildSpinList(winner);
+      renderReel(spinList);
+      const reel=$('reel'); reel.style.transition='none'; reel.style.transform='translateY(0px)'; reel.offsetHeight;
+      const winnerIndex = spinList.findIndex((p,i)=>i>25 && (p.ticket_id||p.phone)===(winner.ticket_id||winner.phone));
+      const targetY = -(winnerIndex * ITEM_H) + VISIBLE_CENTER_OFFSET;
+      reel.style.transition='transform 5.6s cubic-bezier(.08,.78,.08,1)';
+      reel.style.transform='translateY(' + targetY + 'px)';
+      setTimeout(()=>{
+        spinning=false; currentWinner=winner; renderReel(spinList, winner.ticket_id); reel.style.transition='none'; reel.style.transform='translateY(' + targetY + 'px)';
+        $('winnerName').textContent=nameOf(winner); $('winnerInfo').textContent=(winner.ticket_id||'') + ' · ' + (winner.city||'') + ' · ' + prizeName(); $('winnerBox').classList.add('show'); $('announceBtn').disabled=false;
+        available = available.filter(p=>(p.ticket_id||p.phone)!==(winner.ticket_id||winner.phone));
+        winners.push({ticket_id:winner.ticket_id, phone:winner.phone, name:nameOf(winner), prize:prizeName(), time:new Date().toISOString()});
+        sessionStorage.setItem('raffle_winners_v1', JSON.stringify(winners)); updateStats(); renderHistory();
+        if(window.confetti){ confetti({particleCount:160,spread:75,origin:{y:.62}}); setTimeout(()=>confetti({particleCount:90,spread:110,origin:{y:.5}}),350); }
+      }, 5750);
     }
 
-    function centerReelOn(index, animated) {
-      const viewportWidth = els.reel.parentElement.getBoundingClientRect().width;
-      const card = els.reel.querySelector(".name-card");
-      const reelStyle = getComputedStyle(els.reel);
-      const cardWidth = card ? card.getBoundingClientRect().width : Math.max(260, (viewportWidth - 36) / 3);
-      const gap = parseFloat(reelStyle.columnGap || reelStyle.gap || "18") || 18;
-      const paddingLeft = parseFloat(reelStyle.paddingLeft || "0") || 0;
-      const step = cardWidth + gap;
-      const centerOffset = (viewportWidth / 2) - (cardWidth / 2);
-      const x = centerOffset - paddingLeft - (index * step);
-
-      els.reel.style.transition = animated
-        ? "transform " + RAFFLE_SPEED_MS + "ms cubic-bezier(0.1, 1, 0.1, 1)"
-        : "none";
-      els.reel.style.transform = "translate3d(" + x + "px, -50%, 0)";
+    async function announce(){
+      if(!currentWinner) return;
+      $('announceBtn').disabled=true; $('announceBtn').textContent='იგზავნება...';
+      try{
+        const res = await api({action:'announce_raffle_winner', pin:$('pin').value.trim(), checked_only:$('checkedOnly').value, ticket_id:currentWinner.ticket_id, phone:currentWinner.phone, prize_name:prizeName()});
+        if(!res.ok) throw new Error(res.error || 'გამოცხადება ვერ გაიგზავნა');
+        msg('გამარჯვებული გამოცხადდა. SMS გაგზავნილია: ' + (res.sent || 0));
+      }catch(e){ msg(e.message || String(e),'err'); $('announceBtn').disabled=false; }
+      finally{ $('announceBtn').textContent='SMS გამოცხადება'; }
     }
 
-    async function loadParticipants() {
-      els.loadBtn.disabled = true;
-      els.spinBtn.disabled = true;
-      els.winnerBox.classList.remove("show");
-      show("", "იტვირთება...");
-      try {
-        const data = await api({
-          action: "get_raffle_pool",
-          pin: els.pin.value,
-          checked_only: els.checkedOnly.checked ? "1" : "0"
-        });
-
-        if (!data || !data.ok) {
-          show("bad", data && data.error ? data.error : "მონაწილეების ჩატვირთვა ვერ მოხერხდა");
-          return;
-        }
-
-        participants = Array.isArray(data.participants) ? data.participants : [];
-        buildPool();
-        show(participants.length ? "good" : "bad", participants.length ? "მონაწილეები ჩაიტვირთა" : "სია ცარიელია");
-      } catch (e) {
-        show("bad", "კავშირი ვერ მოხერხდა");
-      } finally {
-        els.loadBtn.disabled = false;
-      }
-    }
-
-    function spin() {
-      if (spinning || !pool.length) return;
-      const prize = selectedPrize();
-      if (!prize) {
-        show("bad", "ჯერ აირჩიე პრიზი");
-        return;
-      }
-      spinning = true;
-      els.spinBtn.disabled = true;
-      els.winnerBox.classList.remove("show");
-      show("", "რულეტკა ტრიალებს...");
-
-      const winnerIndex = Math.floor(Math.random() * pool.length);
-      const winner = pool[winnerIndex];
-      const targetRound = Math.max(10, RAFFLE_DUPLICATES - 3);
-      const targetIndex = (pool.length * targetRound) + winnerIndex;
-
-      loadRaffle(pool, -1);
-
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          centerReelOn(targetIndex, true);
-        });
-      });
-
-      setTimeout(() => {
-        Array.from(els.reel.children).forEach((card, idx) => {
-          card.classList.toggle("is-active", idx === targetIndex);
-        });
-        console.log("Raffle winner:", participantName(winner));
-        announceWinner(winner);
-      }, RAFFLE_SPEED_MS + 120);
-    }
-
-    function announceWinner(winner) {
-      spinning = false;
-      const prize = selectedPrize();
-      winner.prize_id = prize ? prize.id : "";
-      winner.prize_name = prize ? prize.name : "";
-      const winners = getWinners();
-      winners.push(winner);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(winners));
-
-      els.winnerName.textContent = participantName(winner);
-      els.winnerMeta.textContent = [participantMeta(winner), winner.prize_name].filter(Boolean).join(" · ");
-      els.winnerBox.classList.add("show");
-      show("good", "გამარჯვებული გამოვლინდა");
-      burstConfetti();
-      renderHistory();
-      const winnerKey = String(winner.ticket_id || winner.phone || "");
-      pool = pool.filter(p => String(p.ticket_id || p.phone || "") !== winnerKey);
-      els.poolCount.textContent = pool.length;
-      els.winnerCount.textContent = winners.length;
-      els.spinBtn.disabled = !pool.length || spinning;
-      notifyWinnerSms(winner);
-    }
-
-    async function notifyWinnerSms(winner) {
-      try {
-        const data = await api({
-          action: "announce_raffle_winner",
-          pin: els.pin.value,
-          checked_only: els.checkedOnly.checked ? "1" : "0",
-          ticket_id: winner.ticket_id || "",
-          phone: winner.phone || "",
-          prize_id: winner.prize_id || "",
-          prize_name: winner.prize_name || ""
-        });
-
-        if (data && data.ok) {
-          show("good", "გამარჯვებული გამოვლინდა · SMS გაიგზავნა: " + (data.sent || 0));
-        } else {
-          show("bad", "გამარჯვებული გამოვლინდა, SMS ვერ გაიგზავნა: " + ((data && data.error) || "უცნობი შეცდომა"));
-        }
-      } catch (e) {
-        show("bad", "გამარჯვებული გამოვლინდა, SMS მოთხოვნა ვერ გაიგზავნა");
-      }
-    }
-
-    function burstConfetti() {
-      els.confetti.innerHTML = "";
-      const colors = ["#f5d77d", "#e91e63", "#fff3db", "#65e7a1"];
-      for (let i = 0; i < 130; i++) {
-        const piece = document.createElement("div");
-        piece.className = "piece";
-        piece.style.left = Math.random() * 100 + "vw";
-        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
-        piece.style.animationDelay = Math.random() * .35 + "s";
-        piece.style.animationDuration = (1.9 + Math.random() * 1.6) + "s";
-        els.confetti.appendChild(piece);
-      }
-      setTimeout(() => { els.confetti.innerHTML = ""; }, 3900);
-    }
-
-    els.loadBtn.addEventListener("click", loadParticipants);
-    els.spinBtn.addEventListener("click", spin);
-    els.checkedOnly.addEventListener("change", loadParticipants);
-    els.prizeSelect.addEventListener("change", updatePrizeLabel);
-    els.resetBtn.addEventListener("click", () => {
-      if (!confirm("გავასუფთავოთ ამ ბრაუზერში შენახული გამარჯვებულები?")) return;
-      setWinners([]);
-      els.winnerBox.classList.remove("show");
-      show("", "გამარჯვებულების სია გასუფთავდა");
-    });
-
-    renderHistory();
-    renderReel([]);
-    loadPrizes();
+    function renderHistory(){ const box=$('historyList'); if(!winners.length){box.innerHTML='<div style="color:var(--dim);font-size:12px;text-align:center;padding:10px">ჯერ გამარჯვებული არ არის</div>';return;} box.innerHTML=winners.slice().reverse().map(w=>'<div class="history-item"><b>'+escapeHtml(w.name)+'</b><span>'+escapeHtml(w.prize||'პრიზი')+'</span></div>').join(''); }
+    $('loadBtn').addEventListener('click', loadAll); $('spinBtn').addEventListener('click', spin); $('announceBtn').addEventListener('click', announce); renderHistory(); updateStats(); renderReel([{first_name:'მონაწილეები',last_name:'იტრიალებს',ticket_id:'FARMASI 2026'}]);
   </script>
 </body>
 </html>
