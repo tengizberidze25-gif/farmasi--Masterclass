@@ -5987,7 +5987,35 @@
     }
 
     .spin-slot-reel {
-      display: none;
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      top: 50%;
+      height: 230px;
+      transform: translateY(-50%);
+      z-index: 7;
+      display: block;
+      perspective: 900px;
+      transform-style: preserve-3d;
+      overflow: hidden;
+      border-radius: 18px;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(0,0,0,0.38), rgba(0,0,0,0.08) 45%, rgba(0,0,0,0.38));
+    }
+
+    .spin-slot-reel::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 70px;
+      transform: translateY(-50%);
+      border: 1px solid rgba(232,196,104,0.85);
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(255,96,117,0.23), rgba(20,14,16,0.70));
+      box-shadow: 0 0 18px rgba(232,196,104,0.24), inset 0 0 18px rgba(255,96,117,0.15);
+      z-index: -1;
     }
 
     .spin-slot-name {
@@ -6019,7 +6047,7 @@
       opacity: 1;
       filter: none;
       color: var(--gold-light);
-      transform: translateY(0) rotateX(0deg) scale(1.06) !important;
+      transform: translateY(0) rotateX(0deg) scale(1.06);
       text-shadow: 0 0 18px rgba(232,196,104,0.45), 0 6px 18px rgba(0,0,0,0.75);
     }
 
@@ -6028,8 +6056,12 @@
     .spin-slot-name.prev2 { transform: translateY(-118px) rotateX(70deg) scale(0.78); opacity: 0.12; }
     .spin-slot-name.next2 { transform: translateY(118px) rotateX(-70deg) scale(0.78); opacity: 0.12; }
 
+    .spin-slot-reel.is-spinning .spin-slot-name {
+      text-shadow: 0 0 18px rgba(232,196,104,0.42), 0 6px 18px rgba(0,0,0,0.75);
+    }
+
     .spin-slot-reel.is-spinning .spin-slot-name.active {
-      animation: slot-rotate-360 0.16s linear infinite;
+      animation: slot-rotate-360 0.10s linear infinite;
     }
 
     @keyframes slot-rotate-360 {
