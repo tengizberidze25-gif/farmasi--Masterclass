@@ -61,13 +61,18 @@
       <div class="message" id="msg"></div>
     </div>
 
-    <div class="card machine">
-      <div class="slot" id="slot"><div class="win-line"></div><div class="reel" id="reel"></div></div>
-      <div class="winner" id="winnerBox"><small>გამარჯვებული</small><h2 id="winnerName">—</h2><p id="winnerInfo">—</p></div>
-      <div class="actions"><button class="btn btn-primary" id="spinBtn" disabled>დატრიალება</button><button class="btn btn-ghost" id="clearScreenBtn" type="button">გასუფთავება</button></div>
-    </div>
+    
+<div class="card machine">
+  <div style="text-align:center;padding:20px">
+    <h2 style="color:#f7dfa0;margin:0 0 12px">მრგვალი ბორბალი</h2>
+    <canvas id="wheelCanvas" width="700" height="700" style="width:100%;max-width:420px;border-radius:50%;display:block;margin:0 auto;"></canvas>
+  </div>
+  <div class="winner" id="winnerBox"><small>გამარჯვებული</small><h2 id="winnerName">—</h2><p id="winnerInfo">—</p></div>
+  <div class="actions"><button class="btn btn-primary" id="spinBtn" disabled>დატრიალება</button><button class="btn btn-ghost" id="clearScreenBtn" type="button">გასუფთავება</button></div>
+</div>
 
-    <div class="card history"><div class="group"><label>გამარჯვებულები ამ სესიაში</label></div><div id="historyList"></div></div>
+
+<div class="card history"><div class="group"><label>გამარჯვებულები ამ სესიაში</label></div><div id="historyList"></div></div>
   </div>
 
   <script>
