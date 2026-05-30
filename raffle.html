@@ -35,7 +35,7 @@
     .win-line{position:absolute;left:10px;right:10px;top:50%;height:72px;transform:translateY(-50%);border-top:2px solid rgba(232,196,104,.85);border-bottom:2px solid rgba(232,196,104,.85);border-radius:16px;background:linear-gradient(90deg,transparent,rgba(232,196,104,.12),transparent);box-shadow:0 0 28px rgba(232,196,104,.26);z-index:3;pointer-events:none}.win-line:before,.win-line:after{content:"✦";position:absolute;top:50%;transform:translateY(-50%);color:var(--gold2);text-shadow:0 0 10px rgba(232,196,104,.8)}.win-line:before{left:10px}.win-line:after{right:10px}
     .reel{position:absolute;left:0;right:0;top:0;will-change:transform}.reel-item{height:72px;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 46px;font-family:var(--display);font-size:26px;font-weight:700;letter-spacing:.3px;color:rgba(247,239,230,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.reel-item .ticket{display:block;font-family:var(--font);font-size:9px;letter-spacing:1.3px;color:rgba(232,196,104,.7);margin-top:2px}.reel-item.active{color:var(--gold2);text-shadow:0 0 18px rgba(232,196,104,.55);font-size:30px}
     .winner{display:none;text-align:center;padding:16px 10px}.winner.show{display:block;animation:pop .55s cubic-bezier(.34,1.56,.64,1)}@keyframes pop{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}.winner small{color:var(--gold);letter-spacing:2px;text-transform:uppercase;font-size:10px;font-weight:800}.winner h2{font-family:var(--display);font-size:34px;line-height:1.05;margin:8px 0 4px}.winner p{margin:0;color:var(--dim);font-size:12px}.message{display:none;margin-top:10px;padding:10px;border-radius:12px;text-align:center;font-size:12px}.message.show{display:block}.message.err{background:rgba(255,96,117,.12);border:1px solid rgba(255,96,117,.3);color:#ff96a5}.message.ok{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.25);color:#73e49c}
-    .actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-top:12px}.history{max-height:220px;overflow:auto}.history-item{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid rgba(232,196,104,.1);font-size:12px}.history-item b{color:var(--cream)}.history-item span{color:var(--gold);text-align:right}.hide{display:none!important}@media(max-width:420px){h1{font-size:36px}.row{grid-template-columns:1fr}.actions{grid-template-columns:1fr}.reel-item{font-size:22px;padding:0 34px}.reel-item.active{font-size:25px}.slot{height:260px}}
+    .actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.history{max-height:220px;overflow:auto}.history-item{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid rgba(232,196,104,.1);font-size:12px}.history-item b{color:var(--cream)}.history-item span{color:var(--gold);text-align:right}.hide{display:none!important}@media(max-width:420px){h1{font-size:36px}.row{grid-template-columns:1fr}.actions{grid-template-columns:1fr}.reel-item{font-size:22px;padding:0 34px}.reel-item.active{font-size:25px}.slot{height:260px}}
   </style>
 </head>
 <body>
@@ -64,7 +64,7 @@
     <div class="card machine">
       <div class="slot" id="slot"><div class="win-line"></div><div class="reel" id="reel"></div></div>
       <div class="winner" id="winnerBox"><small>გამარჯვებული</small><h2 id="winnerName">—</h2><p id="winnerInfo">—</p></div>
-      <div class="actions"><button class="btn btn-primary" id="spinBtn" disabled>დატრიალება</button><button class="btn btn-gold" id="announceBtn" disabled>SMS გამოცხადება</button><button class="btn btn-ghost" id="clearScreenBtn" type="button">გასუფთავება</button></div>
+      <div class="actions"><button class="btn btn-primary" id="spinBtn" disabled>დატრიალება</button><button class="btn btn-ghost" id="clearScreenBtn" type="button">გასუფთავება</button></div>
     </div>
 
     <div class="card history"><div class="group"><label>გამარჯვებულები ამ სესიაში</label></div><div id="historyList"></div></div>
@@ -80,50 +80,53 @@
     const wonKeys = new Set(JSON.parse(sessionStorage.getItem('raffle_won_keys_v1') || '[]'));
     const $ = id => document.getElementById(id);
 
-    // გამარჯვების მუსიკა — მუშაობს ფაილის გარეშე Web Audio API-ით.
-    // ბრაუზერი ხმას დაუშვებს, რადგან spin ღილაკზე user click უკვე იყო.
+    // 5-წამიანი მოგების მუსიკა — ფაილის გარეშე Web Audio API-ით.
     let audioCtx = null;
     function playVictoryMusic(){
       try{
         audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
         if(audioCtx.state === 'suspended') audioCtx.resume();
+
         const now = audioCtx.currentTime;
         const master = audioCtx.createGain();
         master.gain.setValueAtTime(0.0001, now);
-        master.gain.exponentialRampToValueAtTime(0.18, now + 0.04);
-        master.gain.exponentialRampToValueAtTime(0.0001, now + 3.2);
+        master.gain.exponentialRampToValueAtTime(0.20, now + 0.08);
+        master.gain.exponentialRampToValueAtTime(0.0001, now + 5.05);
         master.connect(audioCtx.destination);
 
-        const notes = [523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5, 1318.51];
-        notes.forEach((freq, i)=>{
-          const t = now + i * 0.22;
+        function playNote(freq, start, dur, type, vol){
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
-          osc.type = i < 3 ? 'triangle' : 'sine';
-          osc.frequency.setValueAtTime(freq, t);
-          gain.gain.setValueAtTime(0.0001, t);
-          gain.gain.exponentialRampToValueAtTime(0.7, t + 0.025);
-          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.42);
+          osc.type = type || 'triangle';
+          osc.frequency.setValueAtTime(freq, start);
+          gain.gain.setValueAtTime(0.0001, start);
+          gain.gain.exponentialRampToValueAtTime(vol || 0.55, start + 0.03);
+          gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
           osc.connect(gain);
           gain.connect(master);
-          osc.start(t);
-          osc.stop(t + 0.46);
+          osc.start(start);
+          osc.stop(start + dur + 0.04);
+        }
+
+        // cheerful winning melody
+        const melody = [
+          [523.25,.00,.34],[659.25,.22,.34],[783.99,.44,.42],
+          [1046.50,.78,.52],[987.77,1.18,.30],[1046.50,1.42,.58],
+          [783.99,1.95,.34],[880.00,2.18,.34],[1046.50,2.42,.48],
+          [1318.51,2.82,.70],[1174.66,3.42,.30],[1318.51,3.66,.80],
+          [1567.98,4.25,.70]
+        ];
+        melody.forEach((n, i)=>playNote(n[0], now+n[1], n[2], i > 8 ? 'sine' : 'triangle', 0.62));
+
+        // warm bass chords
+        [[130.81,.00,.95],[196.00,.75,1.05],[261.63,1.55,1.15],[329.63,2.45,1.15],[392.00,3.35,1.45]].forEach(n=>{
+          playNote(n[0], now+n[1], n[2], 'sine', 0.28);
+          playNote(n[0]*2, now+n[1]+0.02, n[2]*0.9, 'sine', 0.12);
         });
 
-        // პატარა fanfare bass
-        [130.81, 196.0, 261.63].forEach((freq, i)=>{
-          const t = now + 0.08 + i * 0.38;
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, t);
-          gain.gain.setValueAtTime(0.0001, t);
-          gain.gain.exponentialRampToValueAtTime(0.35, t + 0.04);
-          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.8);
-          osc.connect(gain);
-          gain.connect(master);
-          osc.start(t);
-          osc.stop(t + 0.85);
+        // sparkling bell hits
+        [0.15,0.55,1.05,1.75,2.35,3.05,3.75,4.35].forEach((t, i)=>{
+          playNote(1760 + (i%3)*220, now+t, 0.20, 'sine', 0.18);
         });
       }catch(e){
         console.warn('Victory music blocked/unavailable:', e);
@@ -180,7 +183,7 @@
 
     function spin(){
       if(spinning || !available.length) return;
-      clearMsg(); spinning=true; currentWinner=null; $('announceBtn').disabled=true; $('winnerBox').classList.remove('show');
+      clearMsg(); spinning=true; currentWinner=null; $('winnerBox').classList.remove('show');
       const idx = Math.floor(Math.random()*available.length);
       const winner = available[idx];
       const spinList = buildSpinList(winner);
@@ -192,8 +195,9 @@
       reel.style.transform='translateY(' + targetY + 'px)';
       setTimeout(()=>{
         spinning=false; currentWinner=winner; renderReel(spinList, winner.ticket_id); reel.style.transition='none'; reel.style.transform='translateY(' + targetY + 'px)';
-        $('winnerName').textContent=nameOf(winner); $('winnerInfo').textContent=(winner.ticket_id||'') + ' · ' + (winner.city||'') + ' · ' + prizeName(); $('winnerBox').classList.add('show'); $('announceBtn').disabled=false;
+        $('winnerName').textContent=nameOf(winner); $('winnerInfo').textContent=(winner.ticket_id||'') + ' · ' + (winner.city||'') + ' · ' + prizeName(); $('winnerBox').classList.add('show');
         playVictoryMusic();
+        announceWinnerAuto(winner);
         const winnerKey = winner.ticket_id || winner.phone;
         wonKeys.add(winnerKey);
         sessionStorage.setItem('raffle_won_keys_v1', JSON.stringify(Array.from(wonKeys)));
@@ -204,30 +208,35 @@
       }, 5750);
     }
 
-    async function announce(){
-      if(!currentWinner) return;
-      $('announceBtn').disabled=true; $('announceBtn').textContent='იგზავნება...';
+    async function announceWinnerAuto(winner){
+      if(!winner) return;
       try{
-        const res = await api({action:'announce_raffle_winner', pin:$('pin').value.trim(), checked_only:$('checkedOnly').value, ticket_id:currentWinner.ticket_id, phone:currentWinner.phone, prize_name:prizeName()});
-        if(!res.ok) throw new Error(res.error || 'გამოცხადება ვერ გაიგზავნა');
-        msg('გამარჯვებული გამოცხადდა. მონაწილეებზე SMS: ' + (res.participant_sent || res.sent || 0) + ' · ადმინებზე SMS: ' + (res.admin_sent || 0));
-      }catch(e){ msg(e.message || String(e),'err'); $('announceBtn').disabled=false; }
-      finally{ $('announceBtn').textContent='SMS გამოცხადება'; }
+        msg('გამარჯვებული დაფიქსირდა — SMS ავტომატურად იგზავნება...', 'ok');
+        const res = await api({
+          action:'announce_raffle_winner',
+          pin:$('pin').value.trim(),
+          checked_only:$('checkedOnly').value,
+          ticket_id:winner.ticket_id,
+          phone:winner.phone,
+          prize_name:prizeName()
+        });
+        if(!res.ok) throw new Error(res.error || 'SMS ავტომატურად ვერ გაიგზავნა');
+        msg('SMS ავტომატურად გაიგზავნა · მონაწილეები: ' + (res.participant_sent || res.sent || 0) + ' · ადმინები: ' + (res.admin_sent || 0));
+      }catch(e){
+        msg('გამარჯვებული გამოვლინდა, მაგრამ SMS-ზე შეცდომაა: ' + (e.message || String(e)), 'err');
+      }
     }
-
 
     function clearScreen(){
       // ეკრანის გასუფთავება შლის მხოლოდ ვიზუალურ ისტორიას.
       // wonKeys რჩება sessionStorage-ში, ამიტომ უკვე გამოვლენილი წარმომადგენელი მეორედ აღარ ამოვარდება.
       if(spinning) return;
       currentWinner = null;
-      $('announceBtn').disabled = true;
       $('winnerBox').classList.remove('show');
       $('winnerName').textContent = '—';
       $('winnerInfo').textContent = '—';
       clearMsg();
 
-      // ქვედა ისტორიის ვიზუალური გასუფთავება
       winners.length = 0;
       sessionStorage.removeItem('raffle_winners_v1');
       renderHistory();
@@ -244,7 +253,7 @@
     }
 
     function renderHistory(){ const box=$('historyList'); if(!winners.length){box.innerHTML='<div style="color:var(--dim);font-size:12px;text-align:center;padding:10px">ჯერ გამარჯვებული არ არის</div>';return;} box.innerHTML=winners.slice().reverse().map(w=>'<div class="history-item"><b>'+escapeHtml(w.name)+'</b><span>'+escapeHtml(w.prize||'პრიზი')+'</span></div>').join(''); }
-    $('loadBtn').addEventListener('click', loadAll); $('spinBtn').addEventListener('click', spin); $('announceBtn').addEventListener('click', announce); $('clearScreenBtn').addEventListener('click', clearScreen); renderHistory(); updateStats(); renderReel([{first_name:'მონაწილეები',last_name:'იტრიალებს',ticket_id:'FARMASI 2026'}]);
+    $('loadBtn').addEventListener('click', loadAll); $('spinBtn').addEventListener('click', spin); $('clearScreenBtn').addEventListener('click', clearScreen); renderHistory(); updateStats(); renderReel([{first_name:'მონაწილეები',last_name:'იტრიალებს',ticket_id:'FARMASI 2026'}]);
   </script>
 </body>
 </html>
