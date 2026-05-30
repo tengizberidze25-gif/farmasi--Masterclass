@@ -6099,7 +6099,14 @@
       .spin-slot-name { font-size: 22px; }
     }
 
-  </style>
+  
+    /* Patch: real CSS-based 360° rotation for the existing Farmasi giveaway wheel */
+    #spinWheelCanvas {
+      will-change: transform;
+      transform-origin: 50% 50%;
+    }
+
+</style>
 </head>
 <body>
   <div class="bg-photo"></div>
@@ -8244,7 +8251,7 @@
     // ============= REGISTRATION REAL 360 WHEEL =============
     let spinWheelNames = [];
     let spinWheelBusy = false;
-    let spinWheelRotation = 0; // radians, real circular wheel rotation
+    let spinWheelRotationDeg = 0; // real CSS 360° rotation
 
     function normalizeSpinWheelNames(items) {
       const seen = new Set();
@@ -8262,26 +8269,36 @@
     function resizeSpinCanvas() {
       const canvas = els.spinWheelCanvas;
       const wrap = els.spinWheelCard ? els.spinWheelCard.querySelector(".spin-wheel-wrap") : null;
-      if (!canvas || !wrap) return;
+      if (!canvas || !wrap) return 360;
+
       const size = Math.max(280, Math.round(wrap.getBoundingClientRect().width || 360));
       const dpr = Math.max(1, window.devicePixelRatio || 1);
-      canvas.width = Math.round(size * dpr);
-      canvas.height = Math.round(size * dpr);
-      canvas.style.width = size + "px";
-      canvas.style.height = size + "px";
-      const ctx = canvas.getContext("2d");
-      if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      if (canvas.__spinSize !== size || canvas.__spinDpr !== dpr) {
+        canvas.__spinSize = size;
+        canvas.__spinDpr = dpr;
+        canvas.width = Math.round(size * dpr);
+        canvas.height = Math.round(size * dpr);
+        canvas.style.width = size + "px";
+        canvas.style.height = size + "px";
+
+        const ctx = canvas.getContext("2d");
+        if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      return size;
     }
 
     function drawSpinWheel() {
       const canvas = els.spinWheelCanvas;
       if (!canvas) return;
-      resizeSpinCanvas();
+
+      const size = resizeSpinCanvas();
       const ctx = canvas.getContext("2d");
-      const size = parseFloat(canvas.style.width) || 360;
       const cx = size / 2;
       const cy = size / 2;
       const r = size * 0.47;
+
       ctx.clearRect(0, 0, size, size);
 
       if (!spinWheelNames.length) {
@@ -8301,15 +8318,16 @@
 
       const n = spinWheelNames.length;
       const arc = (Math.PI * 2) / n;
-      const startBase = -Math.PI / 2 - arc / 2 + spinWheelRotation;
+      const startBase = -Math.PI / 2 - arc / 2;
 
       for (let i = 0; i < n; i++) {
         const a0 = startBase + i * arc;
         const a1 = a0 + arc;
         const hue = (340 + i * (360 / Math.max(1, n))) % 360;
+
         const grd = ctx.createRadialGradient(cx, cy, size * 0.08, cx, cy, r);
-        grd.addColorStop(0, i % 2 ? "rgba(255,96,117,0.72)" : "rgba(232,196,104,0.72)");
-        grd.addColorStop(1, `hsla(${hue}, 52%, 30%, 0.95)`);
+        grd.addColorStop(0, i % 2 ? "rgba(255,96,117,0.86)" : "rgba(232,196,104,0.86)");
+        grd.addColorStop(1, `hsla(${hue}, 56%, ${i % 2 ? 31 : 25}%, 0.98)`);
 
         ctx.beginPath();
         ctx.moveTo(cx, cy);
@@ -8317,8 +8335,9 @@
         ctx.closePath();
         ctx.fillStyle = grd;
         ctx.fill();
-        ctx.strokeStyle = "rgba(245,217,138,0.55)";
-        ctx.lineWidth = 1.2;
+
+        ctx.strokeStyle = "rgba(245,217,138,0.62)";
+        ctx.lineWidth = 1.3;
         ctx.stroke();
 
         ctx.save();
@@ -8327,37 +8346,54 @@
         ctx.textAlign = "right";
         ctx.textBaseline = "middle";
         ctx.fillStyle = "#fff4cf";
-        ctx.shadowColor = "rgba(0,0,0,0.70)";
-        ctx.shadowBlur = 8;
-        ctx.font = `700 ${n > 18 ? 10 : n > 10 ? 12 : 15}px Noto Serif Georgian, serif`;
+        ctx.shadowColor = "rgba(0,0,0,0.85)";
+        ctx.shadowBlur = 9;
+        ctx.font = `700 ${n > 25 ? 9 : n > 18 ? 10 : n > 10 ? 12 : 15}px Noto Serif Georgian, serif`;
         const name = spinWheelNames[i];
-        const maxLen = n > 18 ? 18 : n > 10 ? 22 : 30;
+        const maxLen = n > 25 ? 15 : n > 18 ? 17 : n > 10 ? 21 : 30;
         const label = name.length > maxLen ? name.slice(0, maxLen - 1) + "…" : name;
         ctx.fillText(label, r - 18, 0);
         ctx.restore();
       }
 
-      // outer ring
       ctx.save();
+
+      // Outer luxury rings
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(245,217,138,0.95)";
-      ctx.lineWidth = 3;
+      ctx.strokeStyle = "rgba(245,217,138,0.98)";
+      ctx.lineWidth = 3.2;
       ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, r - 9, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(255,96,117,0.28)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Center cover, keeps Farmasi-style premium circle
       ctx.beginPath();
       ctx.arc(cx, cy, size * 0.105, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(10,8,8,0.92)";
+      ctx.fillStyle = "rgba(10,8,8,0.94)";
       ctx.fill();
-      ctx.strokeStyle = "rgba(245,217,138,0.85)";
+      ctx.strokeStyle = "rgba(245,217,138,0.9)";
       ctx.lineWidth = 2;
       ctx.stroke();
+
       ctx.restore();
     }
 
     function renderSpinWheel(items) {
       spinWheelNames = normalizeSpinWheelNames(items);
-      spinWheelRotation = 0;
+      spinWheelRotationDeg = 0;
+
       if (!els.spinWheelCard) return;
+
+      if (els.spinWheelCanvas) {
+        els.spinWheelCanvas.style.transition = "none";
+        els.spinWheelCanvas.style.transform = "rotate(0deg)";
+        els.spinWheelCanvas.offsetHeight; // force reset
+      }
 
       if (!spinWheelNames.length) {
         els.spinWheelResult.innerHTML = `<span class="spin-wheel-empty">ჯერ რეგისტრაცია არ არის — კრუგი გამოჩნდება რეგისტრაციის შემდეგ</span>`;
@@ -8366,179 +8402,143 @@
         if (els.spinWheelBtn) els.spinWheelBtn.disabled = false;
         els.spinWheelResult.textContent = `კრუგშია ${spinWheelNames.length} მონაწილე`;
       }
+
       drawSpinWheel();
     }
 
-    function playVictoryMusic() {
+    function ensureWheelAudioCtx() {
       try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return;
-        const ctx = window.__victoryAudioCtx || new AudioCtx();
-        window.__victoryAudioCtx = ctx;
+        if (!AudioCtx) return null;
+        const ctx = window.__farmasiWheelAudioCtx || new AudioCtx();
+        window.__farmasiWheelAudioCtx = ctx;
         if (ctx.state === "suspended") ctx.resume();
-
-        const master = ctx.createGain();
-        master.gain.setValueAtTime(0.0001, ctx.currentTime);
-        master.gain.exponentialRampToValueAtTime(0.28, ctx.currentTime + 0.03);
-        master.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 3.6);
-        master.connect(ctx.destination);
-
-        const melody = [523.25, 659.25, 783.99, 1046.5, 987.77, 1046.5, 1174.66, 1318.51, 1567.98];
-        melody.forEach((freq, i) => {
-          const t = ctx.currentTime + i * 0.16;
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = "triangle";
-          osc.frequency.setValueAtTime(freq, t);
-          gain.gain.setValueAtTime(0.0001, t);
-          gain.gain.exponentialRampToValueAtTime(0.20, t + 0.025);
-          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
-          osc.connect(gain);
-          gain.connect(master);
-          osc.start(t);
-          osc.stop(t + 0.18);
-        });
-
-        [261.63, 329.63, 392.0, 523.25].forEach((freq) => {
-          const t = ctx.currentTime + 1.55;
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = "sine";
-          osc.frequency.setValueAtTime(freq, t);
-          gain.gain.setValueAtTime(0.0001, t);
-          gain.gain.exponentialRampToValueAtTime(0.13, t + 0.05);
-          gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.5);
-          osc.connect(gain);
-          gain.connect(master);
-          osc.start(t);
-          osc.stop(t + 1.6);
-        });
-      } catch (e) {}
+        return ctx;
+      } catch (e) {
+        return null;
+      }
     }
 
+    function wheelTone(freq, dur, vol, type) {
+      const ctx = ensureWheelAudioCtx();
+      if (!ctx) return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type || "square";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(vol || 0.04, ctx.currentTime + 0.006);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + dur + 0.015);
+    }
 
+    function startWheelSpinSound(totalMs) {
+      let interval = 38;
+      let elapsed = 0;
+      let stopped = false;
+      let timer = null;
 
-    function startWheelSpinSound() {
-      try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return { stop: function(){} };
-        const ctx = window.__wheelSpinAudioCtx || new AudioCtx();
-        window.__wheelSpinAudioCtx = ctx;
-        if (ctx.state === "suspended") ctx.resume();
+      function tick() {
+        if (stopped) return;
+        wheelTone(1050 + Math.random() * 340, 0.026, 0.035, "square");
+        elapsed += interval;
 
-        const master = ctx.createGain();
-        master.gain.setValueAtTime(0.0001, ctx.currentTime);
-        master.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.08);
-        master.connect(ctx.destination);
-
-        const whirr = ctx.createOscillator();
-        const whirrGain = ctx.createGain();
-        whirr.type = "sawtooth";
-        whirr.frequency.setValueAtTime(95, ctx.currentTime);
-        whirrGain.gain.setValueAtTime(0.025, ctx.currentTime);
-        whirr.connect(whirrGain);
-        whirrGain.connect(master);
-        whirr.start();
-
-        let tickDelay = 55;
-        let stopped = false;
-        let tickTimer = null;
-
-        function playTick() {
-          if (stopped) return;
-          const t = ctx.currentTime;
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = "square";
-          osc.frequency.setValueAtTime(900 + Math.random() * 240, t);
-          gain.gain.setValueAtTime(0.0001, t);
-          gain.gain.exponentialRampToValueAtTime(0.10, t + 0.006);
-          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
-          osc.connect(gain);
-          gain.connect(master);
-          osc.start(t);
-          osc.stop(t + 0.045);
-          tickTimer = setTimeout(playTick, tickDelay);
+        if (elapsed < totalMs) {
+          const p = elapsed / totalMs;
+          interval = 38 + p * 245; // fast at first, slower near the end
+          timer = setTimeout(tick, interval);
         }
-        playTick();
-
-        return {
-          setProgress: function(progress) {
-            const p = Math.max(0, Math.min(1, progress || 0));
-            tickDelay = 45 + Math.round(185 * Math.pow(p, 1.7));
-            try {
-              whirr.frequency.setTargetAtTime(150 - 75 * p, ctx.currentTime, 0.04);
-              whirrGain.gain.setTargetAtTime(0.03 * (1 - p) + 0.008, ctx.currentTime, 0.06);
-            } catch (e) {}
-          },
-          stop: function() {
-            if (stopped) return;
-            stopped = true;
-            if (tickTimer) clearTimeout(tickTimer);
-            try {
-              master.gain.cancelScheduledValues(ctx.currentTime);
-              master.gain.setValueAtTime(Math.max(master.gain.value || 0.001, 0.001), ctx.currentTime);
-              master.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.25);
-              whirr.stop(ctx.currentTime + 0.28);
-            } catch (e) {}
-            setTimeout(function(){ try { master.disconnect(); } catch(e){} }, 450);
-          }
-        };
-      } catch (e) {
-        return { stop: function(){}, setProgress: function(){} };
       }
+
+      tick();
+
+      return {
+        stop: function() {
+          stopped = true;
+          if (timer) clearTimeout(timer);
+        }
+      };
+    }
+
+    function playVictoryMusic() {
+      // The user-approved style: ding + applause imitation + short fanfare
+      wheelTone(1200, 0.16, 0.055, "triangle");
+
+      let t = 220;
+      for (let i = 0; i < 32; i++) {
+        setTimeout(function() {
+          wheelTone(500 + Math.random() * 1300, 0.032, 0.022, "triangle");
+        }, t);
+        t += 48 + Math.random() * 25;
+      }
+
+      setTimeout(function() {
+        wheelTone(780, 0.16, 0.055, "triangle");
+        setTimeout(function(){ wheelTone(980, 0.16, 0.055, "triangle"); }, 170);
+        setTimeout(function(){ wheelTone(1280, 0.20, 0.06, "triangle"); }, 340);
+        setTimeout(function(){ wheelTone(1680, 0.45, 0.065, "triangle"); }, 540);
+      }, 1750);
     }
 
     function spinRegistrationWheel() {
-      if (spinWheelBusy || !spinWheelNames.length) return;
+      if (spinWheelBusy || !spinWheelNames.length || !els.spinWheelCanvas) return;
+
       spinWheelBusy = true;
       if (els.spinWheelBtn) els.spinWheelBtn.disabled = true;
-      if (els.spinWheelCanvas) els.spinWheelCanvas.classList.add("is-spinning");
-      els.spinWheelResult.textContent = "კრუგი ტრიალებს...";
-      const spinSound = startWheelSpinSound();
 
       const n = spinWheelNames.length;
-      const arc = (Math.PI * 2) / n;
+      const segmentDeg = 360 / n;
       const winnerIndex = Math.floor(Math.random() * n);
+
+      // The first sector is centered at 12 o'clock. To put winner at pointer:
+      // rotate the whole wheel by -winnerIndex * segmentDeg, plus many full 360° turns.
+      const fullSpins = 14 + Math.floor(Math.random() * 5);
+      const safeJitter = (Math.random() - 0.5) * segmentDeg * 0.36;
+      const startRotation = spinWheelRotationDeg;
+      const endRotation = startRotation + fullSpins * 360 - winnerIndex * segmentDeg + safeJitter;
+
+      els.spinWheelResult.textContent = "კრუგი ტრიალებს...";
+      els.spinWheelCanvas.classList.add("is-spinning");
+
+      // Redraw static wheel once, then rotate the real canvas element.
+      drawSpinWheel();
+      els.spinWheelCanvas.style.transition = "none";
+      els.spinWheelCanvas.style.transform = `rotate(${startRotation}deg)`;
+      els.spinWheelCanvas.offsetHeight; // force browser to apply starting rotation
+
       const duration = 10000;
-      const start = performance.now();
-      const startRotation = spinWheelRotation;
-      const fullSpins = 16 + Math.floor(Math.random() * 6); // fast 360° rotations
-      const targetRotation = fullSpins * Math.PI * 2 - winnerIndex * arc;
-      const endRotation = startRotation + targetRotation;
+      const spinSound = startWheelSpinSound(duration);
 
-      function easeOutCubic(t) {
-        return 1 - Math.pow(1 - t, 3);
-      }
+      requestAnimationFrame(function() {
+        els.spinWheelCanvas.style.transition = "transform 10s cubic-bezier(0.08, 0.82, 0.16, 1)";
+        els.spinWheelCanvas.style.transform = `rotate(${endRotation}deg)`;
+      });
 
-      function animate(now) {
-        const progress = Math.min(1, (now - start) / duration);
-        const eased = easeOutCubic(progress);
-        if (spinSound && spinSound.setProgress) spinSound.setProgress(progress);
-        spinWheelRotation = startRotation + (endRotation - startRotation) * eased;
-        drawSpinWheel();
+      window.setTimeout(function() {
+        spinWheelRotationDeg = ((endRotation % 360) + 360) % 360;
 
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-          return;
-        }
-
-        spinWheelRotation = endRotation % (Math.PI * 2);
-        drawSpinWheel();
         if (spinSound && spinSound.stop) spinSound.stop();
-        if (els.spinWheelCanvas) els.spinWheelCanvas.classList.remove("is-spinning");
+
+        els.spinWheelCanvas.classList.remove("is-spinning");
+        els.spinWheelCanvas.style.transition = "none";
+        els.spinWheelCanvas.style.transform = `rotate(${spinWheelRotationDeg}deg)`;
+
         els.spinWheelResult.innerHTML = `გამარჯვებულია:<strong>${escapeHtml(spinWheelNames[winnerIndex])}</strong>`;
+
         spinWheelBusy = false;
         if (els.spinWheelBtn) els.spinWheelBtn.disabled = false;
+
         playVictoryMusic();
+
         try {
           if (window.confetti) {
-            confetti({ particleCount: 180, spread: 82, origin: { y: 0.62 } });
+            confetti({ particleCount: 190, spread: 86, origin: { y: 0.62 } });
           }
         } catch (e) {}
-      }
-
-      requestAnimationFrame(animate);
+      }, duration + 150);
     }
 
     function renderLastRegistrations(items) {
