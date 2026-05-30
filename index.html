@@ -8672,25 +8672,24 @@
   const winnerIndex = Math.floor(Math.random() * n);
 
   // 1. დრო შევამცირეთ 5 წამამდე (10 წამი ძალიან ნელი იყო)
-  const duration = 5000; 
+  const duration = 6500;
   const start = performance.now();
   const startRotation = spinWheelRotation;
+  const fullSpins = 14 + Math.floor(Math.random() * 5);
 
-  // 2. ბრუნების რაოდენობა (გავზარდეთ სიჩქარისთვის): მინიმუმ 10, მაქსიმუმ 14 სრული წრე
-  const fullSpins = 10 + Math.floor(Math.random() * 4);
+  const targetRotation =
+    fullSpins * Math.PI * 2 -
+    winnerIndex * arc;
 
-  // გათვლილი კუთხე, რომ გამარჯვებული ზუსტად ცენტრში (ისართან) დაჯდეს
-  const targetRotation = fullSpins * Math.PI * 2 - winnerIndex * arc;
   const endRotation = startRotation + targetRotation;
 
-  // 3. ახალი ფორმულა (easeOutQuart): მომენტალური სტარტი და ძალიან რბილი, კინემატოგრაფიული შენელება
-  function easeOutQuart(t) {
-    return 1 - Math.pow(1 - t, 4);
+  function easeOutQuint(t) {
+    return 1 - Math.pow(1 - t, 5);
   }
 
   function animate(now) {
     const progress = Math.min(1, (now - start) / duration);
-    const eased = easeOutQuart(progress); // ვიყენებთ ახალ ფორმულას
+    const eased = easeOutQuint(progress); // ვიყენებთ ახალ ფორმულას
 
     if (spinSound && spinSound.setProgress) {
       spinSound.setProgress(progress);
