@@ -8680,6 +8680,10 @@
   const targetRotation =
     fullSpins * Math.PI * 2 -
     winnerIndex * arc;
+    
+  console.log("spin clicked", spinWheelNames, winnerIndex);
+  console.log("canvas", els.spinWheelCanvas);
+  console.log("result", els.spinWheelResult);
 
   const endRotation = startRotation + targetRotation;
 
