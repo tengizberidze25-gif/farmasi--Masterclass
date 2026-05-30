@@ -79,6 +79,56 @@
     const winners = JSON.parse(sessionStorage.getItem('raffle_winners_v1') || '[]');
     const $ = id => document.getElementById(id);
 
+    // გამარჯვების მუსიკა — მუშაობს ფაილის გარეშე Web Audio API-ით.
+    // ბრაუზერი ხმას დაუშვებს, რადგან spin ღილაკზე user click უკვე იყო.
+    let audioCtx = null;
+    function playVictoryMusic(){
+      try{
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const now = audioCtx.currentTime;
+        const master = audioCtx.createGain();
+        master.gain.setValueAtTime(0.0001, now);
+        master.gain.exponentialRampToValueAtTime(0.18, now + 0.04);
+        master.gain.exponentialRampToValueAtTime(0.0001, now + 3.2);
+        master.connect(audioCtx.destination);
+
+        const notes = [523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5, 1318.51];
+        notes.forEach((freq, i)=>{
+          const t = now + i * 0.22;
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = i < 3 ? 'triangle' : 'sine';
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.0001, t);
+          gain.gain.exponentialRampToValueAtTime(0.7, t + 0.025);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.42);
+          osc.connect(gain);
+          gain.connect(master);
+          osc.start(t);
+          osc.stop(t + 0.46);
+        });
+
+        // პატარა fanfare bass
+        [130.81, 196.0, 261.63].forEach((freq, i)=>{
+          const t = now + 0.08 + i * 0.38;
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.0001, t);
+          gain.gain.exponentialRampToValueAtTime(0.35, t + 0.04);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.8);
+          osc.connect(gain);
+          gain.connect(master);
+          osc.start(t);
+          osc.stop(t + 0.85);
+        });
+      }catch(e){
+        console.warn('Victory music blocked/unavailable:', e);
+      }
+    }
+
     function msg(text, type='ok') { const el=$('msg'); el.textContent=text; el.className='message show ' + (type==='err'?'err':'ok'); }
     function clearMsg(){ $('msg').className='message'; $('msg').textContent=''; }
     function nameOf(p){ return [p.first_name,p.last_name].filter(Boolean).join(' ').trim() || p.ticket_id || 'მონაწილე'; }
@@ -143,6 +193,7 @@
       setTimeout(()=>{
         spinning=false; currentWinner=winner; renderReel(spinList, winner.ticket_id); reel.style.transition='none'; reel.style.transform='translateY(' + targetY + 'px)';
         $('winnerName').textContent=nameOf(winner); $('winnerInfo').textContent=(winner.ticket_id||'') + ' · ' + (winner.city||'') + ' · ' + prizeName(); $('winnerBox').classList.add('show'); $('announceBtn').disabled=false;
+        playVictoryMusic();
         available = available.filter(p=>(p.ticket_id||p.phone)!==(winner.ticket_id||winner.phone));
         winners.push({ticket_id:winner.ticket_id, phone:winner.phone, name:nameOf(winner), prize:prizeName(), time:new Date().toISOString()});
         sessionStorage.setItem('raffle_winners_v1', JSON.stringify(winners)); updateStats(); renderHistory();
@@ -156,7 +207,7 @@
       try{
         const res = await api({action:'announce_raffle_winner', pin:$('pin').value.trim(), checked_only:$('checkedOnly').value, ticket_id:currentWinner.ticket_id, phone:currentWinner.phone, prize_name:prizeName()});
         if(!res.ok) throw new Error(res.error || 'გამოცხადება ვერ გაიგზავნა');
-        msg('გამარჯვებული გამოცხადდა. SMS გაგზავნილია: ' + (res.sent || 0));
+        msg('გამარჯვებული გამოცხადდა. მონაწილეებზე SMS: ' + (res.participant_sent || res.sent || 0) + ' · ადმინებზე SMS: ' + (res.admin_sent || 0));
       }catch(e){ msg(e.message || String(e),'err'); $('announceBtn').disabled=false; }
       finally{ $('announceBtn').textContent='SMS გამოცხადება'; }
     }
