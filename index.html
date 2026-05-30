@@ -10465,11 +10465,15 @@
 
             // 360° ეფექტი: ტრიალისას თითო სახელი rotateX-ით სრულ ბრუნვებს აკეთებს.
             const rotate = finalMode ? (offset === 0 ? 0 : offset * -52) : (-(phase * 360) + offset * 38);
-            box.style.transition = finalMode ? 'transform .45s cubic-bezier(.16,1,.3,1), opacity .35s ease, filter .35s ease' : 'none';
-            box.style.transform = 'translateY(' + y + 'px) rotateX(' + rotate + 'deg) scale(' + scale + ')';
-            box.style.opacity = opacity;
-            box.style.filter = 'blur(' + blur + 'px)';
             box.classList.toggle('active', offset === 0);
+
+            // IMPORTANT: CSS-ში prev/next/active კლასებს transform-ზე !important ჰქონდა,
+            // ამიტომ ჩვეულებრივი inline style არ მოქმედებდა და ვიზუალურად არ ტრიალებდა.
+            // setProperty(..., 'important') რეალურად აძრავს ბლოკებს ყოველ კადრზე.
+            box.style.setProperty('transition', finalMode ? 'transform .45s cubic-bezier(.16,1,.3,1), opacity .35s ease, filter .35s ease' : 'none', 'important');
+            box.style.setProperty('transform', 'translateY(' + y + 'px) rotateX(' + rotate + 'deg) scale(' + scale + ')', 'important');
+            box.style.setProperty('opacity', String(opacity), 'important');
+            box.style.setProperty('filter', 'blur(' + blur + 'px)', 'important');
           });
         }
 
