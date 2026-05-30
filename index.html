@@ -9095,7 +9095,14 @@
         renderSchedule(data.config || {});
         renderFAQ(data.config || {});
         renderLastRegistrations(data.lastRegistrations || []);
-        renderSpinWheel(data.allRegistrations || data.registrations || data.lastRegistrations || []);
+        // Pick the first NON-EMPTY list for the giveaway wheel.
+        // Empty arrays are truthy in JavaScript, so `data.allRegistrations || ...` could pass []
+        // and disable the spin button even when lastRegistrations contains people.
+        const farmasiWheelItems =
+          (Array.isArray(data.allRegistrations) && data.allRegistrations.length ? data.allRegistrations :
+          (Array.isArray(data.registrations) && data.registrations.length ? data.registrations :
+          (Array.isArray(data.lastRegistrations) && data.lastRegistrations.length ? data.lastRegistrations : [])));
+        renderSpinWheel(farmasiWheelItems);
 
         // Build inline bus grid on first data load + update state
         if (!ticketBusGridBuilt) {
