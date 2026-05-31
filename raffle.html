@@ -781,25 +781,6 @@
         ctx.fillStyle = grad;
         ctx.fill();
 
-        const logo = new Image();
-        logo.src = 'farmasi.png';
-
-        logo.onload = () => {
-          ctx.save();
-
-          ctx.beginPath();
-          ctx.arc(centerX, centerY, 28, 0, Math.PI * 2);
-          ctx.clip();
-
-          ctx.drawImage(
-            logo,
-            centerX - 22,
-            centerY - 22,
-            44,
-            44
-          );
-
-          ctx.restore();
         };
 
         ctx.strokeStyle = 'rgba(55,20,15,.32)';
@@ -1134,8 +1115,8 @@
       const n = wheelItems.length;
       const arcDeg = 360 / n;
       const winnerCenterDeg = -90 + winnerIndex * arcDeg + arcDeg / 2;
-      const pointerDeg = -90;
-      const fullSpins = 8 + Math.floor(Math.random() * 4);
+      const pointerDeg = 0;
+      const fullSpins = 11 + Math.floor(Math.random() * 3);
       const currentMod = ((wheelRotation % 360) + 360) % 360;
       const finalRotation = wheelRotation + fullSpins * 360 + (pointerDeg - winnerCenterDeg) - currentMod;
       const duration = 6800;
