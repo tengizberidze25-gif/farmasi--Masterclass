@@ -531,14 +531,28 @@
       position: absolute;
       left: 50%;
       top: 50%;
-      width: 68px;
-      height: 68px;
+      width: 82px;
+      height: 82px;
       transform: translate(-50%, -50%);
       border-radius: 50%;
       z-index: 4;
+
       background: radial-gradient(circle, #282021, #080405);
+
       border: 4px solid #fff3c7;
-      box-shadow: 0 0 18px rgba(0, 0, 0, .7), inset 0 0 10px rgba(255, 255, 255, .08)
+
+      box-shadow:
+        0 0 18px rgba(0,0,0,.7),
+        inset 0 0 10px rgba(255,255,255,.08);
+
+      overflow: hidden;
+    }
+
+    .wheel-center::after {
+      content: '';
+      position: absolute;
+      inset: 12px;
+      background: url('farmasi.png') center center / contain no-repeat;
     }
 
     @media(max-width:420px) {
