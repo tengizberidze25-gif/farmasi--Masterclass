@@ -618,7 +618,7 @@
       window.__raffleWheelRotation = finalRotation;
 
       const duration = 10500;
-      const spinSound = (typeof startWheelSpinSound === 'function') ? startWheelSpinSound() : null;
+      const spinSound = startSpinTickSound(duration);
 
       canvas.style.transition = 'none';
       canvas.style.transform = 'rotate(' + ((window.__raffleWheelRotation || 0) % 360) + 'deg)';
