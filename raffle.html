@@ -1123,6 +1123,7 @@
         }
         playVictoryMusic();
 
+        console.log("ANNOUNCE:", nameOf(winner));
         announceWinner(nameOf(winner));
 
         announceWinnerAuto(winner, pickedPrize);
@@ -1281,13 +1282,13 @@
 
     function announceWinner(name){
       try{
-        const text = `ყურადღება! დღევანდელი გათამაშების გამარჯვებულია... ${name}. გილოცავთ!`;
+        const text = "Winner is " + name;
 
         speechSynthesis.cancel();
 
         const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = 'ka-GE';
-        utter.rate = 0.9;
+        utter.lang = 'en-US';
+        utter.rate = 0.85;
         utter.pitch = 1.0;
         utter.volume = 1.0;
 
