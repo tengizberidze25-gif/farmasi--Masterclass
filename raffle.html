@@ -832,7 +832,7 @@
         const now = audioCtx.currentTime;
         const master = audioCtx.createGain();
         master.gain.setValueAtTime(0.0001, now);
-        master.gain.exponentialRampToValueAtTime(0.45, now + 0.08);
+        master.gain.exponentialRampToValueAtTime(0.85, now + 0.08);
         master.gain.exponentialRampToValueAtTime(0.0001, now + 4.8);
         master.connect(audioCtx.destination);
 
@@ -855,24 +855,28 @@
 
         // sparkle intro
         [1568, 1760, 2093, 2349, 2637].forEach((f, i) => {
-          tone(f, now + i * 0.08, 0.16, 'sine', 0.22);
+          tone(f, now + i * 0.08, 0.16, 'sine', 0.35);
         });
 
         // jackpot rise
         [
           [523, .45], [659, .65], [784, .85],
           [1046, 1.08], [1318, 1.35], [1568, 1.65]
-        ].forEach(([f, t]) => tone(f, now + t, 0.28, 'triangle', 0.45));
+        ].forEach(([f, t]) => tone(f, now + t, 0.28, 'triangle', 0.65));
 
         // final golden chord
         [392, 523, 659, 784, 1046].forEach((f) => {
-          tone(f, now + 2.1, 2.2, 'sine', 0.32);
+          tone(f, now + 2.1, 2.2, 'sine', 0.55);
         });
 
         // soft bass impact
         [98, 147, 196].forEach((f) => {
-          tone(f, now + 2.05, 2.4, 'sine', 0.35);
+          tone(f, now + 2.05, 2.4, 'sine', 0.60);
         });
+        
+        // BIG WIN BOOM
+        tone(65, now + 2.0, 1.8, 'sawtooth', 0.8);
+        tone(85, now + 2.0, 1.6, 'triangle', 0.7);
 
       } catch (e) {
         console.warn("Victory sound error:", e);
