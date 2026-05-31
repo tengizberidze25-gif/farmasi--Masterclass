@@ -886,6 +886,13 @@
     function msg(text, type = 'ok') { const el = $('msg'); el.textContent = text; el.className = 'message show ' + (type === 'err' ? 'err' : 'ok'); }
     function clearMsg() { $('msg').className = 'message'; $('msg').textContent = ''; }
     function nameOf(p) { return [p.first_name, p.last_name].filter(Boolean).join(' ').trim() || p.ticket_id || 'მონაწილე'; }
+
+    function participantKey(p){
+      return String(
+        p.phone || ((p.first_name || '') + '_' + (p.last_name || ''))
+      ).trim().toLowerCase();
+    }
+
     function prizeName() { return ($('manualPrize').value || $('prizeSelect').value || '').trim(); }
     function selectedPrizeOrWarn() {
       const p = prizeName();
@@ -899,11 +906,11 @@
 
     function api(params) { const url = API_URL + '?' + new URLSearchParams(params).toString(); return fetch(url).then(r => r.json()); }
 
-    function uniqueByKey(list) {
+    function uniqueByKey(list){
       const seen = new Set();
 
       return (list || []).filter(p => {
-        const k = String(p.ticket_id || '').trim();
+        const k = participantKey(p);
 
         if (!k) return false;
         if (seen.has(k)) return false;
@@ -966,7 +973,7 @@
     function escapeHtml(s) { return String(s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
     function buildSpinList(winner) {
-      const winnerKey = winner.ticket_id || winner.phone;
+      const winnerKey = participantKey(winner);
       const base = (available.length ? available : participants)
         .filter(p => (p.ticket_id || p.phone) !== winnerKey);
 
@@ -989,7 +996,7 @@
         ]);
         if (!pool.ok) throw new Error(pool.error || 'მონაწილეები ვერ ჩაიტვირთა');
         participants = (pool.participants || []).filter(p => p.ticket_id || p.phone);
-        available = participants.filter(p => !wonKeys.has(p.ticket_id || p.phone));
+        available = uniqueByKey(participants).filter(p => !wonKeys.has(participantKey(p)));
         prizes = prizeRes && prizeRes.ok ? (prizeRes.prizes || []) : [];
         renderPrizes(); renderReel(uniqueByKey(available)); updateStats(); renderHistory();
         $('spinBtn').disabled = available.length < 1;
@@ -1129,7 +1136,7 @@
         announceWinnerAuto(winner, pickedPrize);
         wonKeys.add(winnerKey);
         sessionStorage.setItem('raffle_won_keys_v1', JSON.stringify(Array.from(wonKeys)));
-        available = available.filter(p => (p.ticket_id || p.phone) !== winnerKey);
+        available = available.filter(p => participantKey(p) !== winnerKey);
         winners.push({ ticket_id: winner.ticket_id, phone: winner.phone, name: nameOf(winner), prize: pickedPrize, time: new Date().toISOString() });
         sessionStorage.setItem('raffle_winners_v1', JSON.stringify(winners));
         updateStats();
@@ -1207,7 +1214,7 @@
 
       const idx = Math.floor(Math.random() * available.length);
       const winner = available[idx];
-      const winnerKey = winner.ticket_id || winner.phone;
+      const winnerKey = participantKey(winner);
       const wheelList = uniqueByKey(available);
       const winnerIndex = Math.max(0, wheelList.findIndex(p => (p.ticket_id || p.phone) === winnerKey));
 
@@ -1267,7 +1274,7 @@
 
         wonKeys.add(winnerKey);
         sessionStorage.setItem('raffle_won_keys_v1', JSON.stringify(Array.from(wonKeys)));
-        available = available.filter(p => (p.ticket_id || p.phone) !== winnerKey);
+        available = available.filter(p => participantKey(p) !== winnerKey);
 
         winners.push({ ticket_id: winner.ticket_id, phone: winner.phone, name: nameOf(winner), prize: pickedPrize, time: new Date().toISOString() });
         sessionStorage.setItem('raffle_winners_v1', JSON.stringify(winners));
