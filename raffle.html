@@ -832,7 +832,7 @@
         const now = audioCtx.currentTime;
         const master = audioCtx.createGain();
         master.gain.setValueAtTime(0.0001, now);
-        master.gain.exponentialRampToValueAtTime(0.85, now + 0.08);
+        master.gain.exponentialRampToValueAtTime(1.0, now + 0.08);
         master.gain.exponentialRampToValueAtTime(0.0001, now + 4.8);
         master.connect(audioCtx.destination);
 
@@ -875,8 +875,8 @@
         });
         
         // BIG WIN BOOM
-        tone(65, now + 2.0, 1.8, 'sawtooth', 0.8);
-        tone(85, now + 2.0, 1.6, 'triangle', 0.7);
+        tone(65, now + 2.0, 1.8, 'sawtooth', 1.0);
+        tone(85, now + 2.0, 1.6, 'triangle', 0.9);
 
       } catch (e) {
         console.warn("Victory sound error:", e);
@@ -1122,8 +1122,10 @@
           setTimeout(() => { if ($('winnerFullscreen')) $('winnerFullscreen').classList.remove('show'); }, 5200);
         }
         playVictoryMusic();
+
+        announceWinner(nameOf(winner));
+
         announceWinnerAuto(winner, pickedPrize);
-        const winnerKey = winner.ticket_id || winner.phone;
         wonKeys.add(winnerKey);
         sessionStorage.setItem('raffle_won_keys_v1', JSON.stringify(Array.from(wonKeys)));
         available = available.filter(p => (p.ticket_id || p.phone) !== winnerKey);
@@ -1275,6 +1277,25 @@
           setTimeout(() => confetti({ particleCount: 110, spread: 110, origin: { y: .5 } }), 350);
         }
       }, duration + 120);
+    }
+
+    function announceWinner(name){
+      try{
+        const text = `ყურადღება! დღევანდელი გათამაშების გამარჯვებულია... ${name}. გილოცავთ!`;
+
+        speechSynthesis.cancel();
+
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'ka-GE';
+        utter.rate = 0.9;
+        utter.pitch = 1.0;
+        utter.volume = 1.0;
+
+        speechSynthesis.speak(utter);
+
+      }catch(e){
+        console.warn("Speech error:", e);
+      }
     }
 
     $('loadBtn').addEventListener('click', loadAll); $('spinBtn').addEventListener('click', spin); $('clearScreenBtn').addEventListener('click', clearScreen); $('manualPrize').addEventListener('input', () => syncPrizeInputs('manual')); $('prizeSelect').addEventListener('change', () => syncPrizeInputs('select')); renderHistory(); updateStats(); renderReel([{ first_name: 'მონაწილეები', last_name: 'იტრიალებს', ticket_id: 'FARMASI 2026' }]);
