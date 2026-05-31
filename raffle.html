@@ -1320,18 +1320,11 @@
     function announceWinner(winner){
       try{
 
-        let firstName = '';
+        const fullName =
+          winner.voice_name ||
+          nameOf(winner);
 
-        if (typeof winner === 'object' && winner !== null) {
-          firstName =
-            winner.voice_name ||
-            winner.first_name ||
-            nameOf(winner).split(' ')[0];
-        } else {
-          firstName = String(winner).split(' ')[0];
-        }
-
-        const text = "Gamarjvebuli " + firstName;
+        const text = "The winner is " + fullName;
 
         speechSynthesis.cancel();
 
@@ -1343,7 +1336,7 @@
 
         speechSynthesis.speak(utter);
 
-      } catch(e){
+      }catch(e){
         console.warn("Speech error:", e);
       }
     }
