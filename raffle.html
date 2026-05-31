@@ -767,6 +767,27 @@
         ctx.fillStyle = grad;
         ctx.fill();
 
+        const logo = new Image();
+        logo.src = 'farmasi.png';
+
+        logo.onload = () => {
+          ctx.save();
+
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, 28, 0, Math.PI * 2);
+          ctx.clip();
+
+          ctx.drawImage(
+            logo,
+            centerX - 22,
+            centerY - 22,
+            44,
+            44
+          );
+
+          ctx.restore();
+        };
+
         ctx.strokeStyle = 'rgba(55,20,15,.32)';
         ctx.lineWidth = n > 35 ? 0.65 : 1.2;
         ctx.stroke();
