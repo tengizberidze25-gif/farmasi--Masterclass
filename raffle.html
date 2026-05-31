@@ -1144,7 +1144,7 @@
         playVictoryMusic();
 
         console.log("ANNOUNCE:", nameOf(winner));
-        announceWinner(nameOf(winner));
+        announceWinner(winner);
 
         announceWinnerAuto(winner, pickedPrize);
         wonKeys.add(winnerKey);
@@ -1295,7 +1295,7 @@
 
         playVictoryMusic();
         console.log("ANNOUNCE:", nameOf(winner));
-        announceWinner(nameOf(winner));
+        announceWinner(winner);
         announceWinnerAuto(winner, pickedPrize);
 
         wonKeys.add(winnerKey);
@@ -1315,9 +1315,20 @@
       }, duration + 120);
     }
 
-    function announceWinner(name){
+    function announceWinner(winner){
       try{
-        const firstName = String(name).split(' ')[0];
+
+        let firstName = '';
+
+        if (typeof winner === 'object' && winner !== null) {
+          firstName =
+            winner.voice_name ||
+            winner.first_name ||
+            nameOf(winner).split(' ')[0];
+        } else {
+          firstName = String(winner).split(' ')[0];
+        }
+
         const text = "Winner is " + firstName;
 
         speechSynthesis.cancel();
@@ -1330,7 +1341,7 @@
 
         speechSynthesis.speak(utter);
 
-      }catch(e){
+      } catch(e){
         console.warn("Speech error:", e);
       }
     }
