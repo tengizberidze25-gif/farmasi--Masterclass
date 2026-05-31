@@ -652,15 +652,57 @@
       padding-left: 10px;
       padding-right: 10px;
     }
+
+    /* Presentation mode */
+
+body.presentation-mode .wrap{
+  max-width:1200px;
+  display:grid;
+  grid-template-columns:420px 1fr;
+  gap:28px;
+  align-items:start;
+}
+
+body.presentation-mode .header{
+  grid-column:1 / -1;
+  text-align:center;
+}
+
+body.presentation-mode .controls{
+  width:100%;
+}
+
+body.presentation-mode .machine{
+  width:100%;
+}
+
+body.presentation-mode #wheelCanvas{
+  max-width:700px !important;
+}
+
+body.presentation-mode .history{
+  display:none;
+}
   </style>
 </head>
 
 <body>
   <div class="wrap">
     <div class="header">
-      <img src="farmasi-logo.png" class="logo" alt="Farmasi">
-      <div class="sub">სახელები ტრიალებს და გამარჯვებული ფიქსირდება შუა ხაზზე</div>
-    </div>
+
+  <img src="farmasi-logo.png" class="logo" alt="Farmasi">
+
+  <button class="btn btn-ghost"
+          id="layoutToggleBtn"
+          type="button">
+    დიდი ეკრანი
+  </button>
+
+  <div class="sub">
+    სახელების ტრიალება და გამარჯვებული ფიქსირდება...
+  </div>
+
+</div>
 
     <div class="card controls">
       <div class="row">
@@ -1339,6 +1381,19 @@
     }
 
     $('loadBtn').addEventListener('click', loadAll); $('spinBtn').addEventListener('click', spin); $('clearScreenBtn').addEventListener('click', clearScreen); $('manualPrize').addEventListener('input', () => syncPrizeInputs('manual')); $('prizeSelect').addEventListener('change', () => syncPrizeInputs('select')); renderHistory(); updateStats(); renderReel([{ first_name: 'მონაწილეები', last_name: 'იტრიალებს', ticket_id: 'FARMASI 2026' }]);
+    const layoutBtn = document.getElementById('layoutToggleBtn');
+
+if(layoutBtn){
+  layoutBtn.addEventListener('click', function(){
+
+    document.body.classList.toggle('presentation-mode');
+
+    this.textContent =
+      document.body.classList.contains('presentation-mode')
+        ? 'Admin რეჟიმი'
+        : 'დიდი ეკრანი';
+  });
+}
   </script>
 
   <div class="winner-fullscreen" id="winnerFullscreen" aria-live="polite">
