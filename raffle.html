@@ -287,42 +287,49 @@
         const now = audioCtx.currentTime;
         const master = audioCtx.createGain();
         master.gain.setValueAtTime(0.0001, now);
-        master.gain.exponentialRampToValueAtTime(0.16, now + 0.10);
-        master.gain.exponentialRampToValueAtTime(0.0001, now + 5.15);
+        master.gain.exponentialRampToValueAtTime(0.22, now + 0.08);
+        master.gain.exponentialRampToValueAtTime(0.0001, now + 4.8);
         master.connect(audioCtx.destination);
 
-        function note(freq, start, dur, type='triangle', vol=0.45){
+        function tone(freq, start, dur, type='triangle', vol=.35){
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
+
           osc.type = type;
           osc.frequency.setValueAtTime(freq, start);
+
           gain.gain.setValueAtTime(0.0001, start);
-          gain.gain.exponentialRampToValueAtTime(vol, start + 0.035);
+          gain.gain.exponentialRampToValueAtTime(vol, start + 0.025);
           gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+
           osc.connect(gain);
           gain.connect(master);
           osc.start(start);
           osc.stop(start + dur + 0.05);
         }
 
-        // Lower, warmer victory melody, not a sharp beep.
+        // sparkle intro
+        [1568, 1760, 2093, 2349, 2637].forEach((f, i) => {
+          tone(f, now + i * 0.08, 0.16, 'sine', 0.12);
+        });
+
+        // jackpot rise
         [
-          [392,.00,.42],[493.88,.26,.42],[587.33,.52,.48],
-          [783.99,.95,.62],[739.99,1.45,.34],[783.99,1.72,.62],
-          [587.33,2.25,.42],[659.25,2.52,.42],[783.99,2.80,.55],
-          [987.77,3.22,.74],[880.00,3.82,.38],[987.77,4.10,.92]
-        ].forEach((n,i)=>note(n[0], now+n[1], n[2], i>7?'sine':'triangle', 0.50));
+          [523, .45], [659, .65], [784, .85],
+          [1046, 1.08], [1318, 1.35], [1568, 1.65]
+        ].forEach(([f, t]) => tone(f, now + t, 0.28, 'triangle', 0.28));
 
-        // Soft bass body
-        [[98,.00,1.20],[146.83,.85,1.15],[196,1.70,1.20],[246.94,2.60,1.25],[293.66,3.55,1.40]]
-          .forEach(n=>{ note(n[0], now+n[1], n[2], 'sine', 0.22); note(n[0]*2, now+n[1]+0.03, n[2]*0.85, 'sine', 0.10); });
+        // final golden chord
+        [392, 523, 659, 784, 1046].forEach((f) => {
+          tone(f, now + 2.1, 2.2, 'sine', 0.18);
+        });
 
-        // Gentle sparkle
-        [0.35,0.85,1.35,2.05,2.75,3.35,4.05,4.65]
-          .forEach((t,i)=>note(1174.66 + (i%2)*293.66, now+t, 0.18, 'sine', 0.10));
-      }catch(e){
-        console.warn('Victory music blocked/unavailable:', e);
-      }
+        // soft bass impact
+        [98, 147, 196].forEach((f) => {
+          tone(f, now + 2.05, 2.4, 'sine', 0.22);
+       });
+
+     }catch(e){}
     }
 
     function msg(text, type='ok') { const el=$('msg'); el.textContent=text; el.className='message show ' + (type==='err'?'err':'ok'); }
@@ -448,28 +455,74 @@
       try{
         audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
         if(audioCtx.state === 'suspended') audioCtx.resume();
-        let stopped = false, delay = 34, elapsed = 0;
-        function tick(){
-          if(stopped) return;
-          const t = audioCtx.currentTime;
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = 'square';
-          osc.frequency.setValueAtTime(980 + Math.random()*420, t);
-          gain.gain.setValueAtTime(0.0001, t);
-          gain.gain.exponentialRampToValueAtTime(0.05, t + 0.006);
-          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
-          osc.connect(gain); gain.connect(audioCtx.destination);
-          osc.start(t); osc.stop(t + 0.045);
-          const p = Math.min(elapsed / duration, 1);
-          delay = 28 + Math.pow(p, 3.8) * 260;
-          elapsed += delay;
-          if(p < 1) spinTickTimer = setTimeout(tick, delay);
-        }
-        tick();
-        return { stop(){ stopped = true; if(spinTickTimer) clearTimeout(spinTickTimer); } };
-      }catch(e){ return { stop(){} }; }
+
+        const master = audioCtx.createGain();
+        master.gain.value = 0.18;
+        master.connect(audioCtx.destination);
+
+       const hum = audioCtx.createOscillator();
+       const humGain = audioCtx.createGain();
+       hum.type = 'sawtooth';
+       hum.frequency.value = 120;
+       humGain.gain.value = 0.025;
+       hum.connect(humGain);
+       humGain.connect(master);
+       hum.start();
+
+       let stopped = false;
+       let elapsed = 0;
+       let delay = 30;
+       let timer = null;
+
+    function tick(){
+      if(stopped) return;
+
+      const p = Math.min(elapsed / duration, 1);
+      const t = audioCtx.currentTime;
+
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(900 + Math.random() * 500, t);
+
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.09 * (1 - p * 0.45), t + 0.006);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
+
+      osc.connect(gain);
+      gain.connect(master);
+      osc.start(t);
+      osc.stop(t + 0.055);
+
+      hum.frequency.setTargetAtTime(150 - p * 75, t, 0.05);
+      humGain.gain.setTargetAtTime(0.035 * (1 - p) + 0.006, t, 0.05);
+
+      delay = 24 + Math.pow(p, 3.2) * 260;
+      elapsed += delay;
+
+      if(p < 1) timer = setTimeout(tick, delay);
     }
+
+    tick();
+
+    return {
+      stop(){
+        stopped = true;
+        if(timer) clearTimeout(timer);
+
+        const t = audioCtx.currentTime;
+        master.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+        try { hum.stop(t + 0.28); } catch(e){}
+        setTimeout(() => {
+          try { master.disconnect(); } catch(e){}
+        }, 400);
+      }
+    };
+  }catch(e){
+    return { stop(){} };
+  }
+}
 
     function spin(){
       if(spinning || !available.length) return;
