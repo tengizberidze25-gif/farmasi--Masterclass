@@ -343,9 +343,13 @@
 
     function uniqueByKey(list){
       const seen = new Set();
-      return (list || []).filter(p=>{
-        const k = p.ticket_id || p.phone || nameOf(p);
-        if(seen.has(k)) return false;
+
+      return (list || []).filter(p => {
+        const k = String(p.ticket_id || '').trim();
+
+        if (!k) return false;
+        if (seen.has(k)) return false;
+
         seen.add(k);
         return true;
       });
@@ -429,11 +433,14 @@
         participants = (pool.participants || []).filter(p=>p.ticket_id || p.phone);
         available = participants.filter(p=>!wonKeys.has(p.ticket_id || p.phone));
         prizes = prizeRes && prizeRes.ok ? (prizeRes.prizes || []) : [];
-        renderPrizes(); renderReel(uniqueByKey(available).slice(0, 20)); updateStats(); renderHistory();
+        renderPrizes(); renderReel(uniqueByKey(available)); updateStats(); renderHistory();
         $('spinBtn').disabled = available.length < 1;
         msg('ჩაიტვირთა: ' + participants.length + ' მონაწილე');
       }catch(e){ msg(e.message || String(e),'err'); }
       finally{ $('loadBtn').disabled=false; $('loadBtn').textContent='მონაწილეების ჩატვირთვა'; }
+      console.log("participants:", participants.length);
+      console.log("available:", available.length);
+      console.log("unique:", uniqueByKey(available).length);
     }
 
 
