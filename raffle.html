@@ -1249,7 +1249,10 @@
       const winner = available[idx];
       const winnerKey = participantKey(winner);
       const wheelList = uniqueByKey(available);
-      const winnerIndex = Math.max(0, wheelList.findIndex(p => (p.ticket_id || p.phone) === winnerKey));
+      const winnerIndex = Math.max(
+        0,
+        wheelList.findIndex(p => participantKey(p) === winnerKey)
+      );
 
       __drawRaffleWheel60(wheelList);
 
@@ -1259,19 +1262,30 @@
       const winnerCenterDeg = winnerIndex * arcDeg + arcDeg / 2;
 
       // pointer ზემოთაა, ამიტომ 270°-ზე ვაჩერებთ გამარჯვებულის ცენტრს
-      const pointerDeg = 270;
+      const pointerDeg = -90;
       const fullSpins = 11 + Math.floor(Math.random() * 3);
-      const finalRotation = (window.__raffleWheelRotation || 0) + fullSpins * 360 + pointerDeg - winnerCenterDeg;
-      window.__raffleWheelRotation = finalRotation;
+
+      const currentRotation = window.__raffleWheelRotation || 0;
+      const currentMod = ((currentRotation % 360) + 360) % 360;
+
+      const finalRotation =
+            currentRotation +
+            fullSpins * 360 +
+            pointerDeg -
+            winnerCenterDeg -
+            currentMod;
 
       const duration = 10500;
       const spinSound = startSpinTickSound(duration);
 
       canvas.style.transition = 'none';
-      canvas.style.transform = 'rotate(' + ((window.__raffleWheelRotation || 0) % 360) + 'deg)';
+      canvas.style.transform =
+       'rotate(' + currentMod + 'deg)';
       canvas.offsetHeight;
       canvas.style.transition = 'transform ' + duration + 'ms cubic-bezier(.05,.86,.12,1)';
       canvas.style.transform = 'rotate(' + finalRotation + 'deg)';
+
+      window.__raffleWheelRotation = finalRotation;
 
       if (spinSound && spinSound.setProgress) {
         const start = performance.now();
