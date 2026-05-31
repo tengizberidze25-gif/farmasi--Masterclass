@@ -1008,7 +1008,12 @@ body.presentation-mode .history{
     }
 
     function applyRaffleTexts(){
-      setTextById('layoutToggleBtn', 'big_screen', 'გაფართოებული ეკრანი');
+      const layoutBtnForText = $('layoutToggleBtn');
+      if(layoutBtnForText){
+        layoutBtnForText.textContent = document.body.classList.contains('presentation-mode')
+          ? txt('admin_mode', 'Admin რეჟიმი')
+          : txt('big_screen', 'გაფართოებული ეკრანი');
+      }
       setTextById('loadBtn', 'load_button', 'მონაწილეების ჩატვირთვა');
       setTextById('spinBtn', 'spin_button', 'დატრიალება');
       setTextById('clearScreenBtn', 'clear_button', 'გასუფთავება');
@@ -1256,57 +1261,57 @@ body.presentation-mode .history{
       }catch(e){}
     }
 
-    function startPointerTick(duration, segmentCount){
+    function startPointerTick(duration, segmentCount, fullSpins, fromRotation, toRotation){
       const pointer = document.querySelector('.wheel-pointer');
-      if(!pointer) return { stop: function(){} };
+      if (!pointer) return { stop: function(){} };
 
       let stopped = false;
-      let elapsed = 0;
-      let timer = null;
+      let lastLineIndex = null;
+      const startTime = performance.now();
+      const totalRotation = toRotation - fromRotation;
+      const arcDeg = 360 / Math.max(1, segmentCount);
+
+      function easeOutCubic(p){
+        return 1 - Math.pow(1 - p, 3);
+      }
 
       function hit(){
-        if(stopped) return;
-
-        pointer.classList.remove('ratchet-hit');
-        void pointer.offsetWidth;
-        pointer.classList.add('ratchet-hit');
+        pointer.style.transition = 'transform 42ms ease-out';
+        pointer.style.transform = 'translateX(-50%) translateY(12px) rotate(25deg)';
 
         playPointerClick();
 
         setTimeout(function(){
-          if(!stopped){
-            pointer.classList.remove('ratchet-hit');
-            pointer.style.transform = 'translateX(-50%) translateY(0) rotate(0deg)';
-          }
-        }, 58);
+          if (stopped) return;
+          pointer.style.transition = 'transform 70ms ease-in';
+          pointer.style.transform = 'translateX(-50%) translateY(0) rotate(0deg)';
+        }, 45);
       }
 
-      function schedule(){
-        if(stopped) return;
+      function frame(now){
+        if (stopped) return;
 
-        const p = Math.min(elapsed / duration, 1);
+        const p = Math.min((now - startTime) / duration, 1);
+        const eased = easeOutCubic(p);
 
-        hit();
+        const currentRotation = fromRotation + totalRotation * eased;
+        const normalized = ((currentRotation % 360) + 360) % 360;
+        const lineIndex = Math.floor(normalized / arcDeg);
 
-        // Fast clicks at the beginning, slower near the end — like a real lucky wheel.
-        const base = segmentCount > 40 ? 28 : segmentCount > 20 ? 36 : 48;
-        const slowDown = Math.pow(p, 3.0) * 320;
-        const delay = base + slowDown;
-
-        elapsed += delay;
-
-        if(p < 1){
-          timer = setTimeout(schedule, delay);
+        if (lineIndex !== lastLineIndex) {
+          lastLineIndex = lineIndex;
+          hit();
         }
+
+        if (p < 1) requestAnimationFrame(frame);
       }
 
-      schedule();
+      requestAnimationFrame(frame);
 
       return {
         stop: function(){
           stopped = true;
-          if(timer) clearTimeout(timer);
-          pointer.classList.remove('ratchet-hit');
+          pointer.style.transition = 'transform 80ms ease';
           pointer.style.transform = 'translateX(-50%) translateY(0) rotate(0deg)';
         }
       };
@@ -1325,6 +1330,7 @@ body.presentation-mode .history{
       wheelItems = uniqueByKey(available);
       const winnerIndex = Math.floor(Math.random() * wheelItems.length);
       const winner = wheelItems[winnerIndex];
+      const winnerKey = participantKey(winner);
       drawWheel();
 
       const canvas = $('wheelCanvas');
@@ -1337,7 +1343,7 @@ body.presentation-mode .history{
       const finalRotation = wheelRotation + fullSpins * 360 + (pointerDeg - winnerCenterDeg) - currentMod;
       const duration = 6800;
       const spinSound = startSpinTickSound(duration);
-      const pointerTick = startPointerTick(duration, n);
+      const pointerTick = startPointerTick(duration, n, fullSpins, currentMod, finalRotation);
 
       canvas.style.transition = 'none';
       canvas.offsetHeight;
@@ -1476,7 +1482,7 @@ body.presentation-mode .history{
 
       const duration = 10500;
       const spinSound = startSpinTickSound(duration);
-      const pointerTick = startPointerTick(duration, n);
+      const pointerTick = startPointerTick(duration, n, fullSpins, currentMod, finalRotation);
       canvas.style.transition = 'none';
       canvas.style.transform =
        'rotate(' + currentMod + 'deg)';
@@ -1563,7 +1569,11 @@ body.presentation-mode .history{
       }
     }
 
-    $('loadBtn').addEventListener('click', loadAll); $('spinBtn').addEventListener('click', spin); $('clearScreenBtn').addEventListener('click', clearScreen); $('manualPrize').addEventListener('input', () => syncPrizeInputs('manual')); $('prizeSelect').addEventListener('change', () => syncPrizeInputs('select'));
+    $('loadBtn').addEventListener('click', loadAll);
+    $('spinBtn').addEventListener('click', spin);
+    $('clearScreenBtn').addEventListener('click', clearScreen);
+    $('manualPrize').addEventListener('input', () => syncPrizeInputs('manual'));
+    $('prizeSelect').addEventListener('change', () => syncPrizeInputs('select'));
     renderHistory();
 updateStats();
 
