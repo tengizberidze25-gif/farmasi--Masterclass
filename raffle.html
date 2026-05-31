@@ -1261,6 +1261,8 @@
         }
 
         playVictoryMusic();
+        console.log("ANNOUNCE:", nameOf(winner));
+        announceWinner(nameOf(winner));
         announceWinnerAuto(winner, pickedPrize);
 
         wonKeys.add(winnerKey);
