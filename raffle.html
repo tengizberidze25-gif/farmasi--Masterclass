@@ -1317,7 +1317,8 @@
 
     function announceWinner(name){
       try{
-        const text = "Winner is " + name;
+        const firstName = String(name).split(' ')[0];
+        const text = "Winner is " + firstName;
 
         speechSynthesis.cancel();
 
