@@ -983,24 +983,28 @@ body.presentation-mode .history{
 
     async function loadRaffleTexts(){
       try{
+        const cached = localStorage.getItem('raffle_texts_cache');
+
+        if(cached){
+          UI_TEXTS = JSON.parse(cached);
+          applyRaffleTexts();
+        }
+
         const res = await api({ action: 'get_raffle_texts' });
+
         if(res && res.ok && res.texts){
           UI_TEXTS = res.texts;
+
+          localStorage.setItem(
+            'raffle_texts_cache',
+            JSON.stringify(UI_TEXTS)
+          );
+
           applyRaffleTexts();
         }
       }catch(e){
         console.warn('Raffle texts load error:', e);
       }
-    }
-
-    function setTextById(id, key, fallback){
-      const el = $(id);
-      if(el) el.textContent = txt(key, fallback);
-    }
-
-    function setLabel(forId, key, fallback){
-      const el = document.querySelector('label[for="' + forId + '"]');
-      if(el) el.textContent = txt(key, fallback);
     }
 
     function applyRaffleTexts(){
@@ -1572,7 +1576,7 @@ renderReel([
 ]);
 
 loadRaffleTexts();
-setTimeout(loadRaffleTexts, 120);
+setTimeout(loadRaffleTexts, 500);
     const layoutBtn = document.getElementById('layoutToggleBtn');
 
 if(layoutBtn){
