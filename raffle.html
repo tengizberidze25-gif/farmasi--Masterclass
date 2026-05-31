@@ -781,8 +781,6 @@
         ctx.fillStyle = grad;
         ctx.fill();
 
-        };
-
         ctx.strokeStyle = 'rgba(55,20,15,.32)';
         ctx.lineWidth = n > 35 ? 0.65 : 1.2;
         ctx.stroke();
@@ -828,6 +826,7 @@
       ctx.lineWidth = 4;
       ctx.strokeStyle = '#fff0c4';
       ctx.stroke();
+      }
     
 
     let wheelItems = [];
@@ -1243,16 +1242,11 @@
       const winnerCenterDeg = winnerIndex * arcDeg + arcDeg / 2;
 
       // pointer ზემოთაა, ამიტომ 270°-ზე ვაჩერებთ გამარჯვებულის ცენტრს
-      const pointerDeg = -90;
+      const pointerDeg = 0;
       const fullSpins = 11 + Math.floor(Math.random() * 3);
 
       const currentRotation = window.__raffleWheelRotation || 0;
       const currentMod = ((currentRotation % 360) + 360) % 360;
-      console.log("WINNER:", nameOf(winner));
-      console.log("winnerIndex:", winnerIndex);
-      console.log("winnerCenterDeg:", winnerCenterDeg);
-      console.log("wheelList:", wheelList.map(nameOf));
-
       const finalRotation =
             currentRotation +
             fullSpins * 360 +
