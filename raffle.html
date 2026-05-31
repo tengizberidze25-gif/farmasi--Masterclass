@@ -64,6 +64,8 @@
     .logo{
       width: 240px;
       height: auto;
+      display: block;
+      margin: 0 auto 10px;
     }
 
     .badge {
@@ -676,13 +678,30 @@ body.presentation-mode .machine{
   width:100%;
 }
 
+body.presentation-mode .wheel-stage{
+  width:min(100%, 760px);
+}
+
 body.presentation-mode #wheelCanvas{
-  max-width:700px !important;
+  max-width:760px !important;
 }
 
 body.presentation-mode .history{
   display:none;
 }
+
+
+
+/* Lucky-wheel physical pointer tick */
+.wheel-pointer{
+  transform-origin: 50% 0% !important;
+  transition: transform 55ms cubic-bezier(.2,1.8,.35,1);
+}
+
+.wheel-pointer.ratchet-hit{
+  transform: translateX(-50%) translateY(12px) rotate(24deg) !important;
+}
+
   </style>
 </head>
 
@@ -752,6 +771,10 @@ body.presentation-mode .history{
   <script>
     'use strict';
     const API_URL = "https://script.google.com/macros/s/AKfycbz40UE4b9og1Yjs0rPPfDe1H-yRi90hKbK2WOXej4CAWPCnncDFcetadMEdQSYJO7nf/exec";
+    let UI_TEXTS = {};
+    function txt(key, fallback){
+      return (UI_TEXTS && UI_TEXTS[key]) ? UI_TEXTS[key] : fallback;
+    }
     const ITEM_H = 72;
     const VISIBLE_CENTER_OFFSET = 102; // (276 - 72)/2
     let participants = [], available = [], prizes = [], currentWinner = null, spinning = false;
@@ -949,7 +972,7 @@ body.presentation-mode .history{
     function selectedPrizeOrWarn() {
       const p = prizeName();
       if (!p) {
-        msg('ჯერ აირჩიე პრიზი ან ხელით ჩაწერე პრიზის სახელი.', 'err');
+        msg(txt('need_prize', 'ჯერ აირჩიე პრიზი ან ხელით ჩაწერე პრიზის სახელი.'), 'err');
         return '';
       }
       return p;
@@ -957,6 +980,76 @@ body.presentation-mode .history{
     function updateStats() { $('totalCount').textContent = participants.length; $('winCount').textContent = winners.length; $('leftCount').textContent = available.length; }
 
     function api(params) { const url = API_URL + '?' + new URLSearchParams(params).toString(); return fetch(url).then(r => r.json()); }
+
+    async function loadRaffleTexts(){
+      try{
+        const res = await api({ action: 'get_raffle_texts' });
+        if(res && res.ok && res.texts){
+          UI_TEXTS = res.texts;
+          applyRaffleTexts();
+        }
+      }catch(e){
+        console.warn('Raffle texts load error:', e);
+      }
+    }
+
+    function setTextById(id, key, fallback){
+      const el = $(id);
+      if(el) el.textContent = txt(key, fallback);
+    }
+
+    function setLabel(forId, key, fallback){
+      const el = document.querySelector('label[for="' + forId + '"]');
+      if(el) el.textContent = txt(key, fallback);
+    }
+
+    function applyRaffleTexts(){
+      setTextById('layoutToggleBtn', 'big_screen', 'გაფართოებული ეკრანი');
+      setTextById('loadBtn', 'load_button', 'მონაწილეების ჩატვირთვა');
+      setTextById('spinBtn', 'spin_button', 'დატრიალება');
+      setTextById('clearScreenBtn', 'clear_button', 'გასუფთავება');
+
+      setLabel('checkedOnly', 'participants_label', 'მონაწილეები');
+      setLabel('prizeSelect', 'prize_label', 'პრიზი');
+      setLabel('manualPrize', 'manual_prize_label', 'ხელით ჩაწერა');
+
+      const checkedOnly = $('checkedOnly');
+      if(checkedOnly && checkedOnly.options.length >= 2){
+        checkedOnly.options[0].textContent = txt('checkedin_only', 'მხოლოდ Check-in გავლილი');
+        checkedOnly.options[1].textContent = txt('all_registered', 'ყველა რეგისტრირებული');
+      }
+
+      const prizeSelect = $('prizeSelect');
+      if(prizeSelect && prizeSelect.options.length){
+        prizeSelect.options[0].textContent = txt('select_prize_placeholder', 'აირჩიე პრიზი ან ჩაწერე ხელით');
+      }
+
+      const manualPrize = $('manualPrize');
+      if(manualPrize) manualPrize.placeholder = txt('manual_prize_placeholder', 'მაგ: სუნამო');
+
+      const total = $('totalCount');
+      if(total && total.nextElementSibling) total.nextElementSibling.textContent = txt('total_participants', 'მონაწილე');
+
+      const win = $('winCount');
+      if(win && win.nextElementSibling) win.nextElementSibling.textContent = txt('selected_count', 'არჩეული');
+
+      const left = $('leftCount');
+      if(left && left.nextElementSibling) left.nextElementSibling.textContent = txt('remaining_count', 'დარჩა');
+
+      const winnerSmall = document.querySelector('#winnerBox small');
+      if(winnerSmall) winnerSmall.textContent = txt('winner_label', 'გამარჯვებული');
+
+      const fullscreenSmall = document.querySelector('.winner-fullscreen-small');
+      if(fullscreenSmall) fullscreenSmall.textContent = txt('winner_announcement', 'გამარჯვებულია');
+
+      const historyLabel = document.querySelector('.history .group label');
+      if(historyLabel) historyLabel.textContent = txt('history_title', 'გამარჯვებულები ამ სესიაში');
+
+      const sub = document.querySelector('.header .sub');
+      if(sub) sub.textContent = txt('header_subtitle', 'სახელების ტრიალება და გამარჯვებული ფიქსირდება...');
+
+      renderHistory();
+    }
 
     function uniqueByKey(list){
       const seen = new Set();
@@ -972,7 +1065,7 @@ body.presentation-mode .history{
       });
     }
 
-    function renderPrizes() { const sel = $('prizeSelect'); sel.innerHTML = '<option value="">აირჩიე პრიზი ან ჩაწერე ხელით</option>'; prizes.forEach(p => { const o = document.createElement('option'); o.value = p.name; o.textContent = p.name; sel.appendChild(o); }); }
+    function renderPrizes() { const sel = $('prizeSelect'); sel.innerHTML = '<option value="">' + txt('select_prize_placeholder', 'აირჩიე პრიზი ან ჩაწერე ხელით') + '</option>'; prizes.forEach(p => { const o = document.createElement('option'); o.value = p.name; o.textContent = p.name; sel.appendChild(o); }); }
 
     function renderReel(list, activeTicket) {
       __drawRaffleWheel60(uniqueByKey(list || available || participants), activeTicket);
@@ -1039,7 +1132,7 @@ body.presentation-mode .history{
     }
 
     async function loadAll() {
-      clearMsg(); $('loadBtn').disabled = true; $('loadBtn').textContent = 'იტვირთება...';
+      clearMsg(); $('loadBtn').disabled = true; $('loadBtn').textContent = txt('loading_button', 'იტვირთება...');
       try {
         const pin = $('pin').value.trim();
         const [pool, prizeRes] = await Promise.all([
@@ -1052,9 +1145,9 @@ body.presentation-mode .history{
         prizes = prizeRes && prizeRes.ok ? (prizeRes.prizes || []) : [];
         renderPrizes(); renderReel(uniqueByKey(available)); updateStats(); renderHistory();
         $('spinBtn').disabled = available.length < 1;
-        msg('ჩაიტვირთა: ' + participants.length + ' მონაწილე');
+        msg(txt('loaded_message', 'ჩაიტვირთა') + ': ' + participants.length + ' ' + txt('total_participants', 'მონაწილე'));
       } catch (e) { msg(e.message || String(e), 'err'); }
-      finally { $('loadBtn').disabled = false; $('loadBtn').textContent = 'მონაწილეების ჩატვირთვა'; }
+      finally { $('loadBtn').disabled = false; $('loadBtn').textContent = txt('load_button', 'მონაწილეების ჩატვირთვა'); }
       console.log("participants:", participants.length);
       console.log("available:", available.length);
       console.log("unique:", uniqueByKey(available).length);
@@ -1134,6 +1227,87 @@ body.presentation-mode .history{
       }
     }
 
+
+    function playPointerClick(){
+      try{
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+
+        const t = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(1250, t);
+
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.exponentialRampToValueAtTime(0.11, t + 0.004);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(t);
+        osc.stop(t + 0.04);
+      }catch(e){}
+    }
+
+    function startPointerTick(duration, segmentCount){
+      const pointer = document.querySelector('.wheel-pointer');
+      if(!pointer) return { stop: function(){} };
+
+      let stopped = false;
+      let elapsed = 0;
+      let timer = null;
+
+      function hit(){
+        if(stopped) return;
+
+        pointer.classList.remove('ratchet-hit');
+        void pointer.offsetWidth;
+        pointer.classList.add('ratchet-hit');
+
+        playPointerClick();
+
+        setTimeout(function(){
+          if(!stopped){
+            pointer.classList.remove('ratchet-hit');
+            pointer.style.transform = 'translateX(-50%) translateY(0) rotate(0deg)';
+          }
+        }, 58);
+      }
+
+      function schedule(){
+        if(stopped) return;
+
+        const p = Math.min(elapsed / duration, 1);
+
+        hit();
+
+        // Fast clicks at the beginning, slower near the end — like a real lucky wheel.
+        const base = segmentCount > 40 ? 28 : segmentCount > 20 ? 36 : 48;
+        const slowDown = Math.pow(p, 3.0) * 320;
+        const delay = base + slowDown;
+
+        elapsed += delay;
+
+        if(p < 1){
+          timer = setTimeout(schedule, delay);
+        }
+      }
+
+      schedule();
+
+      return {
+        stop: function(){
+          stopped = true;
+          if(timer) clearTimeout(timer);
+          pointer.classList.remove('ratchet-hit');
+          pointer.style.transform = 'translateX(-50%) translateY(0) rotate(0deg)';
+        }
+      };
+    }
+
     function spin() {
       if (spinning || !available.length) return;
       const pickedPrize = selectedPrizeOrWarn();
@@ -1159,6 +1333,7 @@ body.presentation-mode .history{
       const finalRotation = wheelRotation + fullSpins * 360 + (pointerDeg - winnerCenterDeg) - currentMod;
       const duration = 6800;
       const spinSound = startSpinTickSound(duration);
+      const pointerTick = startPointerTick(duration, n);
 
       canvas.style.transition = 'none';
       canvas.offsetHeight;
@@ -1170,6 +1345,7 @@ body.presentation-mode .history{
         spinning = false;
         currentWinner = winner;
         if (spinSound && spinSound.stop) spinSound.stop();
+        if (pointerTick && pointerTick.stop) pointerTick.stop();
         drawWheel(winner.ticket_id);
         $('winnerName').textContent = nameOf(winner);
         $('winnerInfo').textContent = (winner.ticket_id || '') + ' · ' + (winner.city || '') + ' · ' + pickedPrize;
@@ -1204,7 +1380,7 @@ body.presentation-mode .history{
     async function announceWinnerAuto(winner, pickedPrize) {
       if (!winner) return;
       try {
-        msg('გამარჯვებული დაფიქსირდა — SMS ავტომატურად იგზავნება...', 'ok');
+        msg(txt('sending_sms', 'გამარჯვებული დაფიქსირდა — SMS ავტომატურად იგზავნება...'), 'ok');
         const res = await api({
           action: 'announce_raffle_winner',
           pin: $('pin').value.trim(),
@@ -1248,10 +1424,10 @@ body.presentation-mode .history{
       wheelRotation = 0;
       $('spinBtn').disabled = available.length < 1;
       updateStats();
-      msg('გათამაშება გასუფთავდა. ყველა მონაწილე თავიდან დაემატა.');
+      msg(txt('raffle_cleared', 'გათამაშება გასუფთავდა. ყველა მონაწილე თავიდან დაემატა.'));
     }
 
-    function renderHistory() { const box = $('historyList'); if (!winners.length) { box.innerHTML = '<div style="color:var(--dim);font-size:12px;text-align:center;padding:10px">ჯერ გამარჯვებული არ არის</div>'; return; } box.innerHTML = winners.slice().reverse().map(w => '<div class="history-item"><b>' + escapeHtml(w.name) + '</b><span>' + escapeHtml(w.prize || 'პრიზი') + '</span></div>').join(''); }
+    function renderHistory() { const box = $('historyList'); if (!winners.length) { box.innerHTML = '<div style="color:var(--dim);font-size:12px;text-align:center;padding:10px">' + txt('no_winners_yet', 'ჯერ გამარჯვებული არ არის') + '</div>'; return; } box.innerHTML = winners.slice().reverse().map(w => '<div class="history-item"><b>' + escapeHtml(w.name) + '</b><span>' + escapeHtml(w.prize || 'პრიზი') + '</span></div>').join(''); }
 
     /* ===== ROUND WHEEL SPIN OVERRIDE FOR 60 PARTICIPANTS ===== */
     function spin() {
@@ -1263,6 +1439,7 @@ body.presentation-mode .history{
       spinning = true;
       currentWinner = null;
       $('winnerBox').classList.remove('show');
+      $('spinBtn').disabled = true;
 
       const idx = Math.floor(Math.random() * available.length);
       const winner = available[idx];
@@ -1295,7 +1472,7 @@ body.presentation-mode .history{
 
       const duration = 10500;
       const spinSound = startSpinTickSound(duration);
-
+      const pointerTick = startPointerTick(duration, n);
       canvas.style.transition = 'none';
       canvas.style.transform =
        'rotate(' + currentMod + 'deg)';
@@ -1317,6 +1494,7 @@ body.presentation-mode .history{
 
       setTimeout(() => {
         if (spinSound && spinSound.stop) spinSound.stop();
+        if (pointerTick && pointerTick.stop) pointerTick.stop();
         spinning = false;
         currentWinner = winner;
 
@@ -1348,6 +1526,7 @@ body.presentation-mode .history{
 
         updateStats();
         renderHistory();
+        $('spinBtn').disabled = available.length < 1;
 
         if (window.confetti) {
           confetti({ particleCount: 180, spread: 75, origin: { y: .62 } });
@@ -1363,7 +1542,7 @@ body.presentation-mode .history{
           winner.voice_name ||
           nameOf(winner);
 
-        const text = "The winner is " + fullName;
+        const text = txt('speech_prefix', 'The winner is') + ' ' + fullName;
 
         speechSynthesis.cancel();
 
@@ -1380,7 +1559,7 @@ body.presentation-mode .history{
       }
     }
 
-    $('loadBtn').addEventListener('click', loadAll); $('spinBtn').addEventListener('click', spin); $('clearScreenBtn').addEventListener('click', clearScreen); $('manualPrize').addEventListener('input', () => syncPrizeInputs('manual')); $('prizeSelect').addEventListener('change', () => syncPrizeInputs('select')); renderHistory(); updateStats(); renderReel([{ first_name: 'მონაწილეები', last_name: 'იტრიალებს', ticket_id: 'FARMASI 2026' }]);
+    $('loadBtn').addEventListener('click', loadAll); $('spinBtn').addEventListener('click', spin); $('clearScreenBtn').addEventListener('click', clearScreen); $('manualPrize').addEventListener('input', () => syncPrizeInputs('manual')); $('prizeSelect').addEventListener('change', () => syncPrizeInputs('select')); renderHistory(); updateStats(); renderReel([{ first_name: 'მონაწილეები', last_name: 'იტრიალებს', ticket_id: 'FARMASI 2026' }]); loadRaffleTexts();
     const layoutBtn = document.getElementById('layoutToggleBtn');
 
 if(layoutBtn){
@@ -1390,8 +1569,8 @@ if(layoutBtn){
 
     this.textContent =
       document.body.classList.contains('presentation-mode')
-        ? 'Admin რეჟიმი'
-        : 'დიდი ეკრანი';
+        ? txt('admin_mode', 'Admin რეჟიმი')
+        : txt('big_screen', 'გაფართოებული ეკრანი');
   });
 }
   </script>
