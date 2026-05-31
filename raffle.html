@@ -1559,7 +1559,20 @@ body.presentation-mode .history{
       }
     }
 
-    $('loadBtn').addEventListener('click', loadAll); $('spinBtn').addEventListener('click', spin); $('clearScreenBtn').addEventListener('click', clearScreen); $('manualPrize').addEventListener('input', () => syncPrizeInputs('manual')); $('prizeSelect').addEventListener('change', () => syncPrizeInputs('select')); renderHistory(); updateStats(); renderReel([{ first_name: 'მონაწილეები', last_name: 'იტრიალებს', ticket_id: 'FARMASI 2026' }]); loadRaffleTexts();
+    $('loadBtn').addEventListener('click', loadAll); $('spinBtn').addEventListener('click', spin); $('clearScreenBtn').addEventListener('click', clearScreen); $('manualPrize').addEventListener('input', () => syncPrizeInputs('manual')); $('prizeSelect').addEventListener('change', () => syncPrizeInputs('select'));
+    renderHistory();
+updateStats();
+
+renderReel([
+  {
+    first_name: 'მონაწილეები',
+    last_name: 'იტრიალებს',
+    ticket_id: 'FARMASI 2026'
+  }
+]);
+
+loadRaffleTexts();
+setTimeout(loadRaffleTexts, 500);
     const layoutBtn = document.getElementById('layoutToggleBtn');
 
 if(layoutBtn){
