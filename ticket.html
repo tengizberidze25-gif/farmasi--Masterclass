@@ -2360,6 +2360,8 @@
           const err = data && data.error;
           if (err === 'Phone not registered') {
             setTcMsg(1, 'err', '⚠ ეს ნომერი რეგისტრირებული არ არის');
+          } else if (err === 'Too many requests. Try again in a few minutes.') {
+            setTcMsg(1, 'err', '⏳ ძალიან ბევრი მცდელობა — სცადეთ რამდენიმე წუთში');
           } else {
             setTcMsg(1, 'err', 'შეცდომა: ' + (err || 'სცადეთ ხელახლა'));
           }
