@@ -669,16 +669,17 @@
     /* Presentation mode */
 
 body.presentation-mode .wrap{
-  max-width:1200px;
+  max-width:1120px;
   display:grid;
-  grid-template-columns:420px 1fr;
-  gap:28px;
+  grid-template-columns:340px minmax(0, 1fr);
+  gap:22px;
   align-items:start;
 }
 
 body.presentation-mode .header{
   grid-column:1 / -1;
   text-align:center;
+  margin:4px 0 10px;
 }
 
 body.presentation-mode .controls{
@@ -687,14 +688,16 @@ body.presentation-mode .controls{
 
 body.presentation-mode .machine{
   width:100%;
+  padding:14px 12px 16px;
 }
 
 body.presentation-mode .wheel-stage{
-  width:min(100%, 760px);
+  width:min(100%, 52vw, 58vh, 560px);
+  margin:0 auto 12px;
 }
 
 body.presentation-mode #wheelCanvas{
-  max-width:760px !important;
+  max-width:min(52vw, 58vh, 560px) !important;
 }
 
 body.presentation-mode .history{
