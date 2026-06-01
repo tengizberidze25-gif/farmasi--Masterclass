@@ -8499,8 +8499,23 @@
         if (!t) return;
         closePhoneVerifyModal();
 
-        // Open the bus salon and highlight this user's seat
-        openBusSalonForViewing(t);
+        const formData = {
+          first_name: t.first_name || "",
+          last_name: t.last_name || "",
+          city_area_village: t.city || t.city_area_village || "",
+          position: t.position || "",
+          phone: t.phone || ""
+        };
+        const registrationData = {
+          ticket_id: t.ticket_id || "",
+          tier: t.tier || "Standard",
+          seat_number: t.seat_number || "",
+          transport_mode: t.transport_mode || (t.seat_number ? "bus" : "car")
+        };
+
+        saveMyTicket(registrationData, formData);
+        refreshMyTicketCard();
+        showTicketModal(registrationData, formData);
       });
 
       const smsBtn = document.getElementById("choiceSmsBtn");
