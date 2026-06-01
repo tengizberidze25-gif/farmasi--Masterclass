@@ -1567,6 +1567,17 @@
       35%           { background-position: 0 0, 0 0,  200% 0; }
     }
 
+    /* Change mode — free seats clickable */
+    .bus-grid[data-change-mode="1"] .bus-seat.free {
+      cursor: pointer;
+    }
+    .bus-grid[data-change-mode="1"] .bus-seat.free:hover {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px var(--gold), 0 2px 12px rgba(232, 196, 104, 0.5);
+      transform: scale(1.08);
+      z-index: 2;
+    }
+
     .bus-grid > .bus-seat:nth-child(5n+1) { animation-delay: 0s, 0s; }
     .bus-grid > .bus-seat:nth-child(5n+2) { animation-delay: 0.4s, 0.4s; }
     .bus-grid > .bus-seat:nth-child(5n+4) { animation-delay: 0.8s, 0.8s; }
@@ -2320,6 +2331,9 @@
       // Step 3: choose transport
       document.getElementById('tcOptBus').addEventListener('click', () => handleTcChooseTransport('bus'));
       document.getElementById('tcOptCar').addEventListener('click', () => handleTcChooseTransport('car'));
+
+      // ავტობუსის ადგილზე დაჭერა — change mode-ში (მუდმივი listener)
+      els.busGrid.addEventListener('click', handleBusSeatChangeClick);
     }
 
     function tcShowStep(n) {
@@ -2457,43 +2471,46 @@
 
     async function openBusModalForChange() {
       busChangeMode = true;
-      // Temporarily mark current seat (from tcVerifiedTicket) as "yours"
-      const savedTicket = currentTicket;
-      if (tcVerifiedTicket) {
-        currentTicket = tcVerifiedTicket;
-      }
 
-      // Add header hint
+      // current seat-ის მონიშვნა "yours"-ად — ვადგენთ tcVerifiedTicket-იდან
+      const savedTicket = currentTicket;
+      if (tcVerifiedTicket) currentTicket = tcVerifiedTicket;
+
+      // modal-ის სათაურის შეცვლა
       const subtitle = document.querySelector('.bus-modal-subtitle');
       if (subtitle) subtitle.textContent = 'SEAT CHANGE';
       const title = document.querySelector('.bus-modal-title');
-      if (title) title.innerHTML = 'ავტობუსის <span class="accent">ადგილის შეცვლა</span>';
+      if (title) title.innerHTML = 'ავირჩიე <span class="accent">ახალი ადგილი</span>';
+
+      // grid-ს ვაძლევთ ნიშანს რომ change mode-შია (CSS-ისთვის: free ადგილები clickable)
+      els.busGrid.dataset.changeMode = '1';
 
       await openBusModal();
 
-      // Make free seats clickable for selection
-      els.busGrid.addEventListener('click', handleBusSeatChangeClick);
-      els.busModal.addEventListener('click', e => {
-        if (e.target === els.busModal && busChangeMode) {
-          closeBusModalChange(savedTicket);
-        }
-      }, { once: true });
-
-      els.busModalClose.removeEventListener('click', closeBusModal);
-      els.busModalClose.addEventListener('click', () => closeBusModalChange(savedTicket), { once: true });
+      // close ღილაკი/ფონი — savedTicket-ის აღდგენით
+      els.busModalClose.onclick = () => closeBusModalChange(savedTicket);
+      els.busModal.onclick = (ev) => {
+        if (ev.target === els.busModal) closeBusModalChange(savedTicket);
+      };
     }
 
     function closeBusModalChange(savedTicket) {
       busChangeMode = false;
       currentTicket = savedTicket;
+      delete els.busGrid.dataset.changeMode;
       closeBusModal();
-      els.busGrid.removeEventListener('click', handleBusSeatChangeClick);
-      // Restore modal header
+
+      // სათაურის აღდგენა
       const subtitle = document.querySelector('.bus-modal-subtitle');
       if (subtitle) subtitle.textContent = 'YOUR SEAT';
       const title = document.querySelector('.bus-modal-title');
       if (title) title.innerHTML = 'ავტობუსის <span class="accent">სქემა</span>';
-      els.busModalClose.addEventListener('click', closeBusModal);
+
+      // close ღილაკის ჩვეულებრივი ქცევის აღდგენა
+      els.busModalClose.onclick = closeBusModal;
+      els.busModal.onclick = (ev) => {
+        if (ev.target === els.busModal) closeBusModal();
+      };
     }
 
     async function handleBusSeatChangeClick(e) {
@@ -2526,9 +2543,9 @@
         });
 
         if (data && data.ok) {
+          delete els.busGrid.dataset.changeMode;
           closeBusModal();
           busChangeMode = false;
-          els.busGrid.removeEventListener('click', handleBusSeatChangeClick);
           tcShowStep(4);
           document.getElementById('transportChangeArea').classList.add('show');
           document.getElementById('tcSuccessText').textContent = '✓ ადგილი შეიცვალა — ავტობუსი #' + seatNum;
