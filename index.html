@@ -6097,7 +6097,7 @@
         <form id="registerForm" class="form-compact">
           <div class="input-group">
             <select class="input-field" id="attendee_type" name="attendee_type" required>
-              <option value="" disabled selected>აირჩიე მონაწილეობის ტიპი</option>
+              <option value="" disabled selected hidden>აირჩიე მონაწილეობის ტიპი</option>
               <option value="title_holder">FARMASI ტიტულის მქონე წარმომადგენელი</option>
               <option value="guest">მოწვეული სტუმარი / წარმომადგენელი</option>
             </select>
@@ -9209,8 +9209,10 @@
 
       registerFields.forEach(field => {
         field.disabled = !isTypeChosen;
-        field.style.opacity = isTypeChosen ? "1" : "0.55";
+        field.style.opacity = isTypeChosen ? "1" : "0.45";
         field.style.cursor = isTypeChosen ? "" : "not-allowed";
+        field.style.pointerEvents = isTypeChosen ? "" : "none";
+        if (!isTypeChosen) field.value = "";
       });
 
       if (!isTypeChosen) {
