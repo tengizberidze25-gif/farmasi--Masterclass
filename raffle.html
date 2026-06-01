@@ -501,19 +501,28 @@
       will-change: transform
     }
 
-    .wheel-pointer {
-      position: absolute;
-      top: -10px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 5;
-      width: 0;
-      height: 0;
-      border-left: 22px solid transparent;
-      border-right: 22px solid transparent;
-      border-top: 40px solid var(--gold2);
-      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .6))
-    }
+    .wheel-pointer{
+  position:absolute;
+  top:-4px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:5;
+  width:54px;
+  height:44px;
+  background:linear-gradient(135deg,#f6df78,#b78b18);
+  clip-path:polygon(50% 100%, 0 0, 100% 0);
+  filter:drop-shadow(0 5px 6px rgba(0,0,0,.55));
+  transform-origin:50% 12%;
+}
+
+.wheel-pointer:after{
+  content:"";
+  position:absolute;
+  inset:6px 12px 18px 12px;
+  background:linear-gradient(135deg,#fff3a8,#d2a628);
+  clip-path:polygon(50% 100%, 0 0, 100% 0);
+  opacity:.75;
+}
 
     .wheel-pointer:after {
       content: "";
