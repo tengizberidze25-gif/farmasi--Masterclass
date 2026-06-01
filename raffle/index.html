@@ -1,1 +1,1641 @@
+<!DOCTYPE html>
+<html lang="ka">
 
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Farmasi გათამაშება · Masterclass 2026</title>
+  <meta name="theme-color" content="#0a0506" />
+  <link rel="icon" type="image/png" href="farmasi.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Sans+Georgian:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js">
+
+  </script>
+  <style>
+    :root {
+      --bg: #0a0506;
+      --card: #1b0f13;
+      --card2: #261319;
+      --pink: #ff6075;
+      --pink2: #e64a61;
+      --gold: #e8c468;
+      --gold2: #f7dfa0;
+      --cream: #f7efe6;
+      --dim: #b9a99b;
+      --line: rgba(232, 196, 104, .24);
+      --font: 'Noto Sans Georgian', sans-serif;
+      --display: 'Cormorant Garamond', 'Noto Sans Georgian', serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(232, 196, 104, .12), transparent 50%),
+        radial-gradient(ellipse at 50% 100%, rgba(255, 96, 117, .12), transparent 55%),
+        linear-gradient(180deg, #070304, #14080c 55%, #070304);
+      color: var(--cream);
+      font-family: var(--font);
+      overflow-x: hidden;
+      padding: 18px 12px 40px
+    }
+
+    .wrap {
+      max-width: 520px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 2
+    }
+
+    .header {
+      text-align: center;
+      margin: 8px 0 18px
+    }
+
+    .logo{
+      width: 240px;
+      height: auto;
+      display: block;
+      margin: 0 auto 10px;
+    }
+
+    .badge {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 7px 16px;
+      border-radius: 999px;
+      background: rgba(255, 96, 117, .12);
+      border: 1px solid rgba(255, 96, 117, .4);
+      color: var(--pink);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase
+    }
+
+    h1 {
+      font-family: var(--display);
+      font-size: 42px;
+      line-height: 1;
+      margin: 12px 0 6px;
+      font-weight: 600
+    }
+
+    .accent {
+      font-style: italic;
+      color: var(--gold2)
+    }
+
+    .sub {
+      color: var(--dim);
+      font-size: 11px;
+      letter-spacing: 1.3px;
+      text-transform: uppercase
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(38, 19, 25, .92), rgba(18, 8, 11, .92));
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 16px;
+      box-shadow: 0 22px 70px rgba(0, 0, 0, .55);
+      backdrop-filter: blur(20px);
+      margin-bottom: 12px;
+      position: relative;
+      overflow: hidden
+    }
+
+    .card:before {
+      content: "";
+      position: absolute;
+      top: -1px;
+      left: 20%;
+      right: 20%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      filter: blur(.5px)
+    }
+
+    .controls {
+      display: grid;
+      gap: 9px
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px
+    }
+
+    .group label {
+      display: block;
+      color: var(--gold);
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 1.3px;
+      text-transform: uppercase;
+      margin: 0 0 5px 4px
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(0, 0, 0, .28);
+      color: var(--cream);
+      font-family: var(--font);
+      font-size: 13px;
+      outline: none
+    }
+
+    option {
+      background: #1b0f13
+    }
+
+    .btn {
+      width: 100%;
+      border: 0;
+      border-radius: 14px;
+      padding: 13px 16px;
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: .2s;
+      position: relative;
+      overflow: hidden
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--pink), #ff7f90, var(--pink2));
+      color: white;
+      box-shadow: 0 10px 28px rgba(255, 96, 117, .38)
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold2), var(--gold));
+      color: #23100f
+    }
+
+    .btn-ghost {
+      background: rgba(255, 255, 255, .04);
+      border: 1px solid var(--line);
+      color: var(--gold2)
+    }
+
+    .btn:disabled {
+      opacity: .5;
+      cursor: not-allowed
+    }
+
+    .btn.disabled-hard {
+      opacity: .45;
+      filter: grayscale(.2)
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-1px)
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px
+    }
+
+    .stat {
+      text-align: center;
+      background: rgba(0, 0, 0, .28);
+      border: 1px solid rgba(232, 196, 104, .14);
+      border-radius: 14px;
+      padding: 10px 6px
+    }
+
+    .stat b {
+      display: block;
+      font-family: var(--display);
+      font-size: 24px;
+      color: var(--gold2);
+      line-height: 1
+    }
+
+    .stat span {
+      font-size: 9px;
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: .8px
+    }
+
+    .machine {
+      padding: 18px 14px 22px
+    }
+
+    .slot {
+      height: 276px;
+      position: relative;
+      border-radius: 22px;
+      overflow: hidden;
+      background: linear-gradient(180deg, #12070a, #250f16 48%, #12070a);
+      border: 1px solid rgba(232, 196, 104, .34);
+      box-shadow: inset 0 0 42px rgba(0, 0, 0, .6), 0 0 50px rgba(232, 196, 104, .08)
+    }
+
+    .slot:before,
+    .slot:after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 42%;
+      z-index: 4;
+      pointer-events: none
+    }
+
+    .slot:before {
+      top: 0;
+      background: linear-gradient(180deg, rgba(10, 5, 6, .98), rgba(10, 5, 6, .72), transparent)
+    }
+
+    .slot:after {
+      bottom: 0;
+      background: linear-gradient(0deg, rgba(10, 5, 6, .98), rgba(10, 5, 6, .72), transparent)
+    }
+
+    .win-line {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      top: 50%;
+      height: 72px;
+      transform: translateY(-50%);
+      border-top: 2px solid rgba(232, 196, 104, .85);
+      border-bottom: 2px solid rgba(232, 196, 104, .85);
+      border-radius: 16px;
+      background: linear-gradient(90deg, transparent, rgba(232, 196, 104, .12), transparent);
+      box-shadow: 0 0 28px rgba(232, 196, 104, .26);
+      z-index: 3;
+      pointer-events: none
+    }
+
+    .win-line:before,
+    .win-line:after {
+      content: "✦";
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--gold2);
+      text-shadow: 0 0 10px rgba(232, 196, 104, .8)
+    }
+
+    .win-line:before {
+      left: 10px
+    }
+
+    .win-line:after {
+      right: 10px
+    }
+
+    .reel {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      will-change: transform
+    }
+
+    .reel-item {
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 0 46px;
+      font-family: var(--display);
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: .3px;
+      color: rgba(247, 239, 230, .55);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .reel-item .ticket {
+      display: block;
+      font-family: var(--font);
+      font-size: 9px;
+      letter-spacing: 1.3px;
+      color: rgba(232, 196, 104, .7);
+      margin-top: 2px
+    }
+
+    .reel-item.active {
+      color: var(--gold2);
+      text-shadow: 0 0 18px rgba(232, 196, 104, .55);
+      font-size: 30px
+    }
+
+    .winner {
+      display: none;
+      text-align: center;
+      padding: 16px 10px
+    }
+
+    .winner.show {
+      display: block;
+      animation: pop .55s cubic-bezier(.34, 1.56, .64, 1)
+    }
+
+    @keyframes pop {
+      from {
+        opacity: 0;
+        transform: scale(.88)
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1)
+      }
+    }
+
+    .winner small {
+      color: var(--gold);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-size: 10px;
+      font-weight: 800
+    }
+
+    .winner h2 {
+      font-family: var(--display);
+      font-size: 34px;
+      line-height: 1.05;
+      margin: 8px 0 4px
+    }
+
+    .winner p {
+      margin: 0;
+      color: var(--dim);
+      font-size: 12px
+    }
+
+    .message {
+      display: none;
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 12px;
+      text-align: center;
+      font-size: 12px
+    }
+
+    .message.show {
+      display: block
+    }
+
+    .message.err {
+      background: rgba(255, 96, 117, .12);
+      border: 1px solid rgba(255, 96, 117, .3);
+      color: #ff96a5
+    }
+
+    .message.ok {
+      background: rgba(74, 222, 128, .1);
+      border: 1px solid rgba(74, 222, 128, .25);
+      color: #73e49c
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+      margin-top: 12px
+    }
+
+    .history {
+      max-height: 220px;
+      overflow: auto
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 0;
+      border-bottom: 1px solid rgba(232, 196, 104, .1);
+      font-size: 12px
+    }
+
+    .history-item b {
+      color: var(--cream)
+    }
+
+    .history-item span {
+      color: var(--gold);
+      text-align: right
+    }
+
+    .hide {
+      display: none !important
+    }
+
+    @media(max-width:420px) {
+      h1 {
+        font-size: 36px
+      }
+
+      .row {
+        grid-template-columns: 1fr
+      }
+
+      .actions {
+        grid-template-columns: 1fr
+      }
+
+      .reel-item {
+        font-size: 22px;
+        padding: 0 34px
+      }
+
+      .reel-item.active {
+        font-size: 25px
+      }
+
+      .slot {
+        height: 260px
+      }
+    }
+
+    /* TRUE ROUND WHEEL */
+    .wheel-stage {
+      position: relative;
+      width: min(100%, 420px);
+      aspect-ratio: 1/1;
+      margin: 8px auto 16px;
+      filter: drop-shadow(0 18px 36px rgba(0, 0, 0, .42))
+    }
+
+    #wheelCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border-radius: 50%;
+      border: 7px solid var(--gold2);
+      background: #13080b;
+      box-shadow: 0 0 0 4px rgba(0, 0, 0, .55), 0 0 34px rgba(232, 196, 104, .24), inset 0 0 34px rgba(0, 0, 0, .5);
+      transform: rotate(0deg);
+      will-change: transform
+    }
+
+    .wheel-pointer {
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      width: 76px;
+      height: 58px;
+      transform: translateX(-50%);
+      transform-origin: 50% 8%;
+      z-index: 20;
+      pointer-events: none;
+      transition: transform 55ms cubic-bezier(.2, 1.8, .35, 1);
+      filter: drop-shadow(0 12px 14px rgba(0, 0, 0, .5));
+    }
+
+    .wheel-pointer::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(135deg, #fff7bc 0%, #f7d75d 34%, #c88b13 68%, #7b4a05 100%);
+      clip-path: polygon(50% 100%, 0 0, 100% 0);
+      border-radius: 10px 10px 16px 16px;
+      box-shadow:
+        inset 0 5px 7px rgba(255, 255, 255, .68),
+        inset 0 -9px 12px rgba(84, 45, 0, .55),
+        0 0 24px rgba(245, 204, 67, .45);
+    }
+
+    .wheel-pointer::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 8px;
+      width: 20px;
+      height: 36px;
+      transform: translateX(-50%);
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.62), transparent);
+      clip-path: polygon(50% 100%, 0 0, 100% 0);
+      opacity: .7;
+    }
+
+    .wheel-center {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 82px;
+      height: 82px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      z-index: 4;
+
+      background: radial-gradient(circle, #282021, #080405);
+
+      border: 4px solid #fff3c7;
+
+      box-shadow:
+        0 0 18px rgba(0,0,0,.7),
+        inset 0 0 10px rgba(255,255,255,.08);
+
+      overflow: hidden;
+    }
+
+    .wheel-center::after {
+      content: '';
+      position: absolute;
+      inset: 12px;
+      background: url('farmasi.png') center center / contain no-repeat;
+    }
+
+    @media(max-width:420px) {
+      .wheel-stage {
+        width: min(100%, 350px)
+      }
+
+      .wheel-center {
+        width: 58px;
+        height: 58px
+      }
+
+    }
+
+
+    .winner-fullscreen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      background:
+        radial-gradient(ellipse at 50% 35%, rgba(232, 196, 104, .22), transparent 52%),
+        radial-gradient(ellipse at 50% 70%, rgba(255, 96, 117, .20), transparent 55%),
+        rgba(7, 3, 4, .94);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .winner-fullscreen.show {
+      display: flex;
+      animation: winnerFadeIn .35s ease both;
+    }
+
+    @keyframes winnerFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(.96)
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1)
+      }
+    }
+
+    .winner-fullscreen-inner {
+      width: 100%;
+      max-width: 900px;
+      border: 1px solid rgba(232, 196, 104, .55);
+      border-radius: 28px;
+      padding: 34px 22px;
+      background: linear-gradient(180deg, rgba(38, 19, 25, .78), rgba(10, 5, 6, .72));
+      box-shadow: 0 0 70px rgba(232, 196, 104, .18), 0 25px 90px rgba(0, 0, 0, .65);
+    }
+
+    .winner-fullscreen-small {
+      color: var(--gold);
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .winner-fullscreen-name {
+      font-family: var(--display);
+      font-size: clamp(44px, 9vw, 96px);
+      line-height: 1.02;
+      color: var(--gold2);
+      text-shadow: 0 0 34px rgba(232, 196, 104, .45), 0 8px 28px rgba(0, 0, 0, .7);
+      margin: 0;
+      word-break: break-word;
+    }
+
+    .winner-fullscreen-info {
+      margin-top: 14px;
+      color: var(--cream);
+      opacity: .85;
+      font-size: clamp(14px, 2.2vw, 22px);
+    }
+
+
+    /* 60-მონაწილეიანი ბორბლის გაუმჯობესება */
+    #wheelCanvas {
+      max-width: min(96vw, 560px) !important;
+      margin: 0 auto;
+      display: block;
+    }
+
+    .machine {
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+
+    /* Presentation mode */
+
+body.presentation-mode .wrap{
+  max-width:1120px;
+  display:grid;
+  grid-template-columns:340px minmax(0, 1fr);
+  gap:22px;
+  align-items:start;
+}
+
+body.presentation-mode .header{
+  grid-column:1 / -1;
+  text-align:center;
+  margin:4px 0 10px;
+}
+
+body.presentation-mode .controls{
+  width:100%;
+}
+
+body.presentation-mode .machine{
+  width:100%;
+  padding:14px 12px 16px;
+}
+
+body.presentation-mode .wheel-stage{
+  width:min(100%, 52vw, 58vh, 560px);
+  margin:0 auto 12px;
+}
+
+body.presentation-mode #wheelCanvas{
+  max-width:min(52vw, 58vh, 560px) !important;
+}
+
+body.presentation-mode .history{
+  display:none;
+}
+
+
+
+    /* Lucky-wheel physical pointer tick */
+    .wheel-pointer.ratchet-hit {
+      transform: translateX(-50%) translateY(12px) rotate(24deg) !important;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="header">
+
+  <img src="farmasi-logo.png" class="logo" alt="Farmasi">
+
+  <button class="btn btn-ghost"
+          id="layoutToggleBtn"
+          type="button">
+    დიდი ეკრანი
+  </button>
+
+  <div class="sub">
+    სახელების ტრიალება და გამარჯვებული ფიქსირდება...
+  </div>
+
+</div>
+
+    <div class="card controls">
+      <div class="row">
+        <div class="group"><label for="pin">Admin PIN</label><input id="pin" type="password" inputmode="numeric"
+            placeholder="PIN" /></div>
+        <div class="group"><label for="checkedOnly">მონაწილეები</label><select id="checkedOnly">
+            <option value="1">მხოლოდ Check-in გავლილი</option>
+            <option value="0">ყველა რეგისტრირებული</option>
+          </select></div>
+      </div>
+      <button class="btn btn-ghost" id="loadBtn">მონაწილეების ჩატვირთვა</button>
+      <div class="row">
+        <div class="group"><label for="prizeSelect">პრიზი</label><select id="prizeSelect">
+            <option value="">აირჩიე პრიზი ან ჩაწერე ხელით</option>
+          </select></div>
+        <div class="group"><label for="manualPrize">ხელით ჩაწერა</label><input id="manualPrize" type="text"
+            placeholder="მაგ: სუნამო" /></div>
+      </div>
+      <div class="stats">
+        <div class="stat"><b id="totalCount">0</b><span>მონაწილე</span></div>
+        <div class="stat"><b id="winCount">0</b><span>არჩეული</span></div>
+        <div class="stat"><b id="leftCount">0</b><span>დარჩა</span></div>
+      </div>
+      <div class="message" id="msg"></div>
+    </div>
+
+    <div class="card machine">
+      <div class="wheel-stage">
+        <div class="wheel-pointer" aria-hidden="true"></div>
+        <canvas id="wheelCanvas" width="760" height="760" aria-label="გათამაშების ბორბალი"></canvas>
+        <div class="wheel-center" aria-hidden="true"></div>
+      </div>
+      <div class="winner" id="winnerBox"><small>გამარჯვებული</small>
+        <h2 id="winnerName">—</h2>
+        <p id="winnerInfo">—</p>
+      </div>
+      <div class="actions"><button class="btn btn-primary" id="spinBtn" disabled>დატრიალება</button><button
+          class="btn btn-ghost" id="clearScreenBtn" type="button">გასუფთავება</button></div>
+    </div>
+
+    <div class="card history">
+      <div class="group"><label>გამარჯვებულები ამ სესიაში</label></div>
+      <div id="historyList"></div>
+    </div>
+  </div>
+
+  <script>
+    'use strict';
+    const API_URL = "https://script.google.com/macros/s/AKfycbz40UE4b9og1Yjs0rPPfDe1H-yRi90hKbK2WOXej4CAWPCnncDFcetadMEdQSYJO7nf/exec";
+    let UI_TEXTS = {};
+    function txt(key, fallback){
+      return (UI_TEXTS && UI_TEXTS[key]) ? UI_TEXTS[key] : fallback;
+    }
+    const ITEM_H = 72;
+    const VISIBLE_CENTER_OFFSET = 102; // (276 - 72)/2
+    let participants = [], available = [], prizes = [], currentWinner = null, spinning = false;
+    const winners = JSON.parse(sessionStorage.getItem('raffle_winners_v1') || '[]');
+    const wonKeys = new Set(JSON.parse(sessionStorage.getItem('raffle_won_keys_v1') || '[]'));
+    const $ = id => document.getElementById(id);
+
+    /* ===== 60 PARTICIPANT WHEEL READABILITY PATCH ===== */
+    function __raffleShortName60(p, i) {
+      const full = nameOf(p);
+      const parts = full.split(/\s+/).filter(Boolean);
+      if (parts.length >= 2) {
+        return (parts[0][0] || "") + ". " + parts[parts.length - 1];
+      }
+      return full || ("#" + (i + 1));
+    }
+
+    function __drawRaffleWheel60(list, activeTicket) {
+      const canvas = $('wheelCanvas');
+      if (!canvas) return;
+
+      const ctx = canvas.getContext('2d');
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      const box = canvas.getBoundingClientRect();
+      const cssSize = Math.min(560, Math.max(320, box.width || 520));
+
+      canvas.width = Math.round(cssSize * dpr);
+      canvas.height = Math.round(cssSize * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const size = cssSize;
+      const cx = size / 2;
+      const cy = size / 2;
+      const r = size * 0.485;
+      const inner = size * 0.105;
+
+      const items = (list && list.length)
+        ? list
+        : [{ first_name: 'მონაწილეები', last_name: 'იტრიალებს', ticket_id: 'FARMASI 2026' }];
+
+      const n = items.length;
+      const arc = Math.PI * 2 / n;
+
+      ctx.clearRect(0, 0, size, size);
+
+      for (let i = 0; i < n; i++) {
+        const start = -Math.PI / 2 + i * arc;
+        const end = start + arc;
+
+        const grad = ctx.createRadialGradient(cx, cy, inner, cx, cy, r);
+        if (i % 3 === 0) {
+          grad.addColorStop(0, '#fff6d8');
+          grad.addColorStop(1, '#e8c468');
+        } else if (i % 3 === 1) {
+          grad.addColorStop(0, '#ffe0e5');
+          grad.addColorStop(1, '#ff6075');
+        } else {
+          grad.addColorStop(0, '#fff0c4');
+          grad.addColorStop(1, '#d8a94f');
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, r, start, end);
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(55,20,15,.32)';
+        ctx.lineWidth = n > 35 ? 0.65 : 1.2;
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(start + arc / 2);
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#3f130d';
+        ctx.font = '800 ' + (n > 45 ? 7.2 : n > 30 ? 8.6 : 11) + 'px ' + getComputedStyle(document.body).fontFamily;
+        ctx.shadowColor = 'rgba(255,255,255,.20)';
+        ctx.shadowBlur = 1;
+
+        const label = __raffleShortName60(items[i], i);
+        const maxChars = n > 45 ? 9 : n > 30 ? 11 : 16;
+        const txt = label.length > maxChars ? label.slice(0, maxChars - 1) + '…' : label;
+
+        ctx.fillText(txt, r - (n > 45 ? 10 : 16), 0);
+        ctx.restore();
+      }
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.strokeStyle = '#f7dfa0';
+      ctx.lineWidth = 6;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, r - 10, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(10,5,6,.85)';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+
+      const centerGrad = ctx.createRadialGradient(cx - 10, cy - 14, 4, cx, cy, inner * 1.25);
+      centerGrad.addColorStop(0, '#3a3030');
+      centerGrad.addColorStop(1, '#070304');
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, inner, 0, Math.PI * 2);
+      ctx.fillStyle = centerGrad;
+      ctx.fill();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#fff0c4';
+      ctx.stroke();
+      }
+    
+
+    let wheelItems = [];
+    let wheelRotation = 0;
+    let spinTickTimer = null;
+
+    // 5-წამიანი მოგების მუსიკა — რბილი fanfare / jackpot სტილი.
+    let audioCtx = null;
+    function playVictoryMusic() {
+      console.log("VICTORY SOUND START");
+      
+      try {
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const now = audioCtx.currentTime;
+        const master = audioCtx.createGain();
+        master.gain.setValueAtTime(0.0001, now);
+        master.gain.exponentialRampToValueAtTime(1.0, now + 0.08);
+        master.gain.exponentialRampToValueAtTime(0.0001, now + 4.8);
+        master.connect(audioCtx.destination);
+
+        function tone(freq, start, dur, type = 'triangle', vol = .35) {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, start);
+
+          gain.gain.setValueAtTime(0.0001, start);
+          gain.gain.exponentialRampToValueAtTime(vol, start + 0.025);
+          gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+
+          osc.connect(gain);
+          gain.connect(master);
+          osc.start(start);
+          osc.stop(start + dur + 0.05);
+        }
+
+        // sparkle intro
+        [1568, 1760, 2093, 2349, 2637].forEach((f, i) => {
+          tone(f, now + i * 0.08, 0.16, 'sine', 0.35);
+        });
+
+        // jackpot rise
+        [
+          [523, .45], [659, .65], [784, .85],
+          [1046, 1.08], [1318, 1.35], [1568, 1.65]
+        ].forEach(([f, t]) => tone(f, now + t, 0.28, 'triangle', 0.65));
+
+        // final golden chord
+        [392, 523, 659, 784, 1046].forEach((f) => {
+          tone(f, now + 2.1, 2.2, 'sine', 0.55);
+        });
+
+        // soft bass impact
+        [98, 147, 196].forEach((f) => {
+          tone(f, now + 2.05, 2.4, 'sine', 0.60);
+        });
+        
+        // BIG WIN BOOM
+        tone(65, now + 2.0, 1.8, 'sawtooth', 1.0);
+        tone(85, now + 2.0, 1.6, 'triangle', 0.9);
+
+      } catch (e) {
+        console.warn("Victory sound error:", e);
+      }
+    }
+
+    function msg(text, type = 'ok') { const el = $('msg'); el.textContent = text; el.className = 'message show ' + (type === 'err' ? 'err' : 'ok'); }
+    function clearMsg() { $('msg').className = 'message'; $('msg').textContent = ''; }
+    function nameOf(p) { return [p.first_name, p.last_name].filter(Boolean).join(' ').trim() || p.ticket_id || 'მონაწილე'; }
+
+    function participantKey(p){
+      return String(
+        p.phone || ((p.first_name || '') + '_' + (p.last_name || ''))
+      ).trim().toLowerCase();
+    }
+
+    function prizeName() { return ($('manualPrize').value || $('prizeSelect').value || '').trim(); }
+    function selectedPrizeOrWarn() {
+      const p = prizeName();
+      if (!p) {
+        msg(txt('need_prize', 'ჯერ აირჩიე პრიზი ან ხელით ჩაწერე პრიზის სახელი.'), 'err');
+        return '';
+      }
+      return p;
+    }
+    function updateStats() { $('totalCount').textContent = participants.length; $('winCount').textContent = winners.length; $('leftCount').textContent = available.length; }
+
+    function api(params) { const url = API_URL + '?' + new URLSearchParams(params).toString(); return fetch(url).then(r => r.json()); }
+
+    async function loadRaffleTexts(){
+      try{
+        const cached = localStorage.getItem('raffle_texts_cache');
+
+        if(cached){
+          UI_TEXTS = JSON.parse(cached);
+          applyRaffleTexts();
+        }
+
+        const res = await api({ action: 'get_raffle_texts' });
+
+        if(res && res.ok && res.texts){
+          UI_TEXTS = res.texts;
+
+          localStorage.setItem(
+            'raffle_texts_cache',
+            JSON.stringify(UI_TEXTS)
+          );
+
+          applyRaffleTexts();
+        }
+      }catch(e){
+        console.warn('Raffle texts load error:', e);
+      }
+    }
+
+    function applyRaffleTexts(){
+      const layoutBtnForText = $('layoutToggleBtn');
+      if(layoutBtnForText){
+        layoutBtnForText.textContent = document.body.classList.contains('presentation-mode')
+          ? txt('admin_mode', 'Admin რეჟიმი')
+          : txt('big_screen', 'გაფართოებული ეკრანი');
+      }
+      setTextById('loadBtn', 'load_button', 'მონაწილეების ჩატვირთვა');
+      setTextById('spinBtn', 'spin_button', 'დატრიალება');
+      setTextById('clearScreenBtn', 'clear_button', 'გასუფთავება');
+
+      setLabel('checkedOnly', 'participants_label', 'მონაწილეები');
+      setLabel('prizeSelect', 'prize_label', 'პრიზი');
+      setLabel('manualPrize', 'manual_prize_label', 'ხელით ჩაწერა');
+
+      const checkedOnly = $('checkedOnly');
+      if(checkedOnly && checkedOnly.options.length >= 2){
+        checkedOnly.options[0].textContent = txt('checkedin_only', 'მხოლოდ Check-in გავლილი');
+        checkedOnly.options[1].textContent = txt('all_registered', 'ყველა რეგისტრირებული');
+      }
+
+      const prizeSelect = $('prizeSelect');
+      if(prizeSelect && prizeSelect.options.length){
+        prizeSelect.options[0].textContent = txt('select_prize_placeholder', 'აირჩიე პრიზი ან ჩაწერე ხელით');
+      }
+
+      const manualPrize = $('manualPrize');
+      if(manualPrize) manualPrize.placeholder = txt('manual_prize_placeholder', 'მაგ: სუნამო');
+
+      const total = $('totalCount');
+      if(total && total.nextElementSibling) total.nextElementSibling.textContent = txt('total_participants', 'მონაწილე');
+
+      const win = $('winCount');
+      if(win && win.nextElementSibling) win.nextElementSibling.textContent = txt('selected_count', 'არჩეული');
+
+      const left = $('leftCount');
+      if(left && left.nextElementSibling) left.nextElementSibling.textContent = txt('remaining_count', 'დარჩა');
+
+      const winnerSmall = document.querySelector('#winnerBox small');
+      if(winnerSmall) winnerSmall.textContent = txt('winner_label', 'გამარჯვებული');
+
+      const fullscreenSmall = document.querySelector('.winner-fullscreen-small');
+      if(fullscreenSmall) fullscreenSmall.textContent = txt('winner_announcement', 'გამარჯვებულია');
+
+      const historyLabel = document.querySelector('.history .group label');
+      if(historyLabel) historyLabel.textContent = txt('history_title', 'გამარჯვებულები ამ სესიაში');
+
+      const sub = document.querySelector('.header .sub');
+      if(sub) sub.textContent = txt('header_subtitle', 'სახელების ტრიალება და გამარჯვებული ფიქსირდება...');
+
+      renderHistory();
+    }
+
+    function uniqueByKey(list){
+      const seen = new Set();
+
+      return (list || []).filter(p => {
+        const k = participantKey(p);
+
+        if (!k) return false;
+        if (seen.has(k)) return false;
+
+        seen.add(k);
+        return true;
+      });
+    }
+
+    function renderPrizes() { const sel = $('prizeSelect'); sel.innerHTML = '<option value="">' + txt('select_prize_placeholder', 'აირჩიე პრიზი ან ჩაწერე ხელით') + '</option>'; prizes.forEach(p => { const o = document.createElement('option'); o.value = p.name; o.textContent = p.name; sel.appendChild(o); }); }
+
+    function renderReel(list, activeTicket) {
+      __drawRaffleWheel60(uniqueByKey(list || available || participants), activeTicket);
+    }
+
+    function drawWheel(activeTicket) {
+      const canvas = $('wheelCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const items = wheelItems.length ? wheelItems : [{ first_name: 'მონაწილეები', last_name: 'ჩაიტვირთება', ticket_id: 'FARMASI 2026' }];
+      const n = Math.max(items.length, 1);
+      const size = canvas.width;
+      const cx = size / 2;
+      const cy = size / 2;
+      const r = size * 0.48;
+      const arc = Math.PI * 2 / n;
+      ctx.clearRect(0, 0, size, size);
+
+      for (let i = 0; i < n; i++) {
+        const a0 = -Math.PI / 2 + i * arc;
+        const a1 = a0 + arc;
+        const grad = ctx.createRadialGradient(cx, cy, size * .06, cx, cy, r);
+        if (i % 3 === 0) { grad.addColorStop(0, '#fff7df'); grad.addColorStop(1, '#f5d98a'); }
+        else if (i % 3 === 1) { grad.addColorStop(0, '#ffd6dd'); grad.addColorStop(1, '#ff6075'); }
+        else { grad.addColorStop(0, '#fff0c7'); grad.addColorStop(1, '#d9ad55'); }
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, r, a0, a1);
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(72,32,20,.45)';
+        ctx.lineWidth = Math.max(2, size * .004);
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(a0 + arc / 2);
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        const isActive = activeTicket && items[i].ticket_id === activeTicket;
+        ctx.fillStyle = isActive ? '#5a160f' : '#3a130d';
+        ctx.font = `900 ${n > 12 ? 24 : n > 8 ? 30 : n > 5 ? 36 : 44}px ${getComputedStyle(document.documentElement).getPropertyValue('--font') || 'Arial'}`;
+        const label = nameOf(items[i]);
+        const short = label.length > 17 ? label.slice(0, 16) + '…' : label;
+        ctx.fillText(short, r - size * .07, 0);
+        ctx.restore();
+      }
+    }
+    function escapeHtml(s) { return String(s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+    function buildSpinList(winner) {
+      const winnerKey = participantKey(winner);
+      const base = (available.length ? available : participants)
+        .filter(p => (p.ticket_id || p.phone) !== winnerKey);
+
+      // Shuffle without duplicating people in the visible reel.
+      const shuffled = base.slice().sort(() => Math.random() - 0.5);
+      const beforeCount = Math.min(shuffled.length, 28);
+      const before = shuffled.slice(0, beforeCount);
+
+      // Winner is included only once, at the final stop position.
+      return before.concat([winner]);
+    }
+
+    async function loadAll() {
+      clearMsg(); $('loadBtn').disabled = true; $('loadBtn').textContent = txt('loading_button', 'იტვირთება...');
+      try {
+        const pin = $('pin').value.trim();
+        const [pool, prizeRes] = await Promise.all([
+          api({ action: 'get_raffle_pool', pin, checked_only: $('checkedOnly').value }),
+          api({ action: 'get_raffle_prizes', pin })
+        ]);
+        if (!pool.ok) throw new Error(pool.error || 'მონაწილეები ვერ ჩაიტვირთა');
+        participants = (pool.participants || []).filter(p => p.ticket_id || p.phone);
+        available = uniqueByKey(participants).filter(p => !wonKeys.has(participantKey(p)));
+        prizes = prizeRes && prizeRes.ok ? (prizeRes.prizes || []) : [];
+        renderPrizes(); renderReel(uniqueByKey(available)); updateStats(); renderHistory();
+        $('spinBtn').disabled = available.length < 1;
+        msg(txt('loaded_message', 'ჩაიტვირთა') + ': ' + participants.length + ' ' + txt('total_participants', 'მონაწილე'));
+      } catch (e) { msg(e.message || String(e), 'err'); }
+      finally { $('loadBtn').disabled = false; $('loadBtn').textContent = txt('load_button', 'მონაწილეების ჩატვირთვა'); }
+      console.log("participants:", participants.length);
+      console.log("available:", available.length);
+      console.log("unique:", uniqueByKey(available).length);
+    }
+
+
+    function startSpinTickSound(duration) {
+      try {
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const master = audioCtx.createGain();
+        master.gain.value = 0.18;
+        master.connect(audioCtx.destination);
+
+        const hum = audioCtx.createOscillator();
+        const humGain = audioCtx.createGain();
+        hum.type = 'sawtooth';
+        hum.frequency.value = 120;
+        humGain.gain.value = 0.025;
+        hum.connect(humGain);
+        humGain.connect(master);
+        hum.start();
+
+        let stopped = false;
+        let elapsed = 0;
+        let delay = 30;
+        let timer = null;
+
+        function tick() {
+          if (stopped) return;
+
+          const p = Math.min(elapsed / duration, 1);
+          const t = audioCtx.currentTime;
+
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(900 + Math.random() * 500, t);
+
+          gain.gain.setValueAtTime(0.0001, t);
+          gain.gain.exponentialRampToValueAtTime(0.09 * (1 - p * 0.45), t + 0.006);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
+
+          osc.connect(gain);
+          gain.connect(master);
+          osc.start(t);
+          osc.stop(t + 0.055);
+
+          hum.frequency.setTargetAtTime(150 - p * 75, t, 0.05);
+          humGain.gain.setTargetAtTime(0.035 * (1 - p) + 0.006, t, 0.05);
+
+          delay = 24 + Math.pow(p, 3.2) * 260;
+          elapsed += delay;
+
+          if (p < 1) timer = setTimeout(tick, delay);
+        }
+
+        tick();
+
+        return {
+          stop() {
+            stopped = true;
+            if (timer) clearTimeout(timer);
+
+            const t = audioCtx.currentTime;
+            master.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+            try { hum.stop(t + 0.28); } catch (e) { }
+            setTimeout(() => {
+              try { master.disconnect(); } catch (e) { }
+            }, 400);
+          }
+        };
+      } catch (e) {
+        return { stop() { } };
+      }
+    }
+
+
+    function playPointerClick(){
+      try{
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+
+        const t = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(1250, t);
+
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.exponentialRampToValueAtTime(0.11, t + 0.004);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(t);
+        osc.stop(t + 0.04);
+      }catch(e){}
+    }
+
+    function startPointerTick(duration, segmentCount, fullSpins, fromRotation, toRotation){
+      const pointer = document.querySelector('.wheel-pointer');
+      if (!pointer) return { stop: function(){} };
+
+      let stopped = false;
+      const startTime = performance.now();
+      const totalRotation = toRotation - fromRotation;
+      const arcDeg = 360 / Math.max(1, segmentCount);
+      let lastLineIndex = Math.floor(fromRotation / arcDeg);
+
+      function cubicBezierY(x1, y1, x2, y2, t){
+        const cx = 3 * x1;
+        const bx = 3 * (x2 - x1) - cx;
+        const ax = 1 - cx - bx;
+        const cy = 3 * y1;
+        const by = 3 * (y2 - y1) - cy;
+        const ay = 1 - cy - by;
+
+        function sampleX(u){ return ((ax * u + bx) * u + cx) * u; }
+        function sampleY(u){ return ((ay * u + by) * u + cy) * u; }
+        function sampleDX(u){ return (3 * ax * u + 2 * bx) * u + cx; }
+
+        let u = t;
+        for (let i = 0; i < 6; i++) {
+          const x = sampleX(u) - t;
+          const dx = sampleDX(u);
+          if (Math.abs(x) < 0.0001 || Math.abs(dx) < 0.0001) break;
+          u -= x / dx;
+          u = Math.max(0, Math.min(1, u));
+        }
+        return sampleY(u);
+      }
+
+      function hit(){
+        pointer.classList.remove('ratchet-hit');
+        pointer.offsetHeight;
+        pointer.classList.add('ratchet-hit');
+
+        playPointerClick();
+
+        setTimeout(function(){
+          if (stopped) return;
+          pointer.classList.remove('ratchet-hit');
+        }, 45);
+      }
+
+      function frame(now){
+        if (stopped) return;
+
+        const p = Math.min((now - startTime) / duration, 1);
+        const eased = cubicBezierY(.05, .86, .12, 1, p);
+
+        const currentRotation = fromRotation + totalRotation * eased;
+        const lineIndex = Math.floor(currentRotation / arcDeg);
+
+        if (lineIndex !== lastLineIndex) {
+          lastLineIndex = lineIndex;
+          hit();
+        }
+
+        if (p < 1) requestAnimationFrame(frame);
+      }
+
+      requestAnimationFrame(frame);
+
+      return {
+        stop: function(){
+          stopped = true;
+          pointer.classList.remove('ratchet-hit');
+        }
+      };
+    }
+
+    function spin() {
+      if (spinning || !available.length) return;
+      const pickedPrize = selectedPrizeOrWarn();
+      if (!pickedPrize) return;
+      clearMsg();
+      spinning = true;
+      currentWinner = null;
+      $('winnerBox').classList.remove('show');
+      $('spinBtn').disabled = true;
+
+      wheelItems = uniqueByKey(available);
+      const winnerIndex = Math.floor(Math.random() * wheelItems.length);
+      const winner = wheelItems[winnerIndex];
+      const winnerKey = participantKey(winner);
+      drawWheel();
+
+      const canvas = $('wheelCanvas');
+      const n = wheelItems.length;
+      const arcDeg = 360 / n;
+      const winnerCenterDeg = -90 + winnerIndex * arcDeg + arcDeg / 2;
+      const pointerDeg = 0;
+      const fullSpins = 11 + Math.floor(Math.random() * 3);
+      const currentMod = ((wheelRotation % 360) + 360) % 360;
+      const finalRotation = wheelRotation + fullSpins * 360 + (pointerDeg - winnerCenterDeg) - currentMod;
+      const duration = 6800;
+      const spinSound = startSpinTickSound(duration);
+      const pointerTick = startPointerTick(duration, n, fullSpins, currentMod, finalRotation);
+
+      canvas.style.transition = 'none';
+      canvas.offsetHeight;
+      canvas.style.transition = 'transform ' + duration + 'ms cubic-bezier(.05,.86,.12,1)';
+      canvas.style.transform = 'rotate(' + finalRotation + 'deg)';
+      wheelRotation = finalRotation;
+
+      setTimeout(() => {
+        spinning = false;
+        currentWinner = winner;
+        if (spinSound && spinSound.stop) spinSound.stop();
+        if (pointerTick && pointerTick.stop) pointerTick.stop();
+        drawWheel(winner.ticket_id);
+        $('winnerName').textContent = nameOf(winner);
+        $('winnerInfo').textContent = (winner.ticket_id || '') + ' · ' + (winner.city || '') + ' · ' + pickedPrize;
+        $('winnerBox').classList.add('show');
+        if ($('winnerFullscreen') && $('winnerFullscreenName') && $('winnerFullscreenInfo') && currentWinner) {
+          $('winnerFullscreenName').textContent = nameOf(currentWinner);
+          $('winnerFullscreenInfo').textContent = (currentWinner.ticket_id || '') + ' · ' + (currentWinner.city || '') + ' · ' + prizeName();
+          $('winnerFullscreen').classList.add('show');
+          setTimeout(() => { if ($('winnerFullscreen')) $('winnerFullscreen').classList.remove('show'); }, 5200);
+        }
+        playVictoryMusic();
+
+        console.log("ANNOUNCE:", nameOf(winner));
+        announceWinner(winner);
+
+        announceWinnerAuto(winner, pickedPrize);
+        wonKeys.add(winnerKey);
+        sessionStorage.setItem('raffle_won_keys_v1', JSON.stringify(Array.from(wonKeys)));
+        available = available.filter(p => participantKey(p) !== winnerKey);
+        winners.push({ ticket_id: winner.ticket_id, phone: winner.phone, name: nameOf(winner), prize: pickedPrize, time: new Date().toISOString() });
+        sessionStorage.setItem('raffle_winners_v1', JSON.stringify(winners));
+        updateStats();
+        renderHistory();
+        $('spinBtn').disabled = available.length < 1;
+        if (window.confetti) {
+          confetti({ particleCount: 160, spread: 75, origin: { y: .62 } });
+          setTimeout(() => confetti({ particleCount: 90, spread: 110, origin: { y: .5 } }), 350);
+        }
+      }, duration + 80);
+    }
+
+    async function announceWinnerAuto(winner, pickedPrize) {
+      if (!winner) return;
+      try {
+        msg(txt('sending_sms', 'გამარჯვებული დაფიქსირდა — SMS ავტომატურად იგზავნება...'), 'ok');
+        const res = await api({
+          action: 'announce_raffle_winner',
+          pin: $('pin').value.trim(),
+          checked_only: $('checkedOnly').value,
+          ticket_id: winner.ticket_id,
+          phone: winner.phone,
+          prize_name: pickedPrize
+        });
+        if (!res.ok) throw new Error(res.error || 'SMS ავტომატურად ვერ გაიგზავნა');
+        msg('SMS ავტომატურად დასრულდა · მონაწილეები: ' + (res.participant_sent || res.sent || 0) + ' · ადმინები: ' + (res.admin_sent || 0) + ((res.errors && res.errors.length) ? ' · შეცდომა: ' + res.errors.length : ''));
+      } catch (e) {
+        msg('გამარჯვებული გამოვლინდა, მაგრამ SMS-ზე შეცდომაა: ' + (e.message || String(e)), 'err');
+      }
+    }
+
+    function syncPrizeInputs(source) {
+      if (source === 'manual' && $('manualPrize').value.trim()) {
+        $('prizeSelect').value = '';
+      }
+      if (source === 'select' && $('prizeSelect').value.trim()) {
+        $('manualPrize').value = '';
+      }
+    }
+
+    function clearScreen() {
+      if (spinning) return;
+      currentWinner = null;
+      winners.length = 0;
+      wonKeys.clear();
+      sessionStorage.removeItem('raffle_winners_v1');
+      sessionStorage.removeItem('raffle_won_keys_v1');
+      available = uniqueByKey(participants);
+      $('winnerBox').classList.remove('show');
+      $('winnerName').textContent = '—';
+      $('winnerInfo').textContent = '—';
+      clearMsg();
+      renderHistory();
+      renderReel(available.length ? available : [{ first_name: 'მონაწილეები', last_name: 'ჩაიტვირთება', ticket_id: 'FARMASI 2026' }]);
+      const canvas = $('wheelCanvas');
+      if (canvas) { canvas.style.transition = 'none'; canvas.style.transform = 'rotate(0deg)'; }
+      wheelRotation = 0;
+      $('spinBtn').disabled = available.length < 1;
+      updateStats();
+      msg(txt('raffle_cleared', 'გათამაშება გასუფთავდა. ყველა მონაწილე თავიდან დაემატა.'));
+    }
+
+    function renderHistory() { const box = $('historyList'); if (!winners.length) { box.innerHTML = '<div style="color:var(--dim);font-size:12px;text-align:center;padding:10px">' + txt('no_winners_yet', 'ჯერ გამარჯვებული არ არის') + '</div>'; return; } box.innerHTML = winners.slice().reverse().map(w => '<div class="history-item"><b>' + escapeHtml(w.name) + '</b><span>' + escapeHtml(w.prize || 'პრიზი') + '</span></div>').join(''); }
+
+    /* ===== ROUND WHEEL SPIN OVERRIDE FOR 60 PARTICIPANTS ===== */
+    function spin() {
+      if (spinning || !available.length) return;
+      const pickedPrize = selectedPrizeOrWarn();
+      if (!pickedPrize) return;
+
+      clearMsg();
+      spinning = true;
+      currentWinner = null;
+      $('winnerBox').classList.remove('show');
+      $('spinBtn').disabled = true;
+
+      const idx = Math.floor(Math.random() * available.length);
+      const winner = available[idx];
+      const winnerKey = participantKey(winner);
+      const wheelList = uniqueByKey(available);
+      const winnerIndex = Math.max(
+        0,
+        wheelList.findIndex(p => participantKey(p) === winnerKey)
+      );
+
+      __drawRaffleWheel60(wheelList);
+
+      const canvas = $('wheelCanvas');
+      const n = wheelList.length;
+      const arcDeg = 360 / n;
+      const winnerCenterDeg = winnerIndex * arcDeg + arcDeg / 2;
+
+      // pointer ზემოთაა, ამიტომ 270°-ზე ვაჩერებთ გამარჯვებულის ცენტრს
+      const pointerDeg = 0;
+      const fullSpins = 11 + Math.floor(Math.random() * 3);
+
+      const currentRotation = window.__raffleWheelRotation || 0;
+      const currentMod = ((currentRotation % 360) + 360) % 360;
+      const finalRotation =
+            currentRotation +
+            fullSpins * 360 +
+            pointerDeg -
+            winnerCenterDeg -
+            currentMod;
+
+      const duration = 10500;
+      const spinSound = startSpinTickSound(duration);
+      const pointerTick = startPointerTick(duration, n, fullSpins, currentMod, finalRotation);
+      canvas.style.transition = 'none';
+      canvas.style.transform =
+       'rotate(' + currentMod + 'deg)';
+      canvas.offsetHeight;
+      canvas.style.transition = 'transform ' + duration + 'ms cubic-bezier(.05,.86,.12,1)';
+      canvas.style.transform = 'rotate(' + finalRotation + 'deg)';
+
+      window.__raffleWheelRotation = finalRotation;
+
+      if (spinSound && spinSound.setProgress) {
+        const start = performance.now();
+        function soundFrame(now) {
+          const p = Math.min(1, (now - start) / duration);
+          spinSound.setProgress(p);
+          if (p < 1) requestAnimationFrame(soundFrame);
+        }
+        requestAnimationFrame(soundFrame);
+      }
+
+      setTimeout(() => {
+        if (spinSound && spinSound.stop) spinSound.stop();
+        if (pointerTick && pointerTick.stop) pointerTick.stop();
+        spinning = false;
+        currentWinner = winner;
+
+        __drawRaffleWheel60(wheelList, winner.ticket_id);
+        $('winnerName').textContent = nameOf(winner);
+        $('winnerInfo').textContent = (winner.ticket_id || '') + ' · ' + (winner.city || '') + ' · ' + pickedPrize;
+        $('winnerBox').classList.add('show');
+
+        if ($('winnerFullscreen') && $('winnerFullscreenName') && $('winnerFullscreenInfo')) {
+          $('winnerFullscreenName').textContent = nameOf(winner);
+          $('winnerFullscreenInfo').textContent = (winner.ticket_id || '') + ' · ' + (winner.city || '') + ' · ' + pickedPrize;
+          $('winnerFullscreen').classList.add('show');
+          setTimeout(() => { if ($('winnerFullscreen')) $('winnerFullscreen').classList.remove('show'); }, 5200);
+        }
+
+        playVictoryMusic();
+
+        console.log("WINNER OBJECT:", winner);
+
+        announceWinner(winner);
+        announceWinnerAuto(winner, pickedPrize);
+
+        wonKeys.add(winnerKey);
+        sessionStorage.setItem('raffle_won_keys_v1', JSON.stringify(Array.from(wonKeys)));
+        available = available.filter(p => participantKey(p) !== winnerKey);
+
+        winners.push({ ticket_id: winner.ticket_id, phone: winner.phone, name: nameOf(winner), prize: pickedPrize, time: new Date().toISOString() });
+        sessionStorage.setItem('raffle_winners_v1', JSON.stringify(winners));
+
+        updateStats();
+        renderHistory();
+        $('spinBtn').disabled = available.length < 1;
+
+        if (window.confetti) {
+          confetti({ particleCount: 180, spread: 75, origin: { y: .62 } });
+          setTimeout(() => confetti({ particleCount: 110, spread: 110, origin: { y: .5 } }), 350);
+        }
+      }, duration + 120);
+    }
+
+    function announceWinner(winner){
+      try{
+
+        const fullName =
+          winner.voice_name ||
+          nameOf(winner);
+
+        const text = txt('speech_prefix', 'The winner is') + ' ' + fullName;
+
+        speechSynthesis.cancel();
+
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'en-US';
+        utter.rate = 0.85;
+        utter.pitch = 1.0;
+        utter.volume = 1.0;
+
+        speechSynthesis.speak(utter);
+
+      }catch(e){
+        console.warn("Speech error:", e);
+      }
+    }
+
+    $('loadBtn').addEventListener('click', loadAll);
+    $('spinBtn').addEventListener('click', spin);
+    $('clearScreenBtn').addEventListener('click', clearScreen);
+    $('manualPrize').addEventListener('input', () => syncPrizeInputs('manual'));
+    $('prizeSelect').addEventListener('change', () => syncPrizeInputs('select'));
+    renderHistory();
+updateStats();
+
+renderReel([
+  {
+    first_name: 'მონაწილეები',
+    last_name: 'იტრიალებს',
+    ticket_id: 'FARMASI 2026'
+  }
+]);
+
+loadRaffleTexts();
+setTimeout(loadRaffleTexts, 500);
+    const layoutBtn = document.getElementById('layoutToggleBtn');
+
+if(layoutBtn){
+  layoutBtn.addEventListener('click', function(){
+
+    document.body.classList.toggle('presentation-mode');
+
+    this.textContent =
+      document.body.classList.contains('presentation-mode')
+        ? txt('admin_mode', 'Admin რეჟიმი')
+        : txt('big_screen', 'გაფართოებული ეკრანი');
+  });
+}
+  </script>
+
+  <div class="winner-fullscreen" id="winnerFullscreen" aria-live="polite">
+    <div class="winner-fullscreen-inner">
+      <div class="winner-fullscreen-small">გამარჯვებულია</div>
+      <h2 class="winner-fullscreen-name" id="winnerFullscreenName">—</h2>
+      <div class="winner-fullscreen-info" id="winnerFullscreenInfo">—</div>
+    </div>
+  </div>
+
+</body>
+
+</html>
