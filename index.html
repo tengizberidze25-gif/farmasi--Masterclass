@@ -1760,6 +1760,51 @@
       color: var(--cream);
     }
 
+    /* === მონაწილეობის ტიპი — მკაფიო "აქ აირჩიე" სახე === */
+    /* სანამ ტიპი არ აირჩევა (.needs-pick), ღილაკი გამოირჩევა */
+    #attendee_type.needs-pick {
+      border: 1.5px solid var(--gold);
+      background-color: rgba(232, 196, 104, 0.10);
+      color: var(--gold-light, #f4d989);
+      font-weight: 600;
+      font-size: 13.5px;
+      box-shadow: 0 0 0 0 rgba(232, 196, 104, 0.5);
+      animation: attendeePulse 2.2s ease-in-out infinite;
+      /* უფრო დიდი, მკვეთრი ისარი */
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='10' viewBox='0 0 12 8'%3E%3Cpath fill='none' stroke='%23f4d989' stroke-width='2.2' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+      background-position: right 14px center;
+    }
+
+    @keyframes attendeePulse {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(232, 196, 104, 0.45);
+        border-color: var(--gold);
+      }
+      50% {
+        box-shadow: 0 0 0 5px rgba(232, 196, 104, 0);
+        border-color: var(--gold-light, #f4d989);
+      }
+    }
+
+    /* პატარა მინიშნება ღილაკის ზემოთ */
+    .attendee-hint {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-family: var(--geo-font);
+      font-size: 12px;
+      color: var(--gold);
+      margin-bottom: 7px;
+      letter-spacing: 0.3px;
+      animation: attendeeHintFade 2.2s ease-in-out infinite;
+    }
+    .attendee-hint.hide { display: none; }
+    @keyframes attendeeHintFade {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
     .submit-btn {
       margin-top: 4px;
     }
@@ -6095,8 +6140,11 @@
         <div class="modal-title" style="text-align:center;margin-bottom:14px;">დაიკავე <span class="accent">ადგილი</span></div>
 
         <form id="registerForm" class="form-compact">
+          <div class="attendee-hint" id="attendeeHint">
+            <span>👇</span><span>ჯერ აირჩიე მონაწილეობის ტიპი</span>
+          </div>
           <div class="input-group">
-            <select class="input-field" id="attendee_type" name="attendee_type" required>
+            <select class="input-field needs-pick" id="attendee_type" name="attendee_type" required>
               <option value="" disabled selected hidden>აირჩიე მონაწილეობის ტიპი</option>
               <option value="title_holder">FARMASI ტიტულის მქონე წარმომადგენელი</option>
               <option value="guest">მოწვეული სტუმარი / წარმომადგენელი</option>
@@ -9197,6 +9245,15 @@
 
     function updateAttendeeTypeUI() {
       const type = getAttendeeType();
+      const isTypeChosen = !!type;
+
+      // მკაფიო "აქ აირჩიე" სახე — ქრება არჩევის შემდეგ
+      if (els.attendeeType) {
+        els.attendeeType.classList.toggle("needs-pick", !isTypeChosen);
+      }
+      const hint = document.getElementById("attendeeHint");
+      if (hint) hint.classList.toggle("hide", isTypeChosen);
+
       const position = getPositionInput();
       const positionWrap = position ? position.closest(".input-group") : null;
       const registerFields = [
@@ -9205,7 +9262,6 @@
         "city_area_village",
         "phone"
       ].map(id => document.getElementById(id)).filter(Boolean);
-      const isTypeChosen = !!type;
 
       registerFields.forEach(field => {
         field.disabled = !isTypeChosen;
