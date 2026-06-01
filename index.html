@@ -1571,6 +1571,45 @@
       color: var(--pink);
     }
 
+    .ticket-lookup-bar {
+      width: 100%;
+      margin-top: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .ticket-lookup-btn {
+      width: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 13px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(232, 196, 104, 0.42);
+      background: linear-gradient(135deg,
+        rgba(232, 196, 104, 0.16) 0%,
+        rgba(255, 96, 117, 0.10) 100%);
+      color: var(--gold);
+      font-family: var(--sans-font);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      cursor: pointer;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 10px 24px rgba(0, 0, 0, 0.22);
+      transition: all 0.2s ease;
+    }
+
+    .ticket-lookup-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(232, 196, 104, 0.7);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.10),
+        0 14px 30px rgba(232, 196, 104, 0.18);
+    }
+
     /* ============================================ */
     /* MODAL X CLOSE BUTTON                          */
     /* ============================================ */
@@ -1723,61 +1762,6 @@
 
     .submit-btn {
       margin-top: 4px;
-    }
-
-    /* ============================================ */
-    /* ATTENDEE TYPE — visible choice fix            */
-    /* ============================================ */
-    .attendee-type-group {
-      padding: 11px 12px;
-      border: 1.5px solid rgba(232, 196, 104, 0.45);
-      border-radius: 14px;
-      background:
-        radial-gradient(ellipse at top left, rgba(232, 196, 104, 0.12), transparent 55%),
-        rgba(0, 0, 0, 0.18);
-      box-shadow:
-        0 0 0 1px rgba(255, 255, 255, 0.03) inset,
-        0 8px 24px rgba(232, 196, 104, 0.08);
-    }
-
-    .attendee-type-group label,
-    .invited-by-group label {
-      display: block;
-      margin-bottom: 6px;
-      color: var(--gold-light);
-      font-size: 10px;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      font-family: var(--sans-font);
-      font-weight: 700;
-    }
-
-    .attendee-type-select {
-      border-color: rgba(255, 96, 117, 0.45) !important;
-      background-color: rgba(0, 0, 0, 0.34) !important;
-      color: var(--cream) !important;
-      font-weight: 600;
-    }
-
-    .attendee-type-select:focus {
-      border-color: var(--gold-light) !important;
-      box-shadow: 0 0 0 3px rgba(232, 196, 104, 0.14) !important;
-    }
-
-    .attendee-type-hint {
-      margin-top: 6px;
-      font-family: var(--sans-font);
-      font-size: 10.5px;
-      line-height: 1.35;
-      color: var(--cream-dim);
-      opacity: 0.86;
-    }
-
-    .invited-by-group {
-      padding: 10px 12px;
-      border: 1px solid rgba(255, 96, 117, 0.35);
-      border-radius: 12px;
-      background: rgba(255, 96, 117, 0.06);
     }
 
     /* ============================================ */
@@ -3853,6 +3837,52 @@
       text-transform: uppercase;
       box-shadow: 0 3px 10px var(--pink-glow);
     }
+
+    .ticket-change-transport {
+      width: 100%;
+      margin: 10px 0 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(232, 196, 104, 0.34);
+      background: linear-gradient(135deg, rgba(232, 196, 104, 0.12), rgba(255, 96, 117, 0.08));
+      color: var(--gold);
+      font-family: var(--sans-font);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 24px rgba(0,0,0,0.18);
+      transition: 0.18s ease;
+    }
+
+    .ticket-change-transport:hover {
+      transform: translateY(-1px);
+      border-color: rgba(232, 196, 104, 0.58);
+      background: linear-gradient(135deg, rgba(232, 196, 104, 0.18), rgba(255, 96, 117, 0.12));
+    }
+
+    .ticket-change-transport:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .ticket-change-message {
+      min-height: 18px;
+      text-align: center;
+      font-family: var(--sans-font);
+      font-size: 11px;
+      letter-spacing: 0.25px;
+      margin-top: 4px;
+    }
+
+    .ticket-change-message.ok { color: #73e49c; }
+    .ticket-change-message.error { color: #ff8090; }
+    .ticket-change-message.loading { color: var(--gold); }
 
     /* ============================================ */
     /* TICKET CANCEL SECTION                         */
@@ -6064,33 +6094,30 @@
         <div class="modal-subtitle" style="text-align:center;">RSVP</div>
         <div class="modal-title" style="text-align:center;margin-bottom:14px;">დაიკავე <span class="accent">ადგილი</span></div>
 
-        <form id="registerForm" class="form-compact form-locked">
-          <div class="input-group attendee-type-group">
-            <label for="attendee_type">რეგისტრაციის ტიპი</label>
-            <select class="input-field attendee-type-select" id="attendee_type" name="attendee_type" required>
-              <option value="" disabled selected>აირჩიე: ტიტულიანი ხარ თუ მოწვევით?</option>
-              <option value="title_holder">FARMASI-ს ტიტულიანი წარმომადგენელი</option>
-              <option value="guest">მოწვევით ვრეგისტრირდები</option>
+        <form id="registerForm" class="form-compact">
+          <div class="input-group">
+            <select class="input-field" id="attendee_type" name="attendee_type" required>
+              <option value="" disabled selected>აირჩიე მონაწილეობის ტიპი</option>
+              <option value="title_holder">FARMASI ტიტულის მქონე წარმომადგენელი</option>
+              <option value="guest">მოწვეული სტუმარი / წარმომადგენელი</option>
             </select>
-            <div class="attendee-type-hint">ჯერ აირჩიე რეგისტრაციის ტიპი — შემდეგ გაიხსნება დანარჩენი ველები.</div>
           </div>
-          <div class="input-group invited-by-group" id="invitedByWrap" style="display:none;">
-            <label for="invited_by">ვინ მოგიწვია?</label>
-            <input class="input-field" type="text" id="invited_by" name="invited_by" placeholder="მომწვევის სახელი და გვარი" autocomplete="name" />
+          <div class="input-group" id="invitedByWrap" style="display:none;">
+            <input class="input-field" type="text" id="invited_by" name="invited_by" placeholder="ვინ მოგიწვიათ? სახელი და გვარი" />
           </div>
           <div class="form-row">
             <div class="input-group">
-              <input class="input-field" type="text" id="first_name" name="first_name" placeholder="სახელი" required disabled />
+              <input class="input-field" type="text" id="first_name" name="first_name" placeholder="სახელი" required />
             </div>
             <div class="input-group">
-              <input class="input-field" type="text" id="last_name" name="last_name" placeholder="გვარი" required disabled />
+              <input class="input-field" type="text" id="last_name" name="last_name" placeholder="გვარი" required />
             </div>
           </div>
           <div class="input-group">
-            <input class="input-field" type="text" id="city_area_village" name="city_area_village" placeholder="ქალაქი / რაიონი / სოფელი" required disabled />
+            <input class="input-field" type="text" id="city_area_village" name="city_area_village" placeholder="ქალაქი / რაიონი / სოფელი" />
           </div>
           <div class="input-group">
-            <select class="input-field" id="position" name="position" required disabled>
+            <select class="input-field" id="position" name="position" required>
               <option value="" disabled selected hidden>აირჩიე წოდება</option>
               <option value="ინფლუენსერი">ინფლუენსერი</option>
               <option value="მენეჯერი">მენეჯერი</option>
@@ -6106,7 +6133,7 @@
             </select>
           </div>
           <div class="input-group">
-            <input class="input-field" type="tel" id="phone" name="phone" placeholder="ტელეფონის ნომერი" required disabled />
+            <input class="input-field" type="tel" id="phone" name="phone" placeholder="ტელეფონის ნომერი" required />
           </div>
 
           <div class="input-group" style="display:none;">
@@ -6129,6 +6156,12 @@
 
         <div id="registerSuccess" class="msg success">რეგისტრაცია წარმატებით დასრულდა ✦</div>
         <div id="registerError" class="msg error">დაფიქსირდა შეცდომა ⚠</div>
+
+        <div class="ticket-lookup-bar">
+          <button class="ticket-lookup-btn" id="ticketLookupBtn" type="button">
+            🎫 ჩემი ბილეთი
+          </button>
+        </div>
       </div>
 
       <!-- MY TICKET CARD — shows after successful registration -->
@@ -6497,6 +6530,12 @@
           </a>
         </div>
       </div>
+
+      <button class="ticket-change-transport" id="ticketChangeTransportBtn" type="button">
+        <span>🚌🚗</span>
+        <span>ტრანსპორტის შეცვლა</span>
+      </button>
+      <div class="ticket-change-message" id="ticketChangeTransportMsg"></div>
 
       <div class="card-eyebrow" style="justify-content:center; margin-top:6px;">დაამატე კალენდარში</div>
       <div class="action-grid">
@@ -6946,6 +6985,8 @@
       ticketTransportAddrRow: document.getElementById("ticketTransportAddrRow"),
       ticketTransportAddr: document.getElementById("ticketTransportAddr"),
       ticketTransportMap: document.getElementById("ticketTransportMap"),
+      ticketChangeTransportBtn: document.getElementById("ticketChangeTransportBtn"),
+      ticketChangeTransportMsg: document.getElementById("ticketChangeTransportMsg"),
 
       // Modal transport banner (inside register modal)
       modalTransportBanner: document.getElementById("modalTransportBanner"),
@@ -6963,6 +7004,7 @@
       myTicketCard: document.getElementById("myTicketCard"),
       myTicketIdLabel: document.getElementById("myTicketIdLabel"),
       showMyTicketBtn: document.getElementById("showMyTicketBtn"),
+      ticketLookupBtn: document.getElementById("ticketLookupBtn"),
       clearMyTicketBtn: document.getElementById("clearMyTicketBtn")
     };
 
@@ -6973,6 +7015,7 @@
     let selectedSeat = null; // currently picked seat number
     let transportChoiceConfirmed = false;
     let currentTicketContext = null; // { ticket_id, phone } — for cancel
+    let transportChangeContext = null; // ticket modal transport change flow
 
     els.music.volume = 0.3;
     els.boom.volume = 0.55;
@@ -7188,7 +7231,8 @@
       if (window.__busViewMode) return;
 
       // Check if taken (defensive — shouldn't be clickable, but just in case)
-      if (occupiedSeats.includes(num)) return;
+      const ownSeat = transportChangeContext ? Number(transportChangeContext.currentSeat || 0) : 0;
+      if (occupiedSeats.includes(num) && num !== ownSeat) return;
 
       // Toggle: if already selected, deselect
       if (selectedSeat === num) {
@@ -7207,7 +7251,8 @@
         const num = parseInt(seat.dataset.seat);
         seat.classList.remove("taken", "selected");
 
-        if (occupiedSeats.includes(num)) {
+        const ownSeat = transportChangeContext ? Number(transportChangeContext.currentSeat || 0) : 0;
+        if (occupiedSeats.includes(num) && num !== ownSeat) {
           seat.classList.add("taken");
         } else if (selectedSeat === num) {
           seat.classList.add("selected");
@@ -8615,16 +8660,168 @@
       // Save context for potential cancellation
       currentTicketContext = {
         ticket_id: ticketIdStr,
-        transport_mode: (registrationData && registrationData.transport_mode) || "bus",
+        transport_mode: (registrationData && registrationData.transport_mode) || (seat ? "bus" : "car"),
+        seat_number: seat || "",
         phone: formData.phone || "",
-        name: formData.first_name + " " + formData.last_name
+        name: formData.first_name + " " + formData.last_name,
+        formData: { ...formData },
+        registrationData: { ...registrationData, ticket_id: ticketIdStr }
       };
+      renderTicketTransportChoice(currentTicketContext.transport_mode, currentTicketContext.seat_number);
+      clearTicketChangeMessage();
 
       // Reset cancel section UI to its default state every time the modal opens
       resetTicketCancelUI();
 
       // Show modal
       els.ticketModal.classList.add("open");
+    }
+
+    function clearTicketChangeMessage() {
+      if (!els.ticketChangeTransportMsg) return;
+      els.ticketChangeTransportMsg.className = "ticket-change-message";
+      els.ticketChangeTransportMsg.textContent = "";
+    }
+
+    function showTicketChangeMessage(type, text) {
+      if (!els.ticketChangeTransportMsg) return;
+      els.ticketChangeTransportMsg.className = "ticket-change-message " + (type || "");
+      els.ticketChangeTransportMsg.textContent = text || "";
+    }
+
+    function updateSavedTicketTransport(mode, seat) {
+      try {
+        const ticket = loadMyTicket();
+        if (!ticket || !currentTicketContext || ticket.ticket_id !== currentTicketContext.ticket_id) return;
+        ticket.transport_mode = mode;
+        ticket.seat_number = mode === "bus" ? seat : "";
+        ticket.saved_at = new Date().toISOString();
+        localStorage.setItem(TICKET_STORAGE_KEY, JSON.stringify(ticket));
+      } catch (e) {}
+    }
+
+    function renderTicketTransportChoice(mode, seat) {
+      const isBus = mode === "bus";
+
+      if (els.ticketSeat) {
+        if (isBus && seat) {
+          els.ticketSeatNum.textContent = "#" + seat;
+          els.ticketSeat.style.display = "inline-flex";
+          els.ticketSeat.onclick = function(e) {
+            e.preventDefault();
+            openTicketBusModal(seat);
+          };
+        } else {
+          els.ticketSeat.style.display = "none";
+          els.ticketSeat.onclick = null;
+        }
+      }
+
+      if (!els.ticketTransport) return;
+      els.ticketTransport.style.display = "block";
+
+      if (!isBus) {
+        els.ticketTransportTitle.textContent = "საკუთარი ავტომობილით მოდიხარ";
+        if (els.ticketTransportTimeRow) els.ticketTransportTimeRow.setAttribute("hidden", "");
+        if (els.ticketTransportAddrRow) els.ticketTransportAddrRow.setAttribute("hidden", "");
+        if (els.ticketTransportMap) els.ticketTransportMap.style.display = "none";
+        return;
+      }
+
+      const type = safeText(lastConfig.transport_type) || "ტრანსპორტი თბილისიდან";
+      const time = safeText(lastConfig.transport_time || lastConfig.bus_time || "");
+      const address = safeText(lastConfig.transport_address || lastConfig.bus_address || "");
+      const map = safeText(lastConfig.transport_map || lastConfig.bus_pickup_map || "");
+
+      els.ticketTransportTitle.textContent = type;
+
+      if (time) {
+        els.ticketTransportTime.textContent = time;
+        els.ticketTransportTimeRow.removeAttribute("hidden");
+      } else {
+        els.ticketTransportTimeRow.setAttribute("hidden", "");
+      }
+
+      if (address) {
+        els.ticketTransportAddr.textContent = address;
+        els.ticketTransportAddrRow.removeAttribute("hidden");
+      } else {
+        els.ticketTransportAddrRow.setAttribute("hidden", "");
+      }
+
+      if (isUrl(map)) {
+        els.ticketTransportMap.href = map;
+        els.ticketTransportMap.style.display = "block";
+      } else {
+        els.ticketTransportMap.style.display = "none";
+      }
+    }
+
+    async function openTicketTransportChange() {
+      if (!currentTicketContext || !currentTicketContext.ticket_id) {
+        showTicketChangeMessage("error", "ბილეთის მონაცემი ვერ მოიძებნა");
+        return;
+      }
+
+      clearTicketChangeMessage();
+      const mode = await showTransportChoiceModal();
+      if (!mode) return;
+
+      if (mode === "car") {
+        await submitTicketTransportChange("car", "");
+        return;
+      }
+
+      transportChangeContext = {
+        ticket_id: currentTicketContext.ticket_id,
+        phone: currentTicketContext.phone || "",
+        currentSeat: Number(currentTicketContext.seat_number || 0)
+      };
+      selectedSeat = transportChangeContext.currentSeat || null;
+      if (els.transportMode) els.transportMode.value = "bus";
+      openSeatPickerModal();
+    }
+
+    async function submitTicketTransportChange(mode, seat) {
+      if (!currentTicketContext || !currentTicketContext.ticket_id) return;
+
+      const btn = els.ticketChangeTransportBtn;
+      if (btn) btn.disabled = true;
+      showTicketChangeMessage("loading", "ინახება...");
+
+      try {
+        const res = await postActionWithResponse({
+          action: "update_transport",
+          ticket_id: currentTicketContext.ticket_id,
+          phone: currentTicketContext.phone || "",
+          transport_mode: mode,
+          seat_number: mode === "bus" ? seat : ""
+        });
+
+        if (res && !res.ok) throw new Error(res.error || "ტრანსპორტი ვერ შეიცვალა");
+
+        const savedSeat = mode === "bus"
+          ? ((res && (res.seat_number || res.bus_seat_number)) || seat)
+          : "";
+
+        currentTicketContext.transport_mode = mode;
+        currentTicketContext.seat_number = savedSeat;
+        renderTicketTransportChoice(mode, savedSeat);
+        updateSavedTicketTransport(mode, savedSeat);
+        refreshMyTicketCard();
+
+        showTicketChangeMessage(
+          "ok",
+          mode === "bus"
+            ? "შენახულია: ავტობუსი, ადგილი #" + savedSeat
+            : "შენახულია: საკუთარი ავტომობილი"
+        );
+      } catch (e) {
+        showTicketChangeMessage("error", e.message || "ტრანსპორტი ვერ შეიცვალა");
+      } finally {
+        transportChangeContext = null;
+        if (btn) btn.disabled = false;
+      }
     }
 
     function addQrLogoMark() {
@@ -8972,10 +9169,6 @@
       ].map(id => document.getElementById(id)).filter(Boolean);
       const isTypeChosen = !!type;
 
-      if (els.registerForm) {
-        els.registerForm.classList.toggle("form-locked", !isTypeChosen);
-      }
-
       registerFields.forEach(field => {
         field.disabled = !isTypeChosen;
         field.style.opacity = isTypeChosen ? "1" : "0.55";
@@ -9112,17 +9305,6 @@
     async function submitRegisterForm(e) {
       e.preventDefault();
       hideMessages();
-
-      if (!getAttendeeType()) {
-        showMessage("error", "ჯერ აირჩიე რეგისტრაციის ტიპი", els.registerError);
-        if (els.attendeeType) {
-          els.attendeeType.focus();
-          els.attendeeType.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-        updateAttendeeTypeUI();
-        return;
-      }
-
       const hasTransportChoice = await ensureTransportChoiceBeforeSubmit();
       if (!hasTransportChoice) return;
 
@@ -9528,7 +9710,7 @@
       updateSaveSeatButton();
     }
 
-    function closeSeatPickerModal() {
+    function closeSeatPickerModal(keepTransportChangeContext) {
       const modal = document.getElementById("registerModal");
       if (!modal) return;
       modal.classList.remove("open");
@@ -9540,6 +9722,10 @@
         window.__viewingTicket = null;
         selectedSeat = null;
         if (typeof updateSeatVisuals === "function") updateSeatVisuals();
+      }
+
+      if (!keepTransportChangeContext) {
+        transportChangeContext = null;
       }
     }
 
@@ -9555,6 +9741,19 @@
         saveBtn.disabled = false;
         saveBtn.style.opacity = "1";
         saveBtn.textContent = "✓ შენი ადგილი #" + (selectedSeat || "") + " — დახურვა";
+        return;
+      }
+
+      if (transportChangeContext) {
+        if (selectedSeat) {
+          saveBtn.disabled = false;
+          saveBtn.style.opacity = "1";
+          saveBtn.textContent = "✓ ტრანსპორტის შეცვლა (ადგილი #" + selectedSeat + ")";
+        } else {
+          saveBtn.disabled = true;
+          saveBtn.style.opacity = "0.55";
+          saveBtn.textContent = "ჯერ აირჩიე ავტობუსის ადგილი";
+        }
         return;
       }
 
@@ -9578,6 +9777,14 @@
       // VIEW MODE: just close — user is only looking at where their seat is
       if (window.__busViewMode) {
         closeSeatPickerModal();
+        return;
+      }
+
+      if (transportChangeContext) {
+        if (!selectedSeat) return;
+        const seatToSave = selectedSeat;
+        closeSeatPickerModal(true);
+        submitTicketTransportChange("bus", seatToSave);
         return;
       }
 
@@ -9708,10 +9915,15 @@
       const saveBtn = document.getElementById("saveSeatBtn");
       if (saveBtn) saveBtn.addEventListener("click", saveSelectedSeat);
 
+      if (els.ticketChangeTransportBtn) {
+        els.ticketChangeTransportBtn.addEventListener("click", openTicketTransportChange);
+      }
+
       // Modal close (X) — uses existing closeRegisterX, but needs to close THIS modal
       const closeRegX = document.getElementById("closeRegisterX");
       if (closeRegX) closeRegX.addEventListener("click", closeSeatPickerModal);
-      els.showMyTicketBtn.addEventListener("click", reopenMyTicket);
+      if (els.showMyTicketBtn) els.showMyTicketBtn.addEventListener("click", reopenMyTicket);
+      if (els.ticketLookupBtn) els.ticketLookupBtn.addEventListener("click", reopenMyTicket);
 
       // SMS link button (inside ticket modal)
       const sendLinkSmsBtn = document.getElementById("sendLinkSmsBtn");
