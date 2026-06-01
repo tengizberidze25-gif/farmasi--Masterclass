@@ -7023,6 +7023,12 @@
     // ============= UTILS =============
     function safeText(v) { return String(v || "").trim(); }
     function isUrl(v) { return /^https?:\/\//i.test(String(v || "").trim()); }
+    function normalizeGeorgianPhone(value) {
+      let digits = String(value || "").replace(/\D/g, "");
+      if (digits.startsWith("00995")) digits = digits.slice(2);
+      if (digits.startsWith("995") && digits.length === 12) digits = digits.slice(3);
+      return digits;
+    }
 
     function makeLocationHtml(icon, label, value) {
       const v = safeText(value);
@@ -8542,11 +8548,10 @@
       const btn = document.getElementById("phoneVerifyBtn");
       if (!input || !msg || !btn) return;
 
-      const phone = input.value.trim();
+      const phone = normalizeGeorgianPhone(input.value);
 
       // Basic validation
-      const digits = phone.replace(/\D/g, "");
-      if (digits.length < 9) {
+      if (phone.length !== 9) {
         msg.textContent = "შეიყვანე სრული ტელეფონის ნომერი";
         msg.className = "phone-verify-msg error";
         return;
@@ -8567,7 +8572,7 @@
           // Verified — show choice screen with two options
           showVerifyChoiceScreen(data.ticket);
         } else {
-          msg.textContent = (data && data.error) || "ამ ტელეფონით ბილეთი ვერ მოიძებნა";
+          msg.textContent = "ამ ტელეფონით ბილეთი ვერ მოიძებნა";
           msg.className = "phone-verify-msg error";
         }
       } catch (e) {
@@ -9305,6 +9310,8 @@
     async function submitRegisterForm(e) {
       e.preventDefault();
       hideMessages();
+      if (els.registerForm && !els.registerForm.reportValidity()) return;
+
       const hasTransportChoice = await ensureTransportChoiceBeforeSubmit();
       if (!hasTransportChoice) return;
 
@@ -9319,10 +9326,17 @@
         attendee_type: getAttendeeType(),
         invited_by: els.invitedBy ? els.invitedBy.value : "",
         position: getRegistrationPosition(),
-        phone: document.getElementById("phone").value,
+        phone: normalizeGeorgianPhone(document.getElementById("phone").value),
         transport_mode: document.getElementById("transport_mode").value,
         seat_number: document.getElementById("seat_number").value
       };
+
+      if (formData.phone.length !== 9) {
+        showMessage("error", "შეიყვანე სრული ტელეფონის ნომერი", els.registerError);
+        els.registerBtn.disabled = false;
+        els.registerBtn.textContent = t("register_button", "დარეგისტრირდი");
+        return;
+      }
 
       if (formData.attendee_type === "guest" && !String(formData.invited_by || "").trim()) {
         showMessage("error", "გთხოვთ, მიუთითოთ ვინ მოგიწვიათ", els.registerError);
