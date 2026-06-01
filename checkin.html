@@ -455,12 +455,10 @@
           }
 
           if (value) {
-            if (value) {
-              stopScanner();
-              ticket.value = value;
-              await checkIn(value);
-              return;
-            }
+            stopScanner();
+            ticket.value = value;
+            await checkIn(value);
+            return;
           }
         } catch (e) {}
         requestAnimationFrame(loop);
