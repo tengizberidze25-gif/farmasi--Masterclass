@@ -8792,6 +8792,18 @@
         return;
       }
 
+      // ავტობუსი აირჩია — ჯერ შევამოწმოთ თავისუფალი ადგილი არსებობს თუ არა
+      const TOTAL_BUS_SEATS = 54;
+      const myCurrentSeat = Number(currentTicketContext.seat_number || 0);
+      // ჩემი ამჟამინდელი ადგილი (თუ უკვე ავტობუსში ვარ) თავისუფლად ითვლება
+      const takenByOthers = occupiedSeats.filter(function(s) {
+        return Number(s) !== myCurrentSeat;
+      });
+      if (takenByOthers.length >= TOTAL_BUS_SEATS) {
+        showTicketChangeMessage("error", "სამწუხაროდ ავტობუსში ადგილი აღარ არის 😔");
+        return;
+      }
+
       transportChangeContext = {
         ticket_id: currentTicketContext.ticket_id,
         phone: currentTicketContext.phone || "",
@@ -8818,7 +8830,13 @@
           seat_number: mode === "bus" ? seat : ""
         });
 
-        if (res && !res.ok) throw new Error(res.error || "ტრანსპორტი ვერ შეიცვალა");
+        if (res && !res.ok) {
+          let errText = res.error || "ტრანსპორტი ვერ შეიცვალა";
+          if (res.error === "Seat taken") errText = "ეს ადგილი ახლახან დაიკავეს — აირჩიე სხვა";
+          else if (res.error === "Invalid bus seat") errText = "ადგილი არასწორია";
+          else if (res.error === "Registration not found") errText = "ბილეთი ვერ მოიძებნა";
+          throw new Error(errText);
+        }
 
         const savedSeat = mode === "bus"
           ? ((res && (res.seat_number || res.bus_seat_number)) || seat)
@@ -9735,6 +9753,14 @@
       modal.classList.add("open");
       document.body.style.overflow = "hidden";
 
+      // ტრანსპორტის შეცვლისას ბილეთის ფანჯარა ღიაა — seat picker მის ზემოდან
+      // უნდა გამოჩნდეს (ორივეს z-index 1200, ამიტომ ხელით ვაწევთ)
+      if (transportChangeContext) {
+        modal.style.zIndex = "1350";
+      } else {
+        modal.style.zIndex = "";
+      }
+
       // Enable/disable save button based on whether a seat is currently selected
       updateSaveSeatButton();
     }
@@ -9743,6 +9769,7 @@
       const modal = document.getElementById("registerModal");
       if (!modal) return;
       modal.classList.remove("open");
+      modal.style.zIndex = "";
       document.body.style.overflow = "";
 
       // Reset view mode flag — modal closes either way
