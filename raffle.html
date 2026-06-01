@@ -1272,25 +1272,44 @@ body.presentation-mode .history{
       if (!pointer) return { stop: function(){} };
 
       let stopped = false;
-      let lastLineIndex = null;
       const startTime = performance.now();
       const totalRotation = toRotation - fromRotation;
       const arcDeg = 360 / Math.max(1, segmentCount);
+      let lastLineIndex = Math.floor(fromRotation / arcDeg);
 
-      function easeOutCubic(p){
-        return 1 - Math.pow(1 - p, 3);
+      function cubicBezierY(x1, y1, x2, y2, t){
+        const cx = 3 * x1;
+        const bx = 3 * (x2 - x1) - cx;
+        const ax = 1 - cx - bx;
+        const cy = 3 * y1;
+        const by = 3 * (y2 - y1) - cy;
+        const ay = 1 - cy - by;
+
+        function sampleX(u){ return ((ax * u + bx) * u + cx) * u; }
+        function sampleY(u){ return ((ay * u + by) * u + cy) * u; }
+        function sampleDX(u){ return (3 * ax * u + 2 * bx) * u + cx; }
+
+        let u = t;
+        for (let i = 0; i < 6; i++) {
+          const x = sampleX(u) - t;
+          const dx = sampleDX(u);
+          if (Math.abs(x) < 0.0001 || Math.abs(dx) < 0.0001) break;
+          u -= x / dx;
+          u = Math.max(0, Math.min(1, u));
+        }
+        return sampleY(u);
       }
 
       function hit(){
-        pointer.style.transition = 'transform 42ms ease-out';
-        pointer.style.transform = 'translateX(-50%) translateY(12px) rotate(25deg)';
+        pointer.classList.remove('ratchet-hit');
+        pointer.offsetHeight;
+        pointer.classList.add('ratchet-hit');
 
         playPointerClick();
 
         setTimeout(function(){
           if (stopped) return;
-          pointer.style.transition = 'transform 70ms ease-in';
-          pointer.style.transform = 'translateX(-50%) translateY(0) rotate(0deg)';
+          pointer.classList.remove('ratchet-hit');
         }, 45);
       }
 
@@ -1298,11 +1317,10 @@ body.presentation-mode .history{
         if (stopped) return;
 
         const p = Math.min((now - startTime) / duration, 1);
-        const eased = easeOutCubic(p);
+        const eased = cubicBezierY(.05, .86, .12, 1, p);
 
         const currentRotation = fromRotation + totalRotation * eased;
-        const normalized = ((currentRotation % 360) + 360) % 360;
-        const lineIndex = Math.floor(normalized / arcDeg);
+        const lineIndex = Math.floor(currentRotation / arcDeg);
 
         if (lineIndex !== lastLineIndex) {
           lastLineIndex = lineIndex;
@@ -1317,8 +1335,7 @@ body.presentation-mode .history{
       return {
         stop: function(){
           stopped = true;
-          pointer.style.transition = 'transform 80ms ease';
-          pointer.style.transform = 'translateX(-50%) translateY(0) rotate(0deg)';
+          pointer.classList.remove('ratchet-hit');
         }
       };
     }
