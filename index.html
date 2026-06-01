@@ -1764,26 +1764,9 @@
     /* სანამ ტიპი არ აირჩევა (.needs-pick), ღილაკი გამოირჩევა */
     #attendee_type.needs-pick {
       border: 1.5px solid var(--gold);
-      background-color: rgba(232, 196, 104, 0.10);
       color: var(--gold-light, #f4d989);
       font-weight: 600;
       font-size: 13.5px;
-      box-shadow: 0 0 0 0 rgba(232, 196, 104, 0.5);
-      animation: attendeePulse 2.2s ease-in-out infinite;
-      /* უფრო დიდი, მკვეთრი ისარი */
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='10' viewBox='0 0 12 8'%3E%3Cpath fill='none' stroke='%23f4d989' stroke-width='2.2' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
-      background-position: right 14px center;
-    }
-
-    @keyframes attendeePulse {
-      0%, 100% {
-        box-shadow: 0 0 0 0 rgba(232, 196, 104, 0.45);
-        border-color: var(--gold);
-      }
-      50% {
-        box-shadow: 0 0 0 5px rgba(232, 196, 104, 0);
-        border-color: var(--gold-light, #f4d989);
-      }
     }
 
     /* პატარა მინიშნება ღილაკის ზემოთ */
