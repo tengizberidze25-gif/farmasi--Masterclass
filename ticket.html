@@ -2430,8 +2430,10 @@
     }
 
     async function handleTcChooseTransport(mode) {
+      console.log('[transport] ღილაკი დაჭერილია, mode =', mode);
       if (mode === 'bus') {
         // Open bus modal in "change" mode — seat selection
+        console.log('[transport] ვხსნი ავტობუსის სალონს...');
         openBusModalForChange();
         return;
       }
@@ -2470,6 +2472,9 @@
     let busChangeMode = false;
 
     async function openBusModalForChange() {
+      console.log('[bus] openBusModalForChange გაეშვა');
+      console.log('[bus] els.busModal =', els.busModal);
+      console.log('[bus] els.busGrid =', els.busGrid);
       busChangeMode = true;
 
       // current seat-ის მონიშვნა "yours"-ად — ვადგენთ tcVerifiedTicket-იდან
