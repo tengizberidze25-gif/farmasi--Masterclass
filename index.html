@@ -6297,12 +6297,6 @@
     </div>
 
 
-    <!-- LAST REGISTRATION -->
-    <div class="glass-card last-card">
-      <div class="card-eyebrow">ბოლო რეგისტრაცია</div>
-      <div id="lastRegistrations"></div>
-    </div>
-
     <!-- SHARE WITH FRIENDS -->
     <div class="share-friends-card">
       <div class="share-friends-icon">💝</div>
@@ -8214,8 +8208,8 @@
     }
 
     function maybeShowLivePopup(items) {
-      if (!items || !items.length) return;
-      showLivePopup(items[0]);
+      // "ბოლო რეგისტრაცია" popup გათიშულია — წარმომადგენლის გვერდზე აღარ ჩანს
+      return;
     }
 
     function startSimulatedRegistrations() {
@@ -10118,7 +10112,7 @@
       }
 
       refreshMyTicketCard();
-      startSimulatedRegistrations();
+      // startSimulatedRegistrations() — გათიშულია (ხელოვნური "ვიღაც დარეგისტრირდა" popup-ები)
 
       // Open ticket links immediately; load the landing data in parallel.
       tryOpenTicketFromUrl();
