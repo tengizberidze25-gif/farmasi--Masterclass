@@ -217,7 +217,27 @@
       background: var(--gold);
       color: #1a0a10;
       border-color: var(--gold);
+      cursor: pointer;
+      position: relative;
     }
+    .seat.taken:hover { background: var(--gold-light); }
+
+    /* custom tooltip */
+    .seat-tip {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      background: #1a0a10;
+      border: 1px solid var(--gold);
+      border-radius: 10px;
+      padding: 8px 13px;
+      pointer-events: none;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.5);
+      min-width: 140px;
+    }
+    .seat-tip .tip-seat { font-size: 11px; color: var(--gold); font-weight: 700; margin-bottom: 3px; }
+    .seat-tip .tip-name { font-size: 13px; color: var(--cream); font-weight: 600; }
+    .seat-tip .tip-ticket { font-size: 11px; color: var(--cream-dim); margin-top: 2px; }
 
     /* === LIST === */
     .filters {
@@ -289,6 +309,11 @@
   </style>
 </head>
 <body>
+<div class="seat-tip" id="seatTip">
+  <div class="tip-seat" id="tipSeat"></div>
+  <div class="tip-name" id="tipName"></div>
+  <div class="tip-ticket" id="tipTicket"></div>
+</div>
   <div class="wrap">
 
     <!-- LOGIN -->
@@ -512,7 +537,10 @@
       allTickets.forEach(t => {
         if ((t.transport_mode || "bus") === "bus") {
           const s = Number(t.bus_seat_number || t.seat_number);
-          if (s > 0) taken[s] = [t.first_name, t.last_name].filter(Boolean).join(" ");
+          if (s > 0) taken[s] = {
+            name: [t.first_name, t.last_name].filter(Boolean).join(" "),
+            ticket: t.ticket_id || ""
+          };
         }
       });
       const takenCount = Object.keys(taken).length;
@@ -520,11 +548,33 @@
 
       let html = "";
       for (let i = 1; i <= TOTAL_SEATS; i++) {
-        const isTaken = taken[i] !== undefined;
-        html += '<div class="seat' + (isTaken ? ' taken' : '') + '"' +
-          (isTaken ? ' title="' + esc(taken[i]) + '"' : '') + '>' + i + '</div>';
+        const info = taken[i];
+        if (info) {
+          html += '<div class="seat taken" data-name="' + esc(info.name) + '" data-ticket="' + esc(info.ticket) + '" data-num="' + i + '">' + i + '</div>';
+        } else {
+          html += '<div class="seat">' + i + '</div>';
+        }
       }
       el("busGrid").innerHTML = html;
+
+      // tooltip logic
+      const tip = document.getElementById("seatTip");
+      el("busGrid").addEventListener("mouseover", e => {
+        const seat = e.target.closest(".seat.taken");
+        if (!seat) return;
+        document.getElementById("tipSeat").textContent = "ადგილი #" + seat.dataset.num;
+        document.getElementById("tipName").textContent = seat.dataset.name;
+        document.getElementById("tipTicket").textContent = seat.dataset.ticket;
+        tip.style.display = "block";
+      });
+      el("busGrid").addEventListener("mousemove", e => {
+        tip.style.left = (e.clientX + 14) + "px";
+        tip.style.top = (e.clientY - 10) + "px";
+      });
+      el("busGrid").addEventListener("mouseleave", () => { tip.style.display = "none"; });
+      el("busGrid").addEventListener("mouseout", e => {
+        if (!e.target.closest(".seat.taken")) tip.style.display = "none";
+      });
     }
 
     function esc(s) {
