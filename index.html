@@ -9163,6 +9163,58 @@
       return document.getElementById("position");
     }
 
+    const TITLE_POSITION_OPTIONS = [
+      "აღმასრულებელი ბოს-მენეჯერი",
+      "აღმასრულებელი ბოს მენეჯერი",
+      "ბოს-მენეჯერი",
+      "ბოს მენეჯერი",
+      "პრეზიდენტი მენეჯერი",
+      "პრეზიდენტი-მენეჯერი",
+      "ვიცე-პრეზიდენტი მენეჯერი",
+      "ვიცე პრეზიდენტი მენეჯერი",
+      "ბრილიანტის მენეჯერი",
+      "ზურმუხტის მენეჯერი",
+      "პლატინის მენეჯერი",
+      "ოქროს მენეჯერი",
+      "ბრინჯაოს მენეჯერი",
+      "მენეჯერი",
+      "ინფლუენსერი"
+    ];
+
+    function populateTitlePositionOptions() {
+      const position = getPositionInput();
+      if (!position) return;
+
+      const current = position.value;
+      position.innerHTML = "";
+
+      const placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.disabled = true;
+      placeholder.hidden = true;
+      placeholder.textContent = t("position_placeholder", "აირჩიე ტიტული/წოდება");
+      position.appendChild(placeholder);
+
+      const seen = new Set();
+      TITLE_POSITION_OPTIONS.forEach(title => {
+        const clean = String(title || "").trim();
+        const key = clean.toLowerCase();
+        if (!clean || seen.has(key)) return;
+        seen.add(key);
+
+        const option = document.createElement("option");
+        option.value = clean;
+        option.textContent = clean;
+        position.appendChild(option);
+      });
+
+      if (current && TITLE_POSITION_OPTIONS.includes(current)) {
+        position.value = current;
+      } else {
+        position.value = "";
+      }
+    }
+
     function updateAttendeeTypeUI() {
       const type = getAttendeeType();
       const position = getPositionInput();
@@ -9218,6 +9270,7 @@
         }
         if (positionWrap) positionWrap.style.display = "none";
       } else {
+        populateTitlePositionOptions();
         if (els.invitedByWrap) els.invitedByWrap.style.display = "none";
         if (els.invitedBy) {
           els.invitedBy.required = false;
@@ -9332,6 +9385,13 @@
 
       if (formData.attendee_type === "guest" && !String(formData.invited_by || "").trim()) {
         showMessage("error", "გთხოვთ, მიუთითოთ ვინ მოგიწვიათ", els.registerError);
+        els.registerBtn.disabled = false;
+        els.registerBtn.textContent = t("register_button", "დარეგისტრირდი");
+        return;
+      }
+
+      if (formData.attendee_type === "title_holder" && !String(formData.position || "").trim()) {
+        showMessage("error", "გთხოვთ, აირჩიოთ თქვენი ტიტული/წოდება", els.registerError);
         els.registerBtn.disabled = false;
         els.registerBtn.textContent = t("register_button", "დარეგისტრირდი");
         return;
@@ -9910,6 +9970,7 @@
       els.cancelForm.addEventListener("submit", submitCancelForm);
 
       if (els.attendeeType) {
+        populateTitlePositionOptions();
         els.attendeeType.addEventListener("change", updateAttendeeTypeUI);
         updateAttendeeTypeUI();
       }
