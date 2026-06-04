@@ -1760,34 +1760,6 @@
       color: var(--cream);
     }
 
-    /* === მონაწილეობის ტიპი — მკაფიო "აქ აირჩიე" სახე === */
-    /* სანამ ტიპი არ აირჩევა (.needs-pick), ღილაკი გამოირჩევა */
-    #attendee_type.needs-pick {
-      border: 1.5px solid var(--gold);
-      color: var(--gold-light, #f4d989);
-      font-weight: 600;
-      font-size: 13.5px;
-    }
-
-    /* პატარა მინიშნება ღილაკის ზემოთ */
-    .attendee-hint {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      font-family: var(--geo-font);
-      font-size: 12px;
-      color: var(--gold);
-      margin-bottom: 7px;
-      letter-spacing: 0.3px;
-      animation: attendeeHintFade 2.2s ease-in-out infinite;
-    }
-    .attendee-hint.hide { display: none; }
-    @keyframes attendeeHintFade {
-      0%, 100% { opacity: 0.6; }
-      50% { opacity: 1; }
-    }
-
     .submit-btn {
       margin-top: 4px;
     }
@@ -6123,12 +6095,9 @@
         <div class="modal-title" style="text-align:center;margin-bottom:14px;">დაიკავე <span class="accent">ადგილი</span></div>
 
         <form id="registerForm" class="form-compact">
-          <div class="attendee-hint" id="attendeeHint">
-            <span>👇</span><span>ჯერ აირჩიე მონაწილეობის ტიპი</span>
-          </div>
           <div class="input-group">
-            <select class="input-field needs-pick" id="attendee_type" name="attendee_type" required>
-              <option value="" disabled selected hidden>აირჩიე მონაწილეობის ტიპი</option>
+            <select class="input-field" id="attendee_type" name="attendee_type" required>
+              <option value="" disabled selected>აირჩიე მონაწილეობის ტიპი</option>
               <option value="title_holder">FARMASI ტიტულის მქონე წარმომადგენელი</option>
               <option value="guest">მოწვეული სტუმარი / წარმომადგენელი</option>
             </select>
@@ -6296,6 +6265,12 @@
       </div>
     </div>
 
+
+    <!-- LAST REGISTRATION -->
+    <div class="glass-card last-card">
+      <div class="card-eyebrow">ბოლო რეგისტრაცია</div>
+      <div id="lastRegistrations"></div>
+    </div>
 
     <!-- SHARE WITH FRIENDS -->
     <div class="share-friends-card">
@@ -6849,6 +6824,8 @@
       "event_time","meeting_end_time","event_location","hotel_location",
       "farewell","admin_phones","admin_chat_ids","schedule",
       "reminder_day","reminder_2h","faq","speakers",
+      "key","value","pin","admin_pin","checkin_pin","raffle_pin",
+      "site_url","reminder_days_before","reminder_hours_before",
       // Speakers (1–6) — name, role, photo
       "speaker_1_name","speaker_1_role","speaker_1_photo",
       "speaker_2_name","speaker_2_role","speaker_2_photo",
@@ -6872,6 +6849,10 @@
       const k = String(key || "").toLowerCase();
       if (RESERVED_KEYS.has(k)) return true;
       if (k.startsWith("info_")) return true; // any info_* field is reserved
+      if (k.startsWith("sms_")) return true;
+      if (k.startsWith("telegram_")) return true;
+      if (k.startsWith("admin_")) return true;
+      if (k.startsWith("reminder_")) return true;
       return false;
     }
 
@@ -7048,12 +7029,6 @@
     // ============= UTILS =============
     function safeText(v) { return String(v || "").trim(); }
     function isUrl(v) { return /^https?:\/\//i.test(String(v || "").trim()); }
-    function normalizeGeorgianPhone(value) {
-      let digits = String(value || "").replace(/\D/g, "");
-      if (digits.startsWith("00995")) digits = digits.slice(2);
-      if (digits.startsWith("995") && digits.length === 12) digits = digits.slice(3);
-      return digits;
-    }
 
     function makeLocationHtml(icon, label, value) {
       const v = safeText(value);
@@ -7923,11 +7898,11 @@
         "info_extra": "დამატებითი"
       };
 
-      // Find all info_* keys and any other non-reserved keys
+      // Public extra info must come only from info_* keys.
+      // Technical Config fields (PIN, reminders, API keys, admin values) stay hidden.
       const allKeys = Object.keys(config || {});
       const infoKeys = allKeys.filter(k => k.toLowerCase().startsWith("info_")).sort();
-      const otherKeys = allKeys.filter(k => !isReservedKey(k));
-      const combined = [...infoKeys, ...otherKeys];
+      const combined = infoKeys;
 
       els.extraFields.innerHTML = "";
 
@@ -8208,8 +8183,8 @@
     }
 
     function maybeShowLivePopup(items) {
-      // "ბოლო რეგისტრაცია" popup გათიშულია — წარმომადგენლის გვერდზე აღარ ჩანს
-      return;
+      if (!items || !items.length) return;
+      showLivePopup(items[0]);
     }
 
     function startSimulatedRegistrations() {
@@ -8524,23 +8499,8 @@
         if (!t) return;
         closePhoneVerifyModal();
 
-        const formData = {
-          first_name: t.first_name || "",
-          last_name: t.last_name || "",
-          city_area_village: t.city || t.city_area_village || "",
-          position: t.position || "",
-          phone: t.phone || ""
-        };
-        const registrationData = {
-          ticket_id: t.ticket_id || "",
-          tier: t.tier || "Standard",
-          seat_number: t.seat_number || "",
-          transport_mode: t.transport_mode || (t.seat_number ? "bus" : "car")
-        };
-
-        saveMyTicket(registrationData, formData);
-        refreshMyTicketCard();
-        showTicketModal(registrationData, formData);
+        // Open the bus salon and highlight this user's seat
+        openBusSalonForViewing(t);
       });
 
       const smsBtn = document.getElementById("choiceSmsBtn");
@@ -8588,10 +8548,11 @@
       const btn = document.getElementById("phoneVerifyBtn");
       if (!input || !msg || !btn) return;
 
-      const phone = normalizeGeorgianPhone(input.value);
+      const phone = input.value.trim();
 
       // Basic validation
-      if (phone.length !== 9) {
+      const digits = phone.replace(/\D/g, "");
+      if (digits.length < 9) {
         msg.textContent = "შეიყვანე სრული ტელეფონის ნომერი";
         msg.className = "phone-verify-msg error";
         return;
@@ -8612,7 +8573,7 @@
           // Verified — show choice screen with two options
           showVerifyChoiceScreen(data.ticket);
         } else {
-          msg.textContent = "ამ ტელეფონით ბილეთი ვერ მოიძებნა";
+          msg.textContent = (data && data.error) || "ამ ტელეფონით ბილეთი ვერ მოიძებნა";
           msg.className = "phone-verify-msg error";
         }
       } catch (e) {
@@ -8817,18 +8778,6 @@
         return;
       }
 
-      // ავტობუსი აირჩია — ჯერ შევამოწმოთ თავისუფალი ადგილი არსებობს თუ არა
-      const TOTAL_BUS_SEATS = 54;
-      const myCurrentSeat = Number(currentTicketContext.seat_number || 0);
-      // ჩემი ამჟამინდელი ადგილი (თუ უკვე ავტობუსში ვარ) თავისუფლად ითვლება
-      const takenByOthers = occupiedSeats.filter(function(s) {
-        return Number(s) !== myCurrentSeat;
-      });
-      if (takenByOthers.length >= TOTAL_BUS_SEATS) {
-        showTicketChangeMessage("error", "სამწუხაროდ ავტობუსში ადგილი აღარ არის 😔");
-        return;
-      }
-
       transportChangeContext = {
         ticket_id: currentTicketContext.ticket_id,
         phone: currentTicketContext.phone || "",
@@ -8855,13 +8804,7 @@
           seat_number: mode === "bus" ? seat : ""
         });
 
-        if (res && !res.ok) {
-          let errText = res.error || "ტრანსპორტი ვერ შეიცვალა";
-          if (res.error === "Seat taken") errText = "ეს ადგილი ახლახან დაიკავეს — აირჩიე სხვა";
-          else if (res.error === "Invalid bus seat") errText = "ადგილი არასწორია";
-          else if (res.error === "Registration not found") errText = "ბილეთი ვერ მოიძებნა";
-          throw new Error(errText);
-        }
+        if (res && !res.ok) throw new Error(res.error || "ტრანსპორტი ვერ შეიცვალა");
 
         const savedSeat = mode === "bus"
           ? ((res && (res.seat_number || res.bus_seat_number)) || seat)
@@ -9222,15 +9165,6 @@
 
     function updateAttendeeTypeUI() {
       const type = getAttendeeType();
-      const isTypeChosen = !!type;
-
-      // მკაფიო "აქ აირჩიე" სახე — ქრება არჩევის შემდეგ
-      if (els.attendeeType) {
-        els.attendeeType.classList.toggle("needs-pick", !isTypeChosen);
-      }
-      const hint = document.getElementById("attendeeHint");
-      if (hint) hint.classList.toggle("hide", isTypeChosen);
-
       const position = getPositionInput();
       const positionWrap = position ? position.closest(".input-group") : null;
       const registerFields = [
@@ -9239,13 +9173,12 @@
         "city_area_village",
         "phone"
       ].map(id => document.getElementById(id)).filter(Boolean);
+      const isTypeChosen = !!type;
 
       registerFields.forEach(field => {
         field.disabled = !isTypeChosen;
-        field.style.opacity = isTypeChosen ? "1" : "0.45";
+        field.style.opacity = isTypeChosen ? "1" : "0.55";
         field.style.cursor = isTypeChosen ? "" : "not-allowed";
-        field.style.pointerEvents = isTypeChosen ? "" : "none";
-        if (!isTypeChosen) field.value = "";
       });
 
       if (!isTypeChosen) {
@@ -9378,8 +9311,6 @@
     async function submitRegisterForm(e) {
       e.preventDefault();
       hideMessages();
-      if (els.registerForm && !els.registerForm.reportValidity()) return;
-
       const hasTransportChoice = await ensureTransportChoiceBeforeSubmit();
       if (!hasTransportChoice) return;
 
@@ -9394,17 +9325,10 @@
         attendee_type: getAttendeeType(),
         invited_by: els.invitedBy ? els.invitedBy.value : "",
         position: getRegistrationPosition(),
-        phone: normalizeGeorgianPhone(document.getElementById("phone").value),
+        phone: document.getElementById("phone").value,
         transport_mode: document.getElementById("transport_mode").value,
         seat_number: document.getElementById("seat_number").value
       };
-
-      if (formData.phone.length !== 9) {
-        showMessage("error", "შეიყვანე სრული ტელეფონის ნომერი", els.registerError);
-        els.registerBtn.disabled = false;
-        els.registerBtn.textContent = t("register_button", "დარეგისტრირდი");
-        return;
-      }
 
       if (formData.attendee_type === "guest" && !String(formData.invited_by || "").trim()) {
         showMessage("error", "გთხოვთ, მიუთითოთ ვინ მოგიწვიათ", els.registerError);
@@ -9788,14 +9712,6 @@
       modal.classList.add("open");
       document.body.style.overflow = "hidden";
 
-      // ტრანსპორტის შეცვლისას ბილეთის ფანჯარა ღიაა — seat picker მის ზემოდან
-      // უნდა გამოჩნდეს (ორივეს z-index 1200, ამიტომ ხელით ვაწევთ)
-      if (transportChangeContext) {
-        modal.style.zIndex = "1350";
-      } else {
-        modal.style.zIndex = "";
-      }
-
       // Enable/disable save button based on whether a seat is currently selected
       updateSaveSeatButton();
     }
@@ -9804,7 +9720,6 @@
       const modal = document.getElementById("registerModal");
       if (!modal) return;
       modal.classList.remove("open");
-      modal.style.zIndex = "";
       document.body.style.overflow = "";
 
       // Reset view mode flag — modal closes either way
@@ -10112,7 +10027,7 @@
       }
 
       refreshMyTicketCard();
-      // startSimulatedRegistrations() — გათიშულია (ხელოვნური "ვიღაც დარეგისტრირდა" popup-ები)
+      startSimulatedRegistrations();
 
       // Open ticket links immediately; load the landing data in parallel.
       tryOpenTicketFromUrl();
