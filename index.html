@@ -5928,6 +5928,56 @@
       #registerBtn:not(:disabled)::before { animation: none !important; }
     }
 
+
+    /* === VIDEO SECTION === */
+    .video-section {
+      display: none;
+      margin: 0 auto 24px;
+      max-width: 640px;
+    }
+    .video-section.visible { display: block; }
+    .video-label {
+      text-align: center;
+      font-family: var(--geo);
+      color: var(--gold);
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      opacity: 0.8;
+    }
+    .video-wrap {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #0d0408;
+      border: 1px solid rgba(212,175,55,0.25);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+      cursor: pointer;
+    }
+    .video-wrap iframe {
+      width: 100%;
+      aspect-ratio: 9/16;
+      display: block;
+      border: none;
+    }
+    .video-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px 0;
+      font-family: var(--geo);
+    }
+    .video-title {
+      color: var(--cream);
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .video-date {
+      color: var(--gold);
+      font-size: 12px;
+      opacity: 0.75;
+    }
   </style>
 </head>
 <body>
@@ -6215,6 +6265,18 @@
       <div class="phone-verify-msg" id="phoneVerifyMsg"></div>
     </div>
   </div>
+    <!-- VIDEO -->
+    <div class="video-section glass-card" id="videoSection">
+      <div class="video-label">წინა მასტერკლასი</div>
+      <div class="video-wrap">
+        <iframe id="videoIframe" src="" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+      </div>
+      <div class="video-meta">
+        <span class="video-title" id="videoTitle"></span>
+        <span class="video-date" id="videoDate"></span>
+      </div>
+    </div>
+
     <!-- FAQ -->
     <div class="glass-card" id="faqCard">
       <div class="card-eyebrow">ხშირი კითხვები</div>
@@ -6751,6 +6813,28 @@
       setPlaceholderById("last_name", "last_name_placeholder", "გვარი");
       setPlaceholderById("city_area_village", "city_placeholder", "ქალაქი / რაიონი / სოფელი");
       setPlaceholderById("phone", "phone_placeholder", "ტელეფონის ნომერი");
+
+      // ვიდეო სექცია
+      const videoUrl = t("video_url", "");
+      const videoTitle = t("video_title", "");
+      const videoDate = t("video_date", "");
+      const videoSection = document.getElementById("videoSection");
+      const videoIframe = document.getElementById("videoIframe");
+      const videoTitleEl = document.getElementById("videoTitle");
+      const videoDateEl = document.getElementById("videoDate");
+      if (videoUrl && videoSection && videoIframe) {
+        // YouTube Shorts URL → embed URL
+        let embedUrl = videoUrl;
+        const shortsMatch = videoUrl.match(/shorts\/([a-zA-Z0-9_-]+)/);
+        const watchMatch = videoUrl.match(/[?&]v=([a-zA-Z0-9_-]+)/);
+        const youtubeId = (shortsMatch && shortsMatch[1]) || (watchMatch && watchMatch[1]);
+        if (youtubeId) embedUrl = "https://www.youtube.com/embed/" + youtubeId + "?rel=0";
+        videoIframe.src = embedUrl;
+        if (videoTitleEl) videoTitleEl.textContent = videoTitle;
+        if (videoDateEl) videoDateEl.textContent = videoDate;
+        videoSection.classList.add("visible");
+      }
+
       setPlaceholderById("cancel_reason", "cancel_reason_placeholder", "მაგ: ჯანმრთელობის პრობლემა, სამუშაო, ან რამე სხვა...");
       setPlaceholderById("ticketCancelReason", "cancel_reason_placeholder", "მაგ: ჯანმრთელობის პრობლემა, სამუშაო, ან რამე სხვა...");
 
