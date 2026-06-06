@@ -270,8 +270,8 @@
         We only add a subtle ambient glow — no color manipulation.
       */
       filter:
-        drop-shadow(0 4px 20px rgba(232, 196, 104, 0.35))
-        drop-shadow(0 0 32px rgba(255, 245, 214, 0.12));
+        brightness(10) saturate(0.8)
+        drop-shadow(0 4px 20px rgba(232, 196, 104, 0.35));
       transform-style: preserve-3d;
       animation: logoFloat 6s ease-in-out infinite;
     }
