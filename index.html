@@ -6039,6 +6039,20 @@
       font-size: 12px;
       opacity: 0.75;
     }
+
+    /* attendee type pulse animation */
+    @keyframes attendeePulse {
+      0%, 100% { border-color: rgba(212,175,55,0.4); box-shadow: none; }
+      50% { border-color: rgba(212,175,55,1); box-shadow: 0 0 12px rgba(212,175,55,0.5); }
+    }
+    #attendee_type.needs-selection {
+      animation: attendeePulse 1.5s ease-in-out infinite;
+    }
+    .form-fields-locked {
+      opacity: 0.4;
+      pointer-events: none;
+      user-select: none;
+    }
   </style>
 </head>
 <body>
@@ -6208,7 +6222,7 @@
         <form id="registerForm" class="form-compact">
           <div class="input-group">
             <select class="input-field" id="attendee_type" name="attendee_type" required>
-              <option value="" disabled selected>აირჩიე მონაწილეობის ტიპი</option>
+              <option value="" disabled selected hidden>აირჩიე მონაწილეობის ტიპი</option>
               <option value="title_holder">FARMASI ტიტულის მქონე წარმომადგენელი</option>
               <option value="guest">მოწვეული სტუმარი / წარმომადგენელი</option>
             </select>
@@ -9329,6 +9343,42 @@
 
     let TITLE_POSITION_OPTIONS = [];
 
+    // attendee_type change — ველების ჩაკეტვა სანამ არ ავირჩევ
+    function initAttendeeTypeGuard() {
+      const sel = document.getElementById('attendee_type');
+      if (!sel) return;
+
+      const fieldsToLock = ['first_name', 'last_name', 'city_area_village', 'city', 'phone'];
+      const positionWrap = sel.closest('form') || document;
+
+      function updateLock() {
+        const chosen = sel.value;
+        const locked = !chosen;
+        sel.classList.toggle('needs-selection', locked);
+
+        // ველების ჩაკეტვა
+        fieldsToLock.forEach(function(id) {
+          const el = document.getElementById(id) ||
+                     positionWrap.querySelector('[name="' + id + '"]');
+          if (el) {
+            el.disabled = locked;
+            el.closest('.input-wrap, .form-row, .form-group') ?
+              el.closest('.input-wrap, .form-row, .form-group').classList.toggle('form-fields-locked', locked) :
+              el.classList.toggle('form-fields-locked', locked);
+          }
+        });
+
+        // position dropdown
+        const posEl = getPositionInput ? getPositionInput() : null;
+        if (posEl) {
+          posEl.disabled = locked;
+        }
+      }
+
+      sel.addEventListener('change', updateLock);
+      updateLock(); // init
+    }
+
     function populateTitlePositionOptions() {
       const position = getPositionInput();
       if (!position) return;
@@ -10120,6 +10170,7 @@
       els.cancelForm.addEventListener("submit", submitCancelForm);
 
       if (els.attendeeType) {
+        initAttendeeTypeGuard();
         populateTitlePositionOptions();
         els.attendeeType.addEventListener("change", updateAttendeeTypeUI);
         updateAttendeeTypeUI();
