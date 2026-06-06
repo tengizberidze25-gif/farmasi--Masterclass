@@ -8409,6 +8409,11 @@
       }
     });
     lastConfig = data.config || {};
+        window._statusData = data;
+        // Sheet-იდან positions ჩამოვტვირთოთ
+        if (data.config && data.config.positions) {
+          TITLE_POSITION_OPTIONS = data.config.positions;
+        }
         renderStatus(data.status);
         renderStats(data);
         renderProgress(data);
@@ -9321,24 +9326,7 @@
       return document.getElementById("position");
     }
 
-    const TITLE_POSITION_OPTIONS = [
-      "აღმასრულებელი ბოს-მენეჯერი",
-      "აღმასრულებელი ბოს მენეჯერი",
-      "ბოს-მენეჯერი",
-      "ბოს მენეჯერი",
-      "პრეზიდენტი მენეჯერი",
-      "პრეზიდენტი-მენეჯერი",
-      "ვიცე-პრეზიდენტი მენეჯერი",
-      "ვიცე პრეზიდენტი მენეჯერი",
-      "ბრილიანტის მენეჯერი",
-      "ზურმუხტის მენეჯერი",
-      "პლატინის მენეჯერი",
-      "ოქროს მენეჯერი",
-      "ბრინჯაოს მენეჯერი",
-      "მენეჯერი",
-      "ინფლუენსერი",
-      "წარმომადგენელი"
-    ];
+    let TITLE_POSITION_OPTIONS = [];
 
     function populateTitlePositionOptions() {
       const position = getPositionInput();
@@ -9354,8 +9342,10 @@
       placeholder.textContent = t("position_placeholder", "აირჩიე ტიტული/წოდება");
       position.appendChild(placeholder);
 
+      // Sheet-იდან მოსული positions გამოვიყენოთ თუ გვაქვს
+      const sheetPositions = (window._statusData && window._statusData.positions) || TITLE_POSITION_OPTIONS;
       const seen = new Set();
-      TITLE_POSITION_OPTIONS.forEach(title => {
+      sheetPositions.forEach(title => {
         const clean = String(title || "").trim();
         const key = clean.toLowerCase();
         if (!clean || seen.has(key)) return;
