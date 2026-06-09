@@ -2147,8 +2147,6 @@
       const fullName = (fn + " " + ln).trim();
 
       let qrText = ticket.ticket_id;
-      if (fullName) qrText += "|" + fullName;
-      if (ph) qrText += "|" + ph;
 
       els.qrWrap.innerHTML = "";
       try {
@@ -2170,7 +2168,7 @@
       }
 
       // ID + name + meta
-      let qrText = ticket.ticket_id;
+      els.ticketId.textContent = ticket.ticket_id;
       els.ticketName.textContent = ((ticket.first_name || "") + " " + (ticket.last_name || "")).trim() || "Guest";
 
       const city = safeText(config.event_city);
