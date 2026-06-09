@@ -8820,18 +8820,12 @@
       // Generate QR code
       els.qrWrap.innerHTML = "";
       try {
-  console.log("QR START");
-
   const qrText = ticketIdStr;
   const qrSize = 160;
 
   if (typeof qrcode !== "undefined") {
-    console.log("Using qrcode library");
     renderLocalQr(qrText, qrSize);
-
   } else if (typeof QRCode !== "undefined") {
-    console.log("Using QRCode library");
-
     els.qrWrap.innerHTML = "";
 
     new QRCode(els.qrWrap, {
@@ -8844,12 +8838,9 @@
     });
 
     addQrLogoMark();
-
   } else {
-    console.log("No QR library found");
     renderQrImageFallback(qrText, ticketIdStr, qrSize);
   }
-
 } catch (e) {
   console.error("QR ERROR:", e);
   renderQrImageFallback(ticketIdStr, ticketIdStr, 160);
