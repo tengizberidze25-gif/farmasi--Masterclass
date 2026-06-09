@@ -8820,28 +8820,40 @@
       // Generate QR code
       els.qrWrap.innerHTML = "";
       try {
-        // Keep QR payload short for fast camera scanning on phones.
-        const qrText = ticketIdStr;
-        const qrSize = 160;
+  console.log("QR START");
 
-        if (typeof qrcode !== "undefined") {
-          renderLocalQr(qrText, qrSize);
-        } else if (typeof QRCode !== "undefined") {
-          new QRCode(els.qrWrap, {
-            text: qrText,
-            width: qrSize,
-            height: qrSize,
-            colorDark: "#1a1212",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.H
-          });
-          addQrLogoMark();
-        } else {
-          renderQrImageFallback(qrText, ticketIdStr, qrSize);
-        }
-      } catch (e) {
-        renderQrImageFallback(ticketIdStr, ticketIdStr, 160);
-      }
+  const qrText = ticketIdStr;
+  const qrSize = 160;
+
+  if (typeof qrcode !== "undefined") {
+    console.log("Using qrcode library");
+    renderLocalQr(qrText, qrSize);
+
+  } else if (typeof QRCode !== "undefined") {
+    console.log("Using QRCode library");
+
+    els.qrWrap.innerHTML = "";
+
+    new QRCode(els.qrWrap, {
+      text: qrText,
+      width: qrSize,
+      height: qrSize,
+      colorDark: "#1a1212",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.H
+    });
+
+    addQrLogoMark();
+
+  } else {
+    console.log("No QR library found");
+    renderQrImageFallback(qrText, ticketIdStr, qrSize);
+  }
+
+} catch (e) {
+  console.error("QR ERROR:", e);
+  renderQrImageFallback(ticketIdStr, ticketIdStr, 160);
+}
 
       // Build calendar URLs
       buildCalendarLinks();
