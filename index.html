@@ -9071,32 +9071,29 @@
     }
 
     function renderQrImageFallback(qrText, ticketIdStr, size) {
-  if (!els.qrWrap) return;
+      if (!els.qrWrap) return;
 
-  const qrValue = qrText || ticketIdStr;
-  const qrSize = size || 160;
+      const qrValue = qrText || ticketIdStr;
+      const qrSize = size || 160;
 
-  els.qrWrap.innerHTML = "";
+      els.qrWrap.innerHTML = "";
 
-  if (typeof QRCode !== "undefined") {
-    new QRCode(els.qrWrap, {
-      text: qrValue,
-      width: qrSize,
-      height: qrSize,
-      colorDark: "#1a1212",
-      colorLight: "#ffffff",
-      correctLevel: QRCode.CorrectLevel.H
-    });
-    addQrLogoMark();
-    return;
-  }
+      if (typeof QRCode !== "undefined") {
+        new QRCode(els.qrWrap, {
+          text: qrValue,
+          width: qrSize,
+          height: qrSize,
+          colorDark: "#1a1212",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.H
+        });
+        addQrLogoMark();
+        return;
+      }
 
-  els.qrWrap.innerHTML = `<img width="${qrSize}" height="${qrSize}" alt="Ticket QR" src="https://quickchart.io/qr?size=${qrSize}&text=${encodeURIComponent(qrValue)}">`;
+  els.qrWrap.innerHTML =
+    `<img width="${qrSize}" height="${qrSize}" alt="Ticket QR" src="https://quickchart.io/qr?size=${qrSize}&text=${encodeURIComponent(qrValue)}">`;
 }
-};
-      els.qrWrap.appendChild(img);
-      addQrLogoMark();
-    }
 
     function resetTicketCancelUI() {
       if (els.ticketCancelArea) {
