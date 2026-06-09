@@ -9419,40 +9419,39 @@
     }
 
     function populateTitlePositionOptions() {
-      const position = getPositionInput();
-      if (!position) return;
+  const position = getPositionInput();
+  if (!position) return;
 
-      const current = position.value;
-      position.innerHTML = "";
+  // თუ position არის input+datalist, არ შევეხოთ მის HTML-ს
+  if (position.tagName === "INPUT") return;
 
-      const placeholder = document.createElement("option");
-      placeholder.value = "";
-      placeholder.disabled = true;
-      placeholder.hidden = true;
-      placeholder.textContent = t("position_placeholder", "აირჩიე ტიტული/წოდება");
-      position.appendChild(placeholder);
+  const current = position.value;
+  position.innerHTML = "";
 
-      // Sheet-იდან მოსული positions გამოვიყენოთ თუ გვაქვს
-      const sheetPositions = (window._statusData && window._statusData.positions) || TITLE_POSITION_OPTIONS;
-      const seen = new Set();
-      sheetPositions.forEach(title => {
-        const clean = String(title || "").trim();
-        const key = clean.toLowerCase();
-        if (!clean || seen.has(key)) return;
-        seen.add(key);
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.disabled = true;
+  placeholder.hidden = true;
+  placeholder.textContent = t("position_placeholder", "აირჩიე ტიტული/წოდება");
+  position.appendChild(placeholder);
 
-        const option = document.createElement("option");
-        option.value = clean;
-        option.textContent = clean;
-        position.appendChild(option);
-      });
+  const sheetPositions = (window._statusData && window._statusData.positions) || TITLE_POSITION_OPTIONS;
+  const seen = new Set();
 
-      if (current && TITLE_POSITION_OPTIONS.includes(current)) {
-        position.value = current;
-      } else {
-        position.value = "";
-      }
-    }
+  sheetPositions.forEach(title => {
+    const clean = String(title || "").trim();
+    const key = clean.toLowerCase();
+    if (!clean || seen.has(key)) return;
+    seen.add(key);
+
+    const option = document.createElement("option");
+    option.value = clean;
+    option.textContent = clean;
+    position.appendChild(option);
+  });
+
+  position.value = current || "";
+}
 
     function updateAttendeeTypeUI() {
       const type = getAttendeeType();
@@ -10195,10 +10194,18 @@
       els.registerForm.addEventListener("submit", submitRegisterForm);
       els.cancelForm.addEventListener("submit", submitCancelForm);
 
+      const positionInput = getPositionInput();
+
+      if (positionInput) {
+          positionInput.addEventListener("input", updateTransportModeUI);
+          positionInput.addEventListener("change", updateTransportModeUI);
+      }
+
       if (els.attendeeType) {
         initAttendeeTypeGuard();
         populateTitlePositionOptions();
         els.attendeeType.addEventListener("change", updateAttendeeTypeUI);
+
         updateAttendeeTypeUI();
       }
 
