@@ -9071,32 +9071,28 @@
     }
 
     function renderQrImageFallback(qrText, ticketIdStr, size) {
-      if (!els.qrWrap) return;
-      if (typeof qrcode !== "undefined") {
-        renderLocalQr(qrText, size || 160);
-        return;
-      }
-      const img = document.createElement("img");
-      img.width = size || 160;
-      img.height = size || 160;
-      img.alt = "Ticket QR";
-      img.src = "https://api.qrserver.com/v1/create-qr-code/?size=" + (size || 160) + "x" + (size || 160) + "&ecc=H&margin=0&data=" + encodeURIComponent(qrText);
-      img.onerror = function() {
+  if (!els.qrWrap) return;
+
+  const qrValue = qrText || ticketIdStr;
+  const qrSize = size || 160;
+
   els.qrWrap.innerHTML = "";
+
   if (typeof QRCode !== "undefined") {
     new QRCode(els.qrWrap, {
-      text: ticketIdStr,
-      width: size || 160,
-      height: size || 160,
+      text: qrValue,
+      width: qrSize,
+      height: qrSize,
       colorDark: "#1a1212",
       colorLight: "#ffffff",
       correctLevel: QRCode.CorrectLevel.H
     });
-  } else {
-    els.qrWrap.innerHTML =
-      `<img width="${size || 160}" height="${size || 160}" alt="Ticket QR"
-        src="https://quickchart.io/qr?size=${size || 160}&text=${encodeURIComponent(ticketIdStr)}">`;
+    addQrLogoMark();
+    return;
   }
+
+  els.qrWrap.innerHTML = `<img width="${qrSize}" height="${qrSize}" alt="Ticket QR" src="https://quickchart.io/qr?size=${qrSize}&text=${encodeURIComponent(qrValue)}">`;
+}
 };
       els.qrWrap.appendChild(img);
       addQrLogoMark();
