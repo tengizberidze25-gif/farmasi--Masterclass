@@ -1716,7 +1716,7 @@
       padding-left: 4px;
     }
 
-    .input-field, select.input-field {
+    .input-field {
       width: 100%;
       padding: 10px 12px;
       background: rgba(0, 0, 0, 0.25);
@@ -1727,9 +1727,12 @@
       font-size: 13px;
       font-weight: 400;
       transition: all 0.25s ease;
-      -webkit-appearance: none;
-      appearance: none;
-    }
+    } 
+
+select.input-field {
+  -webkit-appearance: menulist;
+  appearance: auto;
+}
 
     .input-field::placeholder {
       color: rgba(216, 210, 196, 0.4);
