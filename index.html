@@ -10071,10 +10071,10 @@
      */
     function saveSelectedSeat() {
       // VIEW MODE: just close — user is only looking at where their seat is
-      if (window.__busViewMode) {
-        closeSeatPickerModal();
-        return;
-      }
+      if (window.__busViewMode && !transportChangeContext) {
+  closeSeatPickerModal();
+  return;
+}
 
       if (transportChangeContext) {
         if (!selectedSeat) return;
