@@ -10042,41 +10042,28 @@
      * Update the "Save seat" button state — enabled only when a seat is selected.
      */
     function updateSaveSeatButton() {
-      const saveBtn = document.getElementById("saveSeatBtn");
-      if (!saveBtn) return;
+  const saveBtn = document.getElementById("saveSeatBtn");
+  if (!saveBtn) return;
 
-      // VIEW MODE: show seat info + close button
-      if (window.__busViewMode) {
-        saveBtn.disabled = false;
-        saveBtn.style.opacity = "1";
-        saveBtn.textContent = "✓ შენი ადგილი #" + (selectedSeat || "") + " — დახურვა";
-        return;
-      }
-
-      if (transportChangeContext) {
-        if (selectedSeat) {
-          saveBtn.disabled = false;
-          saveBtn.style.opacity = "1";
-          saveBtn.textContent = "✓ ტრანსპორტის შეცვლა (ადგილი #" + selectedSeat + ")";
-        } else {
-          saveBtn.disabled = true;
-          saveBtn.style.opacity = "0.55";
-          saveBtn.textContent = "ჯერ აირჩიე ავტობუსის ადგილი";
-        }
-        return;
-      }
-
-      // REGISTRATION MODE
-      if (selectedSeat) {
-        saveBtn.disabled = false;
-        saveBtn.style.opacity = "1";
-        saveBtn.textContent = "✓ შენახვა (ადგილი #" + selectedSeat + ")";
-      } else {
-        saveBtn.disabled = true;
-        saveBtn.style.opacity = "0.55";
-        saveBtn.textContent = "ჯერ აირჩიე ადგილი ⬆";
-      }
+  if (transportChangeContext) {
+    if (selectedSeat) {
+      saveBtn.disabled = false;
+      saveBtn.style.opacity = "1";
+      saveBtn.textContent = "✓ ტრანსპორტის შეცვლა (ადგილი #" + selectedSeat + ")";
+    } else {
+      saveBtn.disabled = true;
+      saveBtn.style.opacity = "0.55";
+      saveBtn.textContent = "ჯერ აირჩიე ავტობუსის ადგილი";
     }
+    return;
+  }
+
+  if (window.__busViewMode) {
+    saveBtn.disabled = false;
+    saveBtn.style.opacity = "1";
+    saveBtn.textContent = "✓ შენი ადგილი #" + (selectedSeat || "") + " — დახურვა";
+    return;
+  }
 
     /**
      * When user confirms their seat — close modal, update inline form button,
