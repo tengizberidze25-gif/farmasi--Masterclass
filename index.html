@@ -1718,21 +1718,24 @@
 
     .input-field {
       width: 100%;
+      max-width: 100%;
       padding: 10px 12px;
       background: rgba(0, 0, 0, 0.25);
       border: 1px solid var(--border);
       border-radius: 9px;
       color: var(--cream);
       font-family: var(--geo-font);
-      font-size: 13px;
+      font-size: 16px;
       font-weight: 400;
       transition: all 0.25s ease;
-    } 
+    }
 
-select.input-field {
-  -webkit-appearance: menulist;
-  appearance: auto;
-}
+    select.input-field {
+      -webkit-appearance: menulist;
+      appearance: auto;
+      background-color: rgba(0, 0, 0, 0.45);
+      color: var(--cream);
+    }
 
     .input-field::placeholder {
       color: rgba(216, 210, 196, 0.4);
@@ -4435,6 +4438,7 @@ select.input-field {
       .modal { padding: 10px; }
       .modal-content {
         max-height: 92vh;
+        overflow-y: auto;
         padding: 16px 14px;
       }
       .modal-title { font-size: 22px; }
@@ -6055,6 +6059,17 @@ select.input-field {
       opacity: 0.4;
       pointer-events: none;
       user-select: none;
+    }
+
+    html,
+    body {
+      overflow-x: hidden !important;
+      max-width: 100%;
+    }
+
+    .container {
+      overflow-x: hidden !important;
+      max-width: 100%;
     }
   </style>
   <!-- Google Analytics -->
