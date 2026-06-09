@@ -6268,20 +6268,29 @@
             <input class="input-field" type="text" id="city_area_village" name="city_area_village" placeholder="ქალაქი / რაიონი / სოფელი" />
           </div>
           <div class="input-group">
-            <select class="input-field" id="position" name="position" required>
-              <option value="" disabled selected hidden>აირჩიე წოდება</option>
-              <option value="ინფლუენსერი">ინფლუენსერი</option>
-              <option value="მენეჯერი">მენეჯერი</option>
-              <option value="ბრინჯაოს მენეჯერი">ბრინჯაოს მენეჯერი</option>
-              <option value="ოქროს მენეჯერი">ოქროს მენეჯერი</option>
-              <option value="პლატინის მენეჯერი">პლატინის მენეჯერი</option>
-              <option value="ზურმუხტის მენეჯერი">ზურმუხტის მენეჯერი</option>
-              <option value="ბრილიანტის მენეჯერი">ბრილიანტის მენეჯერი</option>
-              <option value="ვიცე-პრეზიდენტი მენეჯერი">ვიცე-პრეზიდენტი მენეჯერი</option>
-              <option value="პრეზიდენტი მენეჯერი">პრეზიდენტი მენეჯერი</option>
-              <option value="ბოს მენეჯერი">ბოს მენეჯერი</option>
-              <option value="აღმასრულებელი ბოს-მენეჯერი">აღმასრულებელი ბოს-მენეჯერი</option>
-            </select>
+            <input
+              class="input-field"
+              type="text"
+              id="position"
+              name="position"
+              placeholder="ტიტული / წოდება"
+              list="positionList"
+              required
+            />
+
+            <datalist id="positionList">
+              <option value="ინფლუენსერი">
+              <option value="მენეჯერი">
+              <option value="ბრინჯაოს მენეჯერი">
+              <option value="ოქროს მენეჯერი">
+              <option value="პლატინის მენეჯერი">
+              <option value="ზურმუხტის მენეჯერი">
+              <option value="ბრილიანტის მენეჯერი">
+              <option value="ვიცე-პრეზიდენტი მენეჯერი">
+              <option value="პრეზიდენტი მენეჯერი">
+              <option value="ბოს მენეჯერი">
+              <option value="აღმასრულებელი ბოს-მენეჯერი">
+            </datalist>
           </div>
           <div class="input-group">
             <input class="input-field" type="tel" id="phone" name="phone" placeholder="ტელეფონის ნომერი" required />
