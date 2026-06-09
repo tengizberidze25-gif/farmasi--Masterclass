@@ -7432,14 +7432,12 @@
     }
 
     function onSeatClick(num) {
-      // VIEW MODE: don't allow seat changes — user is just looking
-      if (window.__busViewMode) return;
+      // VIEW MODE: don't allow seat changes unless transport change is active
+      if (window.__busViewMode && !transportChangeContext) return;
 
-      // Check if taken (defensive — shouldn't be clickable, but just in case)
       const ownSeat = transportChangeContext ? Number(transportChangeContext.currentSeat || 0) : 0;
       if (occupiedSeats.includes(num) && num !== ownSeat) return;
 
-      // Toggle: if already selected, deselect
       if (selectedSeat === num) {
         selectedSeat = null;
       } else {
