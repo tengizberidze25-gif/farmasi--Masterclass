@@ -2163,10 +2163,10 @@
           });
         } else {
           // QRCode library failed to load — show ticket ID as plain text fallback
-          els.qrWrap.innerHTML = '<div style="font-family:monospace; padding:30px; color:#1a1212; font-weight:700; font-size:18px;">' + ticket.ticket_id + '</div>';
+          els.qrWrap.innerHTML = '<img src="https://quickchart.io/qr?size=160&text=' + encodeURIComponent(qrText) + '" width="160" height="160" />';
         }
       } catch (e) {
-        els.qrWrap.innerHTML = '<div style="font-family:monospace; padding:30px; color:#1a1212; font-weight:700; font-size:18px;">' + ticket.ticket_id + '</div>';
+        els.qrWrap.innerHTML = '<img src="https://quickchart.io/qr?size=160&text=' + encodeURIComponent(qrText) + '" width="160" height="160" />';
       }
 
       // ID + name + meta
