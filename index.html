@@ -9372,8 +9372,9 @@
       fire(0.1, { spread: 120, startVelocity: 45 });
     }
 
+    let _attendeeTypeChosen = false;
     function getAttendeeType() {
-      return (els.attendeeType && els.attendeeType.value) || "";
+      return (_attendeeTypeChosen && els.attendeeType && els.attendeeType.value) ? els.attendeeType.value : "";
     }
 
     function getPositionInput() {
@@ -9386,9 +9387,6 @@
     function initAttendeeTypeGuard() {
       const sel = document.getElementById('attendee_type');
       if (!sel) return;
-
-      // browser autofill reset
-      sel.value = "";
 
       const fieldsToLock = ['first_name', 'last_name', 'city_area_village', 'city', 'phone'];
       const positionWrap = sel.closest('form') || document;
@@ -9623,13 +9621,6 @@
         transport_mode: document.getElementById("transport_mode").value,
         seat_number: document.getElementById("seat_number").value
       };
-
-      if (!formData.attendee_type) {
-        showMessage("error", "გთხოვთ, აირჩიოთ მონაწილეობის ტიპი", els.registerError);
-        els.registerBtn.disabled = false;
-        els.registerBtn.textContent = t("register_button", "დარეგისტრირდი");
-        return;
-      }
 
       if (formData.attendee_type === "guest" && !String(formData.invited_by || "").trim()) {
         showMessage("error", "გთხოვთ, მიუთითოთ ვინ მოგიწვიათ", els.registerError);
@@ -10214,7 +10205,10 @@
       if (els.attendeeType) {
         initAttendeeTypeGuard();
         populateTitlePositionOptions();
-        els.attendeeType.addEventListener("change", updateAttendeeTypeUI);
+        els.attendeeType.addEventListener("change", function() {
+          _attendeeTypeChosen = true;
+          updateAttendeeTypeUI();
+        });
 
         updateAttendeeTypeUI();
       }
