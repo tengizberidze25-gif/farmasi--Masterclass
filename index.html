@@ -6304,7 +6304,7 @@
           <input type="hidden" id="seat_number" name="seat_number" />
 
           <!-- Register (transport choice opens after click) -->
-          <button class="btn btn-primary submit-btn" id="registerBtn" type="submit" disabled style="margin-top:10px;opacity:0.5;cursor:not-allowed;">
+          <button class="btn btn-primary submit-btn" id="registerBtn" type="submit" style="margin-top:10px;">
             <span class="rgb-label">დარეგისტრირდი</span>
             <span class="rgb-arrow">→</span>
           </button>
@@ -9621,6 +9621,7 @@
         seat_number: document.getElementById("seat_number").value
       };
 
+
       if (formData.attendee_type === "guest" && !String(formData.invited_by || "").trim()) {
         showMessage("error", "გთხოვთ, მიუთითოთ ვინ მოგიწვიათ", els.registerError);
         els.registerBtn.disabled = false;
@@ -10202,7 +10203,6 @@
       }
 
       if (els.attendeeType) {
-        initAttendeeTypeGuard();
         populateTitlePositionOptions();
         els.attendeeType.addEventListener("change", updateAttendeeTypeUI);
 
