@@ -6304,7 +6304,7 @@
           <input type="hidden" id="seat_number" name="seat_number" />
 
           <!-- Register (transport choice opens after click) -->
-          <button class="btn btn-primary submit-btn" id="registerBtn" type="button" style="margin-top:10px;">
+          <button class="btn btn-primary submit-btn" id="registerBtn" type="submit" style="margin-top:10px;">
             <span class="rgb-label">დარეგისტრირდი</span>
             <span class="rgb-arrow">→</span>
           </button>
@@ -10065,6 +10065,18 @@
     saveBtn.textContent = "✓ შენი ადგილი #" + (selectedSeat || "") + " — დახურვა";
     return;
   }
+
+  // ჩვეულებრივი რეგისტრაციის რეჟიმი
+  if (selectedSeat) {
+    saveBtn.disabled = false;
+    saveBtn.style.opacity = "1";
+    saveBtn.textContent = "✓ შენახვა (ადგილი #" + selectedSeat + ")";
+  } else {
+    saveBtn.disabled = true;
+    saveBtn.style.opacity = "0.55";
+    saveBtn.textContent = "✓ შენახვა";
+  }
+}
 
     /**
      * When user confirms their seat — close modal, update inline form button,
