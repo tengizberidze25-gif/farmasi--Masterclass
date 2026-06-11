@@ -6010,6 +6010,9 @@
       overflow: hidden;
       border: 1px solid rgba(212,175,55,0.25);
       box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
     }
     .video-item iframe {
       width: 100%;
@@ -6022,12 +6025,18 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      margin-top: auto;
+      min-height: 52px;
     }
     .video-item-title {
       color: var(--cream);
       font-size: 13px;
       font-weight: 600;
       font-family: var(--geo);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
     .video-item-date {
       color: var(--gold);
@@ -6971,21 +6980,28 @@
           return id ? "https://www.youtube.com/embed/" + id + "?rel=0" : url;
         }
 
+        list.innerHTML = "";
+        const seen = new Set();
         let added = 0;
         // ჯერ ძველი video_url შევამოწმოთ (backwards compat)
         const legacyUrl = t("video_url", "");
         if (legacyUrl) {
           const embedUrl = toEmbedUrl(legacyUrl);
-          const title = t("video_title", "");
-          const date = t("video_date", "");
-          list.innerHTML += '<div class="video-item"><iframe src="' + embedUrl + '" allowfullscreen allow="autoplay; encrypted-media"></iframe><div class="video-item-meta"><span class="video-item-title">' + title + '</span><span class="video-item-date">' + date + '</span></div></div>';
-          added++;
+          if (!seen.has(embedUrl)) {
+            seen.add(embedUrl);
+            const title = t("video_title", "");
+            const date = t("video_date", "");
+            list.innerHTML += '<div class="video-item"><iframe src="' + embedUrl + '" allowfullscreen allow="autoplay; encrypted-media"></iframe><div class="video-item-meta"><span class="video-item-title">' + title + '</span><span class="video-item-date">' + date + '</span></div></div>';
+            added++;
+          }
         }
         // video_1_url ... video_10_url
         for (let i = 1; i <= 10; i++) {
           const url = t("video_" + i + "_url", "");
           if (!url) continue;
           const embedUrl = toEmbedUrl(url);
+          if (seen.has(embedUrl)) continue;
+          seen.add(embedUrl);
           const title = t("video_" + i + "_title", "");
           const date = t("video_" + i + "_date", "");
           list.innerHTML += '<div class="video-item"><iframe src="' + embedUrl + '" allowfullscreen allow="autoplay; encrypted-media"></iframe><div class="video-item-meta"><span class="video-item-title">' + title + '</span><span class="video-item-date">' + date + '</span></div></div>';
@@ -6995,6 +7011,8 @@
           grid.classList.add("visible");
           if (added === 1) list.classList.add("single");
           else list.classList.remove("single");
+        } else {
+          grid.classList.remove("visible");
         }
       })();
 
