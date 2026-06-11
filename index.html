@@ -7018,10 +7018,23 @@
           const id = extractId(url);
           return id ? "https://www.youtube.com/embed/" + id + "?rel=0" : url;
         }
-        function videoCardHtml(embedUrl, videoId, title, date) {
-          const media = videoId
-            ? '<div class="video-thumb" data-embed="' + embedUrl + '"><img src="https://i.ytimg.com/vi/' + videoId + '/hqdefault.jpg" alt="" loading="lazy"><span class="video-play">&#9658;</span></div>'
-            : '<iframe src="' + embedUrl + '" allowfullscreen allow="autoplay; encrypted-media"></iframe>';
+        function thumbUrls(url, videoId) {
+          const isShorts = /shorts\//.test(url);
+          if (isShorts) {
+            return ["https://i.ytimg.com/vi/" + videoId + "/oardefault.jpg",
+                    "https://i.ytimg.com/vi/" + videoId + "/hqdefault.jpg"];
+          }
+          return ["https://i.ytimg.com/vi/" + videoId + "/maxresdefault.jpg",
+                  "https://i.ytimg.com/vi/" + videoId + "/mqdefault.jpg"];
+        }
+        function videoCardHtml(url, embedUrl, videoId, title, date) {
+          let media;
+          if (videoId) {
+            const th = thumbUrls(url, videoId);
+            media = '<div class="video-thumb" data-embed="' + embedUrl + '"><img src="' + th[0] + '" onerror="this.onerror=null;this.src=\'' + th[1] + '\';" alt="" loading="lazy"><span class="video-play">&#9658;</span></div>';
+          } else {
+            media = '<iframe src="' + embedUrl + '" allowfullscreen allow="autoplay; encrypted-media"></iframe>';
+          }
           return '<div class="video-item">' + media + '<div class="video-item-meta"><span class="video-item-title">' + title + '</span><span class="video-item-date">' + date + '</span></div></div>';
         }
 
@@ -7036,7 +7049,7 @@
             seen.add(embedUrl);
             const title = t("video_title", "");
             const date = t("video_date", "");
-            list.innerHTML += videoCardHtml(embedUrl, extractId(legacyUrl), title, date);
+            list.innerHTML += videoCardHtml(legacyUrl, embedUrl, extractId(legacyUrl), title, date);
             added++;
           }
         }
@@ -7049,7 +7062,7 @@
           seen.add(embedUrl);
           const title = t("video_" + i + "_title", "");
           const date = t("video_" + i + "_date", "");
-          list.innerHTML += videoCardHtml(embedUrl, extractId(url), title, date);
+          list.innerHTML += videoCardHtml(url, embedUrl, extractId(url), title, date);
           added++;
         }
         if (added > 0) {
