@@ -1571,65 +1571,24 @@ body.presentation-mode .history{
       }, duration + 120);
     }
 
-    // ქართული → ლათინური ტრანსლიტერაცია (TTS-ისთვის — ბრაუზერებს ka-GE ხმა იშვიათად აქვთ)
-    const __KA2LAT = {
-      'ა':'a','ბ':'b','გ':'g','დ':'d','ე':'e','ვ':'v','ზ':'z','თ':'t',
-      'ი':'i','კ':'k','ლ':'l','მ':'m','ნ':'n','ო':'o','პ':'p','ჟ':'zh',
-      'რ':'r','ს':'s','ტ':'t','უ':'u','ფ':'p','ქ':'k','ღ':'gh','ყ':'q',
-      'შ':'sh','ჩ':'ch','ც':'ts','ძ':'dz','წ':'ts','ჭ':'ch','ხ':'kh',
-      'ჯ':'j','ჰ':'h'
-    };
-    function __translitKa(s){
-      return String(s||'').split('').map(function(c){ return (__KA2LAT[c] !== undefined) ? __KA2LAT[c] : c; }).join('');
-    }
-    // ხმების ჩატვირთვის მოლოდინი (ასინქრონულია — პირველი speak ხშირად ჩუმდება)
-    function __withVoices(cb){
-      try{
-        var v = speechSynthesis.getVoices();
-        if (v && v.length) { cb(v); return; }
-        var done = false;
-        speechSynthesis.onvoiceschanged = function(){ if(done) return; done = true; cb(speechSynthesis.getVoices() || []); };
-        setTimeout(function(){ if(done) return; done = true; cb(speechSynthesis.getVoices() || []); }, 300);
-      }catch(e){ cb([]); }
-    }
-
     function announceWinner(winner){
       try{
-        var nameKa = winner.voice_name || nameOf(winner);
+
+        const fullName =
+          winner.voice_name ||
+          nameOf(winner);
+
+        const text = txt('speech_prefix', 'The winner is') + ' ' + fullName;
 
         speechSynthesis.cancel();
 
-        __withVoices(function(voices){
-          try{
-            voices = voices || [];
-            var kaVoice = voices.find(function(v){ return /ka(-|_)?ge/i.test(v.lang); });
-            var text, useVoice, useLang;
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'en-US';
+        utter.rate = 0.85;
+        utter.pitch = 1.0;
+        utter.volume = 1.0;
 
-            if (kaVoice) {
-              // ქართული ხმა არსებობს — ორიგინალ ქართულს ვკითხულობთ
-              text = txt('speech_prefix', 'გამარჯვებულია') + ' ' + nameKa;
-              useVoice = kaVoice;
-              useLang  = kaVoice.lang;
-            } else {
-              // ქართული ხმა არ არის — ლათინურად ვტრანსლიტერავთ (ru/en ხმა წაიკითხავს)
-              var spoken = __translitKa(nameKa);
-              useVoice = voices.find(function(v){ return /ru(-|_)?ru/i.test(v.lang); })
-                      || voices.find(function(v){ return /^en/i.test(v.lang); })
-                      || voices[0] || null;
-              useLang  = useVoice ? useVoice.lang : 'en-US';
-              text = txt('speech_prefix', 'The winner is') + ' ' + spoken;
-            }
-
-            var utter = new SpeechSynthesisUtterance(text);
-            if (useVoice) utter.voice = useVoice;
-            utter.lang   = useLang;
-            utter.rate   = 0.9;
-            utter.pitch  = 1.0;
-            utter.volume = 1.0;
-
-            speechSynthesis.speak(utter);
-          }catch(e){ console.warn("Speech error (inner):", e); }
-        });
+        speechSynthesis.speak(utter);
 
       }catch(e){
         console.warn("Speech error:", e);
